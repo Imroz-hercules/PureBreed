@@ -1,0 +1,1232 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Embla Carousel Styles */
+.embla {
+  overflow: hidden;
+}
+
+.embla__container {
+  display: flex;
+}
+
+.embla__slide {
+  flex: 0 0 100%;
+  min-width: 0;
+}
+
+/* Professional Light Theme with High Contrast */
+:root.light .light\:bg-white { background-color: #ffffff; }
+/* :root.light .light\:bg-gray-50 { background-color: #f8fafc; } */
+:root.light .light\:bg-gray-100 { background-color: #f1f5f9; }
+:root.light .light\:bg-gray-200 { background-color: #e2e8f0; }
+:root.light .light\:bg-gray-800 { background-color: #1e293b; }
+:root.light .light\:bg-gray-900 { background-color: #0f172a; }
+
+/* Light theme transparencies */
+:root.light .light\:bg-white\/80 { background-color: rgba(255, 255, 255, 0.8); }
+:root.light .light\:bg-white\/90 { background-color: rgba(255, 255, 255, 0.9); }
+:root.light .light\:bg-white\/95 { background-color: rgba(255, 255, 255, 0.95); }
+:root.light .light\:bg-gray-100\/50 { background-color: rgba(241, 245, 249, 0.5); }
+:root.light .light\:bg-gray-200\/50 { background-color: rgba(226, 232, 240, 0.5); }
+
+/* Light theme text colors */
+:root.light .light\:text-gray-900 { color: #0f172a; }
+:root.light .light\:text-gray-800 { color: #1e293b; }
+:root.light .light\:text-gray-700 { color: #334155; }
+:root.light .light\:text-gray-600 { color: #475569; }
+:root.light .light\:text-gray-500 { color: #64748b; }
+:root.light .light\:text-white { color: #ffffff; }
+:root.light .light\:text-midnight-blue { color: #191970; }
+
+/* Light theme borders */
+:root.light .light\:border-gray-200 { border-color: #e2e8f0; }
+:root.light .light\:border-gray-300 { border-color: #cbd5e1; }
+:root.light .light\:border-gray-200\/50 { border-color: rgba(226, 232, 240, 0.5); }
+
+/* Light theme hover states */
+:root.light .light\:hover\:bg-gray-50:hover { background-color: #f8fafc; }
+:root.light .light\:hover\:bg-gray-100:hover { background-color: #f1f5f9; }
+:root.light .light\:hover\:bg-gray-200:hover { background-color: #e2e8f0; }
+:root.light .light\:hover\:bg-gray-300\/50:hover { background-color: rgba(203, 213, 225, 0.5); }
+
+/* Light theme hover text colors */
+:root.light .light\:hover\:text-gray-900:hover { color: #0f172a; }
+:root.light .light\:hover\:text-blue-600:hover { color: #2563eb; }
+
+/* Light theme accent colors */
+:root.light .light\:text-blue-600 { color: #2563eb; }
+:root.light .light\:text-blue-700 { color: #1d4ed8; }
+:root.light .light\:text-green-600 { color: #16a34a; }
+:root.light .light\:text-green-700 { color: #15803d; }
+:root.light .light\:text-orange-600 { color: #ea580c; }
+:root.light .light\:text-red-600 { color: #dc2626; }
+:root.light .light\:text-purple-600 { color: #9333ea; }
+
+/* Light theme cyan color overrides */
+:root.light .bg-cyan-600 { background-color: #0e7490 !important; }
+:root.light .bg-cyan-500 { background-color: #0891b2 !important; }
+
+/* Dark theme table header text color overrides */
+:root.dark .text-cyan-400 { color: #22d3ee !important; }
+:root.dark .text-cyan-300 { color: #67e8f9 !important; }
+:root.dark .text-cyan-200 { color: #a5f3fc !important; }
+
+/* Specific table header styling for dark mode */
+:root.dark .bg-slate-800 .text-cyan-400 { color: #22d3ee !important; }
+:root.dark .bg-slate-800 .text-cyan-300 { color: #67e8f9 !important; }
+:root.dark .bg-slate-800 .text-cyan-200 { color: #a5f3fc !important; }
+
+/* Force table header text color with maximum specificity */
+:root.dark table thead tr th.text-cyan-300 { color: #67e8f9 !important; }
+:root.dark .TableHeader .TableRow .TableHead.text-cyan-300 { color: #67e8f9 !important; }
+:root.dark .bg-slate-800 .text-cyan-300 { color: #67e8f9 !important; }
+
+/* Additional specificity for table elements */
+:root.dark .TableHeader .TableRow .TableHead { color: #67e8f9 !important; }
+
+/* Force text-cyan-200 with maximum specificity */
+:root.dark table thead tr th.text-cyan-200 { color: #a5f3fc !important; }
+:root.dark .TableHeader .TableRow .TableHead.text-cyan-200 { color: #a5f3fc !important; }
+:root.dark .bg-slate-800 .text-cyan-200 { color: #a5f3fc !important; }
+
+/* Chart Tooltip Color Fixes - Ensure consistent colors in both themes */
+:root.dark .recharts-tooltip-wrapper .recharts-tooltip-content {
+  color: #06b6d4 !important;
+  font-weight: bold !important;
+}
+
+:root.dark .recharts-tooltip-wrapper .recharts-tooltip-label {
+  color: #06b6d4 !important;
+  font-weight: bold !important;
+}
+
+:root.dark .recharts-tooltip-wrapper .recharts-tooltip-item {
+  color: #06b6d4 !important;
+  font-weight: bold !important;
+}
+
+:root.light .recharts-tooltip-wrapper .recharts-tooltip-content {
+  color: #06b6d4 !important;
+  font-weight: bold !important;
+}
+
+:root.light .recharts-tooltip-wrapper .recharts-tooltip-label {
+  color: #06b6d4 !important;
+  font-weight: bold !important;
+}
+
+:root.light .recharts-tooltip-wrapper .recharts-tooltip-item {
+  color: #06b6d4 !important;
+  font-weight: bold !important;
+}
+
+/* Force tooltip text colors with maximum specificity */
+.recharts-tooltip-wrapper .recharts-tooltip-content {
+  color: #06b6d4 !important;
+  font-weight: bold !important;
+}
+
+.recharts-tooltip-wrapper .recharts-tooltip-label {
+  color: #06b6d4 !important;
+  font-weight: bold !important;
+}
+
+.recharts-tooltip-wrapper .recharts-tooltip-item {
+  color: #06b6d4 !important;
+  font-weight: bold !important;
+}
+
+/* Chart Axis Label Visibility Fixes */
+:root {
+  --chart-text-color: #374151;
+  --chart-axis-color: #d1d5db;
+}
+
+:root.dark {
+  --chart-text-color: #e2e8f0;
+  --chart-axis-color: #64748b;
+}
+
+/* Force chart axis labels to be visible in dark mode */
+:root.dark .recharts-xAxis .recharts-cartesian-axis-tick text,
+:root.dark .recharts-yAxis .recharts-cartesian-axis-tick text {
+  fill: #e2e8f0 !important;
+  color: #e2e8f0 !important;
+  font-weight: 500 !important;
+}
+
+:root.dark .recharts-xAxis .recharts-cartesian-axis-line,
+:root.dark .recharts-yAxis .recharts-cartesian-axis-line {
+  stroke: #64748b !important;
+}
+
+:root.dark .recharts-xAxis .recharts-cartesian-axis-tick-line,
+:root.dark .recharts-yAxis .recharts-cartesian-axis-tick-line {
+  stroke: #64748b !important;
+}
+
+/* Light theme axis label overrides */
+:root.light .recharts-xAxis .recharts-cartesian-axis-tick text,
+:root.light .recharts-yAxis .recharts-cartesian-axis-tick text {
+  fill: #374151 !important;
+  color: #374151 !important;
+  font-weight: 500 !important;
+}
+
+:root.light .recharts-xAxis .recharts-cartesian-axis-line,
+:root.light .recharts-yAxis .recharts-cartesian-axis-line {
+  stroke: #d1d5db !important;
+}
+
+:root.light .recharts-xAxis .recharts-cartesian-axis-tick-line,
+:root.light .recharts-yAxis .recharts-cartesian-axis-tick-line {
+  stroke: #d1d5db !important;
+}
+
+/* Chart Grid Lines Visibility */
+:root.dark .recharts-cartesian-grid-horizontal line,
+:root.dark .recharts-cartesian-grid-vertical line {
+  stroke: #475569 !important;
+  stroke-opacity: 0.3 !important;
+}
+
+:root.light .recharts-cartesian-grid-horizontal line,
+:root.light .recharts-cartesian-grid-vertical line {
+  stroke: #e2e8f0 !important;
+  stroke-opacity: 0.5 !important;
+}
+
+/* Additional chart element visibility fixes */
+:root.dark .recharts-cartesian-axis-tick-value {
+  fill: #e2e8f0 !important;
+}
+
+:root.light .recharts-cartesian-axis-tick-value {
+  fill: #374151 !important;
+}
+
+/* Chart Info Tooltip Styling */
+.chart-info-tooltip {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.chart-info-tooltip .tooltip-arrow {
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+}
+
+/* Light theme info tooltip overrides */
+:root.light .chart-info-tooltip {
+  background-color: rgba(255, 255, 255, 0.95) !important;
+  border-color: rgba(6, 182, 212, 0.5) !important;
+}
+
+:root.light .chart-info-tooltip .text-slate-200 {
+  color: #1e293b !important;
+}
+
+:root.light .chart-info-tooltip .text-slate-300 {
+  color: #334155 !important;
+}
+
+:root.light .chart-info-tooltip .bg-slate-800\/95 {
+  background-color: rgba(255, 255, 255, 0.95) !important;
+}
+
+:root.light .chart-info-tooltip .border-cyan-500\/50 {
+  border-color: rgba(6, 182, 212, 0.5) !important;
+}
+
+/* Light theme gradients */
+:root.light .light\:from-blue-500\/20 { --tw-gradient-from: rgba(59, 130, 246, 0.2); --tw-gradient-to: rgba(59, 130, 246, 0); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
+:root.light .light\:to-cyan-500\/20 { --tw-gradient-to: rgba(6, 182, 212, 0.2); }
+:root.light .light\:from-gray-100\/50 { --tw-gradient-from: rgba(241, 245, 249, 0.5); --tw-gradient-to: rgba(241, 245, 249, 0); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
+:root.light .light\:to-transparent { --tw-gradient-to: transparent; }
+
+/* Light theme shadows */
+:root.light .light\:shadow-sm { box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); }
+:root.light .light\:shadow-md { box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); }
+:root.light .light\:shadow-lg { box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1); }
+:root.light .light\:shadow-xl { box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1); }
+
+/* Force light theme overrides for complex components */
+:root.light * { 
+  --tw-bg-opacity: 1; 
+}
+
+/* Comprehensive light theme overrides for all dark components */
+:root.light .bg-slate-950 { background-color: #ffffff !important; }
+:root.light .bg-slate-900 { background-color: #f8fafc !important; }
+:root.light .bg-slate-800 { background-color: #f1f5f9 !important; }
+:root.light .bg-slate-700 { background-color: #e2e8f0 !important; }
+:root.light .bg-slate-600 { background-color: #cbd5e1 !important; }
+
+/* Background with opacity overrides */
+:root.light .bg-slate-950\/95 { background-color: rgba(255, 255, 255, 0.95) !important; }
+:root.light .bg-slate-950\/50 { background-color: rgba(248, 250, 252, 0.8) !important; }
+:root.light .bg-slate-900\/90 { background-color: rgba(255, 255, 255, 0.9) !important; }
+:root.light .bg-slate-900\/80 { background-color: rgba(255, 255, 255, 0.9) !important; }
+:root.light .bg-slate-800\/40 { background-color: rgba(255, 255, 255, 0.9) !important; }
+:root.light .bg-slate-800\/30 { background-color: rgba(255, 255, 255, 0.9) !important; }
+
+/* Text color overrides */
+:root.light .text-slate-400 { color: #64748b !important; }
+:root.light .text-slate-300 { color: #475569 !important; }
+:root.light .text-white { color: #0f172a !important; }
+
+/* Border color overrides */
+:root.light .border-slate-700 { border-color: #e2e8f0 !important; }
+:root.light .border-slate-700\/50 { border-color: rgba(226, 232, 240, 0.8) !important; }
+:root.light .border-slate-700\/30 { border-color: rgba(226, 232, 240, 0.6) !important; }
+:root.light .border-slate-600 { border-color: #cbd5e1 !important; }
+
+/* Hover state overrides */
+:root.light .hover\:bg-slate-700\/50:hover { background-color: rgba(226, 232, 240, 0.5) !important; }
+:root.light .hover\:bg-slate-800\/50:hover { background-color: rgba(241, 245, 249, 0.8) !important; }
+
+/* Light theme hidden utility */
+:root.light .light\:hidden { display: none !important; }
+
+/* Enhanced Database Page Light Mode Overrides */
+:root.light .bg-gradient-to-r.from-gray-900.to-gray-800 { 
+  background: linear-gradient(to right, #ffffff, #f8fafc) !important; 
+}
+
+:root.light .bg-gray-900\/60 { 
+  background-color: rgba(248, 250, 252, 0.8) !important; 
+}
+
+:root.light .border-cyan-500 { 
+  border-color: #2563eb !important; 
+}
+
+:root.light .border-cyan-500\/30 { 
+  border-color: rgba(37, 99, 235, 0.3) !important; 
+}
+
+:root.light .shadow-\[0_0_12px_rgba\(34\,211\,238\,0\.6\)\] { 
+  box-shadow: 0 0 12px rgba(37, 99, 235, 0.3) !important; 
+}
+
+:root.light .shadow-\[0_0_8px_rgba\(34\,211\,238\,0\.4\)\] { 
+  box-shadow: 0 0 8px rgba(37, 99, 235, 0.2) !important; 
+}
+
+:root.light .hover\:shadow-\[0_0_15px_rgba\(34\,211\,238\,0\.7\)\]:hover { 
+  box-shadow: 0 0 15px rgba(37, 99, 235, 0.4) !important; 
+}
+
+/* Database Cards Light Mode Styling */
+:root.light .database-card {
+  background: linear-gradient(to right, #ffffff, #f8fafc) !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+}
+
+:root.light .database-data-item {
+  background-color: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05) !important;
+}
+
+:root.light .database-data-item:hover {
+  background-color: #f1f5f9 !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Theme-aware utility classes */
+.theme-light {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8fafc;
+  --bg-tertiary: #f1f5f9;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-accent: #2563eb;
+  --border-primary: #e2e8f0;
+  --border-secondary: #cbd5e1;
+  --shadow-primary: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-secondary: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.theme-dark {
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-tertiary: #334155;
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-accent: #22d3ee;
+  --border-primary: #475569;
+  --border-secondary: #64748b;
+  --shadow-primary: 0 0 12px rgba(34, 211, 238, 0.6);
+  --shadow-secondary: 0 0 8px rgba(34, 211, 238, 0.4);
+}
+
+/* Chart Legend Styling - Global CSS Variables and Styles */
+:root {
+  /* Chart Legend Variables for Light Mode */
+  --chart-legend-bg: #ffffff;
+  --chart-legend-border: 1px solid rgba(203, 213, 225, 0.8);
+  --chart-legend-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --chart-text-color: #1e293b;
+  
+  /* Chart Color Variables - Unique colors for each product */
+  --chart-color-1: #FF6B6B;  /* Coral Red */
+  --chart-color-2: #4ECDC4;  /* Turquoise */
+  --chart-color-3: #45B7D1;  /* Sky Blue */
+  --chart-color-4: #96CEB4;  /* Mint Green */
+  --chart-color-5: #FFEAA7;  /* Cream Yellow */
+  --chart-color-6: #DDA0DD;  /* Plum */
+  --chart-color-7: #98D8C8;  /* Sea Green */
+  --chart-color-8: #F7DC6F;  /* Golden Yellow */
+  --chart-color-9: #BB8FCE;  /* Lavender */
+  --chart-color-10: #85C1E9; /* Light Blue */
+  --chart-color-11: #F8C471; /* Sandy Orange */
+  --chart-color-12: #82E0AA; /* Light Green */
+  --chart-color-13: #F1948A; /* Light Coral */
+  --chart-color-14: #D7BDE2; /* Light Purple */
+  --chart-color-15: #A9DFBF; /* Light Mint */
+  --chart-color-16: #FAD7A0; /* Peach */
+  --chart-color-17: #D5A6BD; /* Dusty Rose */
+  --chart-color-18: #A3E4D7; /* Aqua */
+  --chart-color-19: #F9E79F; /* Light Gold */
+  --chart-color-20: #D2B4DE; /* Light Lavender */
+}
+
+:root.dark {
+  /* Chart Legend Variables for Dark Mode */
+  --chart-legend-bg: rgba(30, 41, 59, 0.8);
+  --chart-legend-border: 1px solid rgba(71, 85, 105, 0.5);
+  --chart-legend-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --chart-text-color: rgba(255, 255, 255, 0.9);
+  
+  /* Chart Color Variables - Same unique colors for dark mode */
+  --chart-color-1: #FF6B6B;  /* Coral Red */
+  --chart-color-2: #4ECDC4;  /* Turquoise */
+  --chart-color-3: #45B7D1;  /* Sky Blue */
+  --chart-color-4: #96CEB4;  /* Mint Green */
+  --chart-color-5: #FFEAA7;  /* Cream Yellow */
+  --chart-color-6: #DDA0DD;  /* Plum */
+  --chart-color-7: #98D8C8;  /* Sea Green */
+  --chart-color-8: #F7DC6F;  /* Golden Yellow */
+  --chart-color-9: #BB8FCE;  /* Lavender */
+  --chart-color-10: #85C1E9; /* Light Blue */
+  --chart-color-11: #F8C471; /* Sandy Orange */
+  --chart-color-12: #82E0AA; /* Light Green */
+  --chart-color-13: #F1948A; /* Light Coral */
+  --chart-color-14: #D7BDE2; /* Light Purple */
+  --chart-color-15: #A9DFBF; /* Light Mint */
+  --chart-color-16: #FAD7A0; /* Peach */
+  --chart-color-17: #D5A6BD; /* Dusty Rose */
+  --chart-color-18: #A3E4D7; /* Aqua */
+  --chart-color-19: #F9E79F; /* Light Gold */
+  --chart-color-20: #D2B4DE; /* Light Lavender */
+}
+
+/* Chart Legend Component Styles */
+.chart-legend {
+  background-color: var(--chart-legend-bg) !important;
+  border: var(--chart-legend-border) !important;
+  box-shadow: var(--chart-legend-shadow) !important;
+  color: var(--chart-text-color) !important;
+}
+
+.chart-legend-wrapper {
+  color: var(--chart-text-color) !important;
+}
+
+.legend-item {
+  color: var(--chart-text-color) !important;
+}
+
+.legend-item:hover {
+  background-color: var(--chart-legend-hover-bg) !important;
+}
+
+/* Modern Legend Styling */
+.modern-legend {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.85)) !important;
+  border: 1px solid rgba(203, 213, 225, 0.6) !important;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.1),
+    0 4px 16px rgba(6, 182, 212, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
+  backdrop-filter: blur(20px) !important;
+}
+
+:root.dark .modern-legend {
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.8)) !important;
+  border: 1px solid rgba(71, 85, 105, 0.4) !important;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    0 4px 16px rgba(6, 182, 212, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+.modern-legend-item {
+  position: relative;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.modern-legend-item:hover {
+  transform: translateX(4px) !important;
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.1), rgba(59, 130, 246, 0.1)) !important;
+  border-radius: 12px !important;
+}
+
+.color-indicator {
+  position: relative;
+  transition: all 0.3s ease !important;
+}
+
+.modern-legend-item:hover .color-indicator {
+  transform: scale(1.2) !important;
+  box-shadow: 0 0 20px rgba(6, 182, 212, 0.6) !important;
+}
+
+.product-name {
+  transition: all 0.3s ease !important;
+}
+
+.modern-legend-item:hover .product-name {
+  color: #06b6d4 !important;
+  font-weight: 700 !important;
+}
+
+/* Pie Chart Segment Hover Effects */
+.pie-segment {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  cursor: pointer !important;
+}
+
+.pie-segment:hover {
+  transform: scale(1.05) !important;
+  filter: drop-shadow(0 8px 16px rgba(0,0,0,0.3)) !important;
+  stroke-width: 4 !important;
+  stroke: rgba(6, 182, 212, 0.8) !important;
+}
+
+/* Modern Chart Container */
+.chart-container {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02)) !important;
+  border-radius: 20px !important;
+  backdrop-filter: blur(10px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Animated gradient border */
+.modern-legend::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #06b6d4, #3b82f6, #8b5cf6, #ec4899);
+  background-size: 200% 100%;
+  animation: gradientShift 3s ease infinite;
+  border-radius: 16px 16px 0 0;
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Hover animations for chart elements */
+.recharts-pie-sector:hover {
+  filter: brightness(1.2) !important;
+  transition: all 0.3s ease !important;
+}
+
+/* Modern scrollbar styling */
+.modern-legend::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modern-legend::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
+}
+
+.modern-legend::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #06b6d4, #3b82f6);
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.modern-legend::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #0891b2, #2563eb);
+}
+
+/* Tab Button Styling - Ensure white text in both themes */
+.tabs-trigger {
+  color: white !important;
+}
+
+/* Force white text for tab buttons in both light and dark modes */
+[data-state="active"] .bg-\[#007b98\],
+[data-state="active"] .bg-\[#0088a9\],
+.bg-\[#0088a9\],
+.bg-\[#007b98\] {
+  color: rgb(14, 13, 13) !important;
+}
+
+/* Ensure tab text is always white regardless of theme */
+.TabsTrigger[value="kpi"],
+.TabsTrigger[value="plc"] {
+  color: rgb(236, 231, 231) !important;
+}
+
+/* Additional specificity for tab buttons */
+.TabsList .TabsTrigger {
+  color: white !important;
+}
+
+/* Force white text with maximum specificity */
+.TabsList .TabsTrigger[data-state="active"],
+.TabsList .TabsTrigger[data-state="inactive"] {
+  color: white !important;
+}
+
+/* Tab centering and styling */
+.tabs-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+/* Ensure tab buttons maintain white text */
+button[role="tab"] {
+  color: white !important;
+}
+
+/* Force white text for all tab states */
+[role="tab"] {
+  color: white !important;
+}
+
+/* Additional tab styling for better appearance */
+.TabsList {
+  display: flex !important;
+  justify-content: center !important;
+  width: 100% !important;
+  margin: 0 auto !important;
+}
+
+.TabsTrigger {
+  color: white !important;
+  font-weight: 600 !important;
+}
+
+/* Ensure white text in all scenarios */
+.TabsTrigger,
+.TabsTrigger[data-state="active"],
+.TabsTrigger[data-state="inactive"],
+.TabsTrigger:hover,
+.TabsTrigger:focus {
+  color: white !important;
+}
+
+/* Custom tab button styling - Force white text */
+.custom-tab-button {
+  color: white !important;
+}
+
+.custom-tab-button,
+.custom-tab-button[data-state="active"],
+.custom-tab-button[data-state="inactive"],
+.custom-tab-button:hover,
+.custom-tab-button:focus {
+  color: white !important;
+}
+
+/* Maximum specificity for custom tab buttons */
+button.custom-tab-button,
+button.custom-tab-button[data-state="active"],
+button.custom-tab-button[data-state="inactive"],
+button.custom-tab-button:hover,
+button.custom-tab-button:focus {
+  color: white !important;
+}
+
+/* Force white text with !important for all states */
+.custom-tab-button[data-state="active"] {
+  color: white !important;
+}
+
+.custom-tab-button[data-state="inactive"] {
+  color: white !important;
+}
+
+/* Additional specificity for button elements */
+button[class*="custom-tab-button"] {
+  color: white !important;
+}
+
+/* Override any conflicting styles */
+.custom-tab-button * {
+  color: white !important;
+}
+
+/* Force white text with maximum specificity and theme overrides */
+:root.light .custom-tab-button[data-state="active"],
+:root.dark .custom-tab-button {
+  color: white !important;
+}
+
+:root.light .custom-tab-button[data-state="active"],
+:root.dark .custom-tab-button[data-state="active"],
+:root.dark .custom-tab-button[data-state="inactive"] {
+  color: white !important;
+}
+
+/* Allow dark text for inactive tabs in light mode */
+:root.light .custom-tab-button[data-state="inactive"] {
+  color: #0f172a !important;
+}
+
+/* Override any Tailwind or global text color classes - but allow dark text for inactive tabs in light mode */
+:root.dark .custom-tab-button.text-slate-700,
+:root.dark .custom-tab-button.text-slate-600,
+:root.dark .custom-tab-button.text-slate-500,
+:root.dark .custom-tab-button.text-slate-400,
+:root.dark .custom-tab-button.text-slate-300,
+:root.dark .custom-tab-button.text-slate-200,
+:root.dark .custom-tab-button.text-slate-100,
+:root.dark .custom-tab-button.text-slate-900,
+:root.dark .custom-tab-button.text-gray-700,
+:root.dark .custom-tab-button.text-gray-600,
+:root.dark .custom-tab-button.text-gray-500,
+:root.dark .custom-tab-button.text-gray-400,
+:root.dark .custom-tab-button.text-gray-300,
+:root.dark .custom-tab-button.text-gray-200,
+:root.dark .custom-tab-button.text-gray-100,
+:root.dark .custom-tab-button.text-gray-900,
+:root.light .custom-tab-button[data-state="active"].text-slate-700,
+:root.light .custom-tab-button[data-state="active"].text-slate-600,
+:root.light .custom-tab-button[data-state="active"].text-slate-500,
+:root.light .custom-tab-button[data-state="active"].text-slate-400,
+:root.light .custom-tab-button[data-state="active"].text-slate-300,
+:root.light .custom-tab-button[data-state="active"].text-slate-200,
+:root.light .custom-tab-button[data-state="active"].text-slate-100,
+:root.light .custom-tab-button[data-state="active"].text-slate-900,
+:root.light .custom-tab-button[data-state="active"].text-gray-700,
+:root.light .custom-tab-button[data-state="active"].text-gray-600,
+:root.light .custom-tab-button[data-state="active"].text-gray-500,
+:root.light .custom-tab-button[data-state="active"].text-gray-400,
+:root.light .custom-tab-button[data-state="active"].text-gray-300,
+:root.light .custom-tab-button[data-state="active"].text-gray-200,
+:root.light .custom-tab-button[data-state="active"].text-gray-100,
+:root.light .custom-tab-button[data-state="active"].text-gray-900 {
+  color: white !important;
+}
+
+/* Force white text on all child elements - but allow dark text for inactive tabs in light mode */
+:root.dark .custom-tab-button span,
+:root.dark .custom-tab-button div,
+:root.dark .custom-tab-button p,
+:root.light .custom-tab-button[data-state="active"] span,
+:root.light .custom-tab-button[data-state="active"] div,
+:root.light .custom-tab-button[data-state="active"] p {
+  color: white !important;
+}
+
+/* Allow dark text for inactive tab child elements in light mode */
+:root.light .custom-tab-button[data-state="inactive"] span,
+:root.light .custom-tab-button[data-state="inactive"] div,
+:root.light .custom-tab-button[data-state="inactive"] p {
+  color: #0f172a !important;
+}
+
+/* Maximum specificity for button elements with role */
+:root.dark button[role="tab"].custom-tab-button,
+:root.dark button[role="tab"].custom-tab-button[data-state="active"],
+:root.dark button[role="tab"].custom-tab-button[data-state="inactive"],
+:root.light button[role="tab"].custom-tab-button[data-state="active"] {
+  color: white !important;
+}
+
+/* Allow dark text for inactive tabs in light mode with maximum specificity */
+:root.light button[role="tab"].custom-tab-button[data-state="inactive"] {
+  color: #0f172a !important;
+}
+
+/* Override any CSS variables that might be setting text color */
+:root.dark .custom-tab-button,
+:root.light .custom-tab-button[data-state="active"] {
+  color: white !important;
+  --tw-text-opacity: 1 !important;
+}
+
+/* Force white text with RGB values for dark mode and active tabs in light mode */
+:root.dark .custom-tab-button,
+:root.light .custom-tab-button[data-state="active"] {
+  color: rgb(255, 255, 255) !important;
+}
+
+/* Allow dark text for inactive tabs in light mode */
+:root.light .custom-tab-button[data-state="inactive"] {
+  color: rgb(15, 23, 42) !important;
+  --tw-text-opacity: 1 !important;
+}
+
+/* Additional specificity for any possible selectors */
+:root.dark [data-radix-tabs-trigger].custom-tab-button,
+:root.dark [data-radix-tabs-trigger].custom-tab-button[data-state="active"],
+:root.dark [data-radix-tabs-trigger].custom-tab-button[data-state="inactive"],
+:root.light [data-radix-tabs-trigger].custom-tab-button[data-state="active"] {
+  color: white !important;
+}
+
+/* Allow dark text for inactive tabs in light mode */
+:root.light [data-radix-tabs-trigger].custom-tab-button[data-state="inactive"] {
+  color: #0f172a !important;
+}
+
+/* Override any CSS-in-JS styles */
+:root.dark .custom-tab-button[style*="color"],
+:root.light .custom-tab-button[data-state="active"][style*="color"] {
+  color: white !important;
+}
+
+/* Allow dark text for inactive tabs in light mode even with inline styles */
+:root.light .custom-tab-button[data-state="inactive"][style*="color"] {
+  color: #0f172a !important;
+}
+
+/* Maximum specificity override - This should work no matter what */
+:root.dark body .custom-tab-button,
+:root.dark html .custom-tab-button,
+:root.dark #root .custom-tab-button,
+:root.dark .App .custom-tab-button,
+:root.light body .custom-tab-button[data-state="active"],
+:root.light html .custom-tab-button[data-state="active"],
+:root.light #root .custom-tab-button[data-state="active"],
+:root.light .App .custom-tab-button[data-state="active"] {
+  color: white !important;
+}
+
+/* Allow dark text for inactive tabs in light mode with maximum specificity */
+:root.light body .custom-tab-button[data-state="inactive"],
+:root.light html .custom-tab-button[data-state="inactive"],
+:root.light #root .custom-tab-button[data-state="inactive"],
+:root.light .App .custom-tab-button[data-state="inactive"] {
+  color: #0f172a !important;
+}
+
+/* Override any possible conflicting styles with maximum specificity */
+:root.dark body button.custom-tab-button,
+:root.dark html button.custom-tab-button,
+:root.dark #root button.custom-tab-button,
+:root.dark .App button.custom-tab-button,
+:root.light body button.custom-tab-button[data-state="active"],
+:root.light html button.custom-tab-button[data-state="active"],
+:root.light #root button.custom-tab-button[data-state="active"],
+:root.light .App button.custom-tab-button[data-state="active"] {
+  color: white !important;
+}
+
+/* Force white text with !important and maximum specificity */
+:root.dark body button.custom-tab-button[data-state="active"],
+:root.dark body button.custom-tab-button[data-state="inactive"],
+:root.dark html button.custom-tab-button[data-state="active"],
+:root.dark html button.custom-tab-button[data-state="inactive"],
+:root.light body button.custom-tab-button[data-state="active"],
+:root.light html button.custom-tab-button[data-state="active"] {
+  color: white !important;
+}
+
+/* Allow dark text for inactive tabs in light mode with maximum specificity */
+:root.light body button.custom-tab-button[data-state="inactive"],
+:root.light html button.custom-tab-button[data-state="inactive"],
+:root.light #root button.custom-tab-button[data-state="inactive"],
+:root.light .App button.custom-tab-button[data-state="inactive"] {
+  color: #0f172a !important;
+}
+
+/* Override any Tailwind opacity utilities */
+:root.dark .custom-tab-button.text-white\/90,
+:root.dark .custom-tab-button.text-white\/80,
+:root.dark .custom-tab-button.text-white\/70,
+:root.dark .custom-tab-button.text-white\/60,
+:root.dark .custom-tab-button.text-white\/50,
+:root.light .custom-tab-button[data-state="active"].text-white\/90,
+:root.light .custom-tab-button[data-state="active"].text-white\/80,
+:root.light .custom-tab-button[data-state="active"].text-white\/70,
+:root.light .custom-tab-button[data-state="active"].text-white\/60,
+:root.light .custom-tab-button[data-state="active"].text-white\/50 {
+  color: white !important;
+}
+
+/* Allow dark text for inactive tabs in light mode even with opacity utilities */
+:root.light .custom-tab-button[data-state="inactive"].text-white\/90,
+:root.light .custom-tab-button[data-state="inactive"].text-white\/80,
+:root.light .custom-tab-button[data-state="inactive"].text-white\/70,
+:root.light .custom-tab-button[data-state="inactive"].text-white\/60,
+:root.light .custom-tab-button[data-state="inactive"].text-white\/50 {
+  color: #0f172a !important;
+}
+
+/* Apply Filters Button Styling - Force white text */
+.custom-apply-button {
+  color: white !important;
+}
+
+.custom-apply-button,
+.custom-apply-button:hover,
+.custom-apply-button:focus,
+.custom-apply-button:active {
+  color: white !important;
+}
+
+/* Maximum specificity for Apply Filters button */
+body .custom-apply-button,
+html .custom-apply-button,
+#root .custom-apply-button,
+.App .custom-apply-button {
+  color: white !important;
+}
+
+/* Override any possible conflicting styles */
+button.custom-apply-button,
+button.custom-apply-button:hover,
+button.custom-apply-button:focus,
+button.custom-apply-button:active {
+  color: white !important;
+}
+
+/* Force white text with maximum specificity */
+body button.custom-apply-button,
+html button.custom-apply-button,
+#root button.custom-apply-button,
+.App button.custom-apply-button {
+  color: white !important;
+}
+
+/* Override any Tailwind text color classes for Apply button */
+.custom-apply-button.text-slate-700,
+.custom-apply-button.text-slate-600,
+.custom-apply-button.text-slate-500,
+.custom-apply-button.text-slate-400,
+.custom-apply-button.text-slate-300,
+.custom-apply-button.text-slate-200,
+.custom-apply-button.text-slate-100,
+.custom-apply-button.text-slate-900,
+.custom-apply-button.text-gray-700,
+.custom-apply-button.text-gray-600,
+.custom-apply-button.text-gray-500,
+.custom-apply-button.text-gray-400,
+.custom-apply-button.text-gray-300,
+.custom-apply-button.text-gray-200,
+.custom-apply-button.text-gray-100,
+.custom-apply-button.text-gray-900 {
+  color: white !important;
+}
+
+/* Theme-specific overrides for Apply button */
+:root.light .custom-apply-button,
+:root.dark .custom-apply-button {
+  color: white !important;
+}
+
+/* Force white text on all child elements of Apply button */
+.custom-apply-button span,
+.custom-apply-button div,
+.custom-apply-button p {
+  color: white !important;
+}
+
+/* Override any CSS variables that might be setting text color */
+.custom-apply-button {
+  color: white !important;
+  --tw-text-opacity: 1 !important;
+}
+
+/* Force white text with RGB values for Apply button */
+.custom-apply-button {
+  color: rgb(255, 255, 255) !important;
+}
+
+/* Additional specificity for any possible selectors */
+[data-radix-button].custom-apply-button,
+[data-radix-button].custom-apply-button:hover,
+[data-radix-button].custom-apply-button:focus {
+  color: white !important;
+}
+
+/* Override any CSS-in-JS styles for Apply button */
+.custom-apply-button[style*="color"] {
+  color: white !important;
+}
+
+/* Ensure chart text colors are properly themed */
+:root.light .recharts-legend-item-text {
+  color: #1e293b !important;
+}
+
+:root.dark .recharts-legend-item-text {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Chart axis and text theming */
+:root.light .recharts-xAxis .recharts-cartesian-axis-tick text,
+:root.light .recharts-yAxis .recharts-cartesian-axis-tick text {
+  color: #374151 !important;
+  fill: #374151 !important;
+}
+
+:root.dark .recharts-xAxis .recharts-cartesian-axis-tick text,
+:root.dark .recharts-yAxis .recharts-cartesian-axis-tick text {
+  color: rgba(255, 255, 255, 0.8) !important;
+  fill: rgba(255, 255, 255, 0.8) !important;
+}
+
+/* Chart grid theming */
+:root.light .recharts-cartesian-grid-horizontal line,
+:root.light .recharts-cartesian-grid-vertical line {
+  stroke: #e5e7eb !important;
+}
+
+:root.dark .recharts-cartesian-grid-horizontal line,
+:root.dark .recharts-cartesian-grid-vertical line {
+  stroke: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Pie Chart specific styling */
+.details-popup-pie-chart canvas {
+  max-width: 100% !important;
+  max-height: 100% !important;
+}
+
+/* Ensure Chart.js legend colors are properly displayed */
+.details-popup-pie-chart .chartjs-legend-item {
+  display: flex !important;
+  align-items: center !important;
+  margin-bottom: 8px !important;
+}
+
+.details-popup-pie-chart .chartjs-legend-item-text {
+  margin-left: 8px !important;
+  color: inherit !important;
+}
+
+/* Product color indicators in table */
+.product-color-indicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid;
+  border-color: inherit;
+  display: inline-block;
+  margin-right: 8px;
+}
+
+/* Dark mode specific chart styling */
+.dark .details-popup-pie-chart canvas {
+  filter: brightness(1.1) contrast(1.1);
+}
+
+/* Light mode specific chart styling */
+.light .details-popup-pie-chart canvas {
+  filter: brightness(1) contrast(1.05);
+}
+
+/* DetailsPopup Table Text Visibility Fixes */
+.dark .details-popup-pie-chart table tbody tr td {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.dark .details-popup-pie-chart table tbody tr td span {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.dark .details-popup-pie-chart table thead tr th {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+/* Ensure product names are visible in dark mode */
+.dark .details-popup-pie-chart .text-slate-900 {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Force text visibility in dark mode */
+.dark .details-popup-pie-chart tbody td,
+.dark .details-popup-pie-chart tbody td span {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Global DetailsPopup Dark Mode Text Fix */
+.dark .details-popup-pie-chart * {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.dark .details-popup-pie-chart table * {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.dark .details-popup-pie-chart tbody tr td {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.dark .details-popup-pie-chart tbody tr td span {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.dark .details-popup-pie-chart thead tr th {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+/* Override any conflicting text colors in dark mode */
+.dark .details-popup-pie-chart .text-slate-900,
+.dark .details-popup-pie-chart .text-gray-900,
+.dark .details-popup-pie-chart .text-black {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Ensure all text elements in the popup are visible in dark mode */
+.dark .details-popup-pie-chart p,
+.dark .details-popup-pie-chart div,
+.dark .details-popup-pie-chart span,
+.dark .details-popup-pie-chart td,
+.dark .details-popup-pie-chart th {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Specific targeting for product names and table content */
+.dark .details-popup-pie-chart table tbody tr td {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.dark .details-popup-pie-chart table tbody tr td span {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.dark .details-popup-pie-chart table tbody tr td div {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Override any Tailwind classes that might be causing issues */
+.dark .details-popup-pie-chart .text-slate-900,
+.dark .details-popup-pie-chart .text-gray-900,
+.dark .details-popup-pie-chart .text-black,
+.dark .details-popup-pie-chart [class*="text-slate-900"],
+.dark .details-popup-pie-chart [class*="text-gray-900"],
+.dark .details-popup-pie-chart [class*="text-black"] {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Force all text in the popup to be white in dark mode */
+.dark .details-popup-pie-chart {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.dark .details-popup-pie-chart * {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Comprehensive DetailsPopup Dark Mode Text Fix */
+.dark .details-popup-pie-chart,
+.dark .details-popup-pie-chart table,
+.dark .details-popup-pie-chart table *,
+.dark .details-popup-pie-chart tbody,
+.dark .details-popup-pie-chart tbody *,
+.dark .details-popup-pie-chart thead,
+.dark .details-popup-pie-chart thead *,
+.dark .details-popup-pie-chart tr,
+.dark .details-popup-pie-chart tr *,
+.dark .details-popup-pie-chart td,
+.dark .details-popup-pie-chart td *,
+.dark .details-popup-pie-chart th,
+.dark .details-popup-pie-chart th *,
+.dark .details-popup-pie-chart span,
+.dark .details-popup-pie-chart div,
+.dark .details-popup-pie-chart p {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Specific override for any remaining black text */
+.dark .details-popup-pie-chart [style*="color: rgb(15, 23, 42)"],
+.dark .details-popup-pie-chart [style*="color: #0f172a"],
+.dark .details-popup-pie-chart [style*="color: black"],
+.dark .details-popup-pie-chart [style*="color: #000"],
+.dark .details-popup-pie-chart [style*="color: rgb(0, 0, 0)"],
+.dark .details-popup-pie-chart [style*="color: #000000"] {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Chart.js Legend Text Fix for Dark Mode */
+.dark .details-popup-pie-chart canvas + div {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.dark .details-popup-pie-chart canvas + div * {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Target Chart.js legend container */
+.dark .details-popup-pie-chart .chartjs-legend {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.dark .details-popup-pie-chart .chartjs-legend * {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Force all text in Chart.js elements to be white in dark mode */
+.dark .details-popup-pie-chart .chartjs-render-monitor + div {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.dark .details-popup-pie-chart .chartjs-render-monitor + div * {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Target any div that comes after the canvas (Chart.js legend) */
+.dark .details-popup-pie-chart canvas ~ div {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.dark .details-popup-pie-chart canvas ~ div * {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Additional Chart.js Legend Targeting */
+.dark .details-popup-pie-chart div[style*="position: relative"] {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.dark .details-popup-pie-chart div[style*="position: relative"] * {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Target Chart.js legend by its structure */
+.dark .details-popup-pie-chart .chartjs-chart-container {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.dark .details-popup-pie-chart .chartjs-chart-container * {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Force all text in the entire popup area to be white in dark mode */
+.dark .details-popup-pie-chart,
+.dark .details-popup-pie-chart *,
+.dark .details-popup-pie-chart *::before,
+.dark .details-popup-pie-chart *::after {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Specific targeting for any remaining black text */
+.dark .details-popup-pie-chart [style*="color: rgb(15, 23, 42)"],
+.dark .details-popup-pie-chart [style*="color: #0f172a"],
+.dark .details-popup-pie-chart [style*="color: black"],
+.dark .details-popup-pie-chart [style*="color: #000"],
+.dark .details-popup-pie-chart [style*="color: rgb(0, 0, 0)"],
+.dark .details-popup-pie-chart [style*="color: #000000"] {
+  color: rgba(255, 255, 255, 0.9) !important;
+}

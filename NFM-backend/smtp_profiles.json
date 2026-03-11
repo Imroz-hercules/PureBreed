@@ -1,0 +1,21 @@
+{
+  "active": "syed rawoof",
+  "profiles": {
+    "syed rawoof": {
+      "name": "syed rawoof",
+      "host": "smtp.gmail.com",
+      "port": "587",
+      "username": "syed.rawoof.hercules@gmail.com",
+      "password": "rhuwfmojhezwugwo",
+      "sender": "syed.rawoof.hercules@gmail.com"
+    },
+    "ginge": {
+      "name": "ginge",
+      "host": "jik",
+      "port": "2021",
+      "username": "mahesh",
+      "password": "mah123",
+      "sender": "kumar"
+    }
+  }
+}

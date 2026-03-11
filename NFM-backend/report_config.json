@@ -1,0 +1,11 @@
+{
+  "enabled": false,
+  "sender": "",
+  "recipient": "",
+  "time": "09:00",
+  "include": {
+    "kpis": true,
+    "charts": true,
+    "table": true
+  }
+}
