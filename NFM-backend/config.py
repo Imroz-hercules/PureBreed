@@ -47,18 +47,18 @@ class Config:
         "SQLALCHEMY_DATABASE_URI",
 #    r"mssql+pyodbc://DESKTOP-VNO43MQ\SQLEXPRESS/ASMREPORTING"
 #     "?driver=ODBC+Driver+18+for+SQL+Server&trusted_connection=yes&TrustServerCertificate=yes"
-        "mssql+pyodbc://AppUser:AppUser%40123@192.168.1.13:1433/ASMREPORTING?driver=ODBC+Driver+17+for+SQL+Server"
+        "mssql+pyodbc://HERCULES/ASMBatchReports?driver=ODBC+Driver+17+for+SQL+Server&trusted_connection=yes&TrustServerCertificate=yes"
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    # ✅ PostgreSQL bind for storing DB4 live data
-    SQLALCHEMY_BINDS = {
-        'postgresql': os.getenv(
-            "POSTGRESQL_DB_URI",
-            # "postgresql+psycopg2://postgres:admin123@localhost:5432/nfm_reporting"
-            "postgresql+psycopg2://postgres:Hercules@localhost:5432/nfm_reporting"
-        )
-    }
+    # # ✅ PostgreSQL bind for storing DB4 live data (COMMENTED OUT - no PostgreSQL)
+    # SQLALCHEMY_BINDS = {
+    #     'postgresql': os.getenv(
+    #         "POSTGRESQL_DB_URI",
+    #         # "postgresql+psycopg2://postgres:admin123@localhost:5432/nfm_reporting"
+    #         "postgresql+psycopg2://postgres:Hercules@localhost:5432/nfm_reporting"
+    #     )
+    # }
 
 # Optional DB test code
 if __name__ == "__main__":
@@ -77,12 +77,12 @@ if __name__ == "__main__":
 
     print("\n--------------------------\n")
 
-    # Test PostgreSQL (bind DB)
-    try:
-        postgres_engine = create_engine(Config.SQLALCHEMY_BINDS['postgresql'])
-        with postgres_engine.connect() as conn:
-            print("✅ Connected to PostgreSQL")
-            result = conn.execute("SELECT version();")
-            print("PostgreSQL Version:", result.fetchone()[0])
-    except Exception as e:
-        print(f"❌ PostgreSQL connection error: {e}")
+    # # Test PostgreSQL (bind DB) - COMMENTED OUT
+    # try:
+    #     postgres_engine = create_engine(Config.SQLALCHEMY_BINDS['postgresql'])
+    #     with postgres_engine.connect() as conn:
+    #         print("✅ Connected to PostgreSQL")
+    #         result = conn.execute("SELECT version();")
+    #         print("PostgreSQL Version:", result.fetchone()[0])
+    # except Exception as e:
+    #     print(f"❌ PostgreSQL connection error: {e}")

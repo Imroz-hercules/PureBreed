@@ -99,7 +99,8 @@ CORS(app, supports_credentials=True, origins=[
     "http://host.docker.internal:5000", "http://192.168.1.212:5174",
     "http://192.168.1.253:5174", "http://192.168.1.252:5174", "http://192.168.1.213:5174",
     "http://192.168.0.251:5174", "http://172.29.16.1:5174", "http://172.20.16.1:5174",
-    "http://172.18.128.1:5174"
+    "http://172.18.128.1:5174",
+    "http://192.168.8.13:5174", "http://192.168.2.40:5174"
 ])
 
 # ------------------------------------------------------
@@ -194,35 +195,20 @@ try:
 
     app.logger.info(f"✅ Loaded blueprints: {', '.join(blueprints_loaded)}")
     
-    # ------------------------------------------------------
-    # 🚀 Auto-Start Data Storage Services
-    # ------------------------------------------------------
-    try:
-        # Auto-start DB4 (Pellet Production Data) storage
-        if "plc_live_data" in blueprints_loaded:
-            from routes.plc_live_data import start_plc_streaming
-            with app.app_context():
-                try:
-                    result = start_plc_streaming()
-                    app.logger.info("✅ DB4 (Pellet Production Data) auto-started successfully")
-                except Exception as e:
-                    app.logger.warning(f"⚠️ Failed to auto-start DB4: {str(e)}")
-        
-        # Auto-start DB3 (Mill Amps Data) storage
-        if "db3_plc" in blueprints_loaded:
-            from routes.db3_plc import start_db3_streaming
-            with app.app_context():
-                try:
-                    result = start_db3_streaming()
-                    app.logger.info("✅ DB3 (Mill Amps Data) auto-started successfully")
-                except Exception as e:
-                    app.logger.warning(f"⚠️ Failed to auto-start DB3: {str(e)}")
-        
-        app.logger.info("🎉 All data storage services auto-started on backend startup!")
-        
-    except Exception as e:
-        app.logger.error(f"❌ Error during auto-start: {str(e)}")
-        # Don't raise, continue with what we have
+    # # ------------------------------------------------------
+    # # 🚀 Auto-Start Data Storage Services (COMMENTED OUT - no PostgreSQL/snap7 storage)
+    # # ------------------------------------------------------
+    # try:
+    #     if "plc_live_data" in blueprints_loaded:
+    #         from routes.plc_live_data import start_plc_streaming
+    #         ...
+    #     if "db3_plc" in blueprints_loaded:
+    #         from routes.db3_plc import start_db3_streaming
+    #         ...
+    #     app.logger.info("🎉 All data storage services auto-started on backend startup!")
+    # except Exception as e:
+    #     ...
+    pass  # Auto-start of DB3/DB4 streaming disabled
     
 except Exception as e:
     app.logger.error(f"❌ Error during blueprint registration: {str(e)}")

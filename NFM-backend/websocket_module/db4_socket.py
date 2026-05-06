@@ -1,47 +1,36 @@
 # socket/db4_socket.py
 from flask_socketio import emit, disconnect
 from extensions import db
-from models.plc_live_data import PLCLiveData
-import snap7
-from snap7.util import get_real
+# from models.plc_live_data import PLCLiveData
+# import snap7
+# from snap7.util import get_real
 from datetime import datetime
 import time
 import threading
 from flask import request
 
-PLC_IP = "192.168.2.3"
-RACK = 0
-SLOT = 3
-DB4_SIZE = 36
+# PLC_IP = "192.168.2.3"  # COMMENTED OUT - no snap7/IP storage
+# RACK = 0
+# SLOT = 3
+# DB4_SIZE = 36
 
 # Global variable to control the streaming
 streaming_active = False
 streaming_thread = None
 
-def read_real(data, offset):
-    return get_real(data, offset)
+# def read_real(data, offset):
+#     return get_real(data, offset)
 
 def fetch_db4_data():
-    client = snap7.client.Client()
-    try:
-        client.connect(PLC_IP, RACK, SLOT)
-        data = client.db_read(4, 0, DB4_SIZE)
-        return {
-            "timestamp": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
-            "pellet1_ton_hr": read_real(data, 0),
-            "pellet2_ton_hr": read_real(data, 4),
-            "pellet3_ton_hr": read_real(data, 8),
-            "pellet1_kw_ton": read_real(data, 12),
-            "pellet2_kw_ton": read_real(data, 16),
-            "pellet3_kw_ton": read_real(data, 20),
-        "pellet1_temp": read_real(data, 24),  # Temperature values as read from PLC
-        "pellet2_temp": read_real(data, 28),  # Temperature values as read from PLC
-        "pellet3_temp": read_real(data, 32),  # Temperature values as read from PLC
-        }
-    except Exception as e:
-        return {"error": str(e), "timestamp": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")}
-    finally:
-        client.disconnect()
+    """COMMENTED OUT - snap7 disabled, returning stub (no DB store)"""
+    # client = snap7.client.Client()
+    # try: ... client.connect(PLC_IP, RACK, SLOT); data = client.db_read(...); return {...}
+    return {
+        "timestamp": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
+        "pellet1_ton_hr": 0.0, "pellet2_ton_hr": 0.0, "pellet3_ton_hr": 0.0,
+        "pellet1_kw_ton": 0.0, "pellet2_kw_ton": 0.0, "pellet3_kw_ton": 0.0,
+        "pellet1_temp": 0.0, "pellet2_temp": 0.0, "pellet3_temp": 0.0,
+    }
 
 def start_db4_stream(socketio):
     global streaming_active, streaming_thread
@@ -55,26 +44,23 @@ def start_db4_stream(socketio):
         while streaming_active:
             try:
                 data = fetch_db4_data()
+                # # Store in database - COMMENTED OUT (no PostgreSQL/snap7 storage)
+                # if "error" not in data:
+                #     record = DB4LiveData(**{k: v for k, v in data.items() if k != "timestamp"})
+                #     db.session.add(record)
+                #     db.session.commit()
                 if "error" not in data:
-                    # Store in database
-                    record = DB4LiveData(**{k: v for k, v in data.items() if k != "timestamp"})
-                    db.session.add(record)
-                    db.session.commit()
-
-                    # Emit to all connected clients
                     socketio.emit("db4_live_data", data)
                 else:
-                    # Emit error to all connected clients
                     socketio.emit("db4_error", data)
-                
-                time.sleep(10)  # adjust polling interval to 10 seconds
+                time.sleep(10)
             except Exception as e:
                 error_data = {
                     "error": f"Streaming error: {str(e)}",
                     "timestamp": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
                 }
                 socketio.emit("db4_error", error_data)
-                time.sleep(10)  # Wait longer on error
+                time.sleep(10)
 
     streaming_thread = threading.Thread(target=background_task)
     streaming_thread.daemon = True

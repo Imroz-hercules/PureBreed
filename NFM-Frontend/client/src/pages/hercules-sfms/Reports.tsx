@@ -8,7 +8,7 @@ import { FileText, Download, Printer, Calendar, Loader2, AlertCircle, CheckCircl
 import axios from 'axios';
 import { API_ENDPOINTS } from '@/lib/api';
 import asmLogo from '@/assets/Asm_Logo.png';
-import aghtiaLogo from '@/assets/aghtia.png';
+// import aghtiaLogo from '@/assets/aghtia.png'; // Agthia logo commented out
 import herculesLogo from '@/assets/hercules-logo-final.png';
 
 const tabs = [
@@ -20,6 +20,9 @@ const tabs = [
   "Material Consumption Report",
   "Total Material Consumption",
 ];
+
+/** Axios ceiling for large historical payloads (server can exceed 30s on wide ranges). */
+const LARGE_REPORT_TIMEOUT_MS = 120_000;
 
 // Helper function to get default dates (yesterday like new system)
 const getDefaultDates = () => {
@@ -222,6 +225,11 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
   const getDisplayText = () => {
     if (selectedValues.length === 0) return `${placeholder} (${options.length} available)`;
     if (selectedValues.length === options.length) return allSelectedText;
+    if (selectedValues.length === 1) {
+      const label = selectedValues[0];
+      const short = label.length > 42 ? `${label.slice(0, 39)}…` : label;
+      return `${short} (${options.length} available)`;
+    }
     return `${selectedValues.length} Selected (${options.length} available)`;
   };
 
@@ -429,7 +437,7 @@ export function Reports() {
       const fullUrl = apiUrl + '?' + params.toString();
       
       const response = await axios.get(fullUrl, {
-        timeout: 30000 // 30 second timeout
+        timeout: LARGE_REPORT_TIMEOUT_MS,
       });
       
       const data = response.data;
@@ -493,7 +501,7 @@ export function Reports() {
 
       setLoadingProgress('Fetching data from server...');
       const response = await axios.get(fullUrl, {
-        timeout: 30000 // 30 second timeout
+        timeout: LARGE_REPORT_TIMEOUT_MS,
       });
       let data = response.data;
 
@@ -551,23 +559,28 @@ export function Reports() {
   }, []); // Empty dependency array means this runs only once on mount
 
 
-  // Fetch data on component mount and when applied filters change
+  // Fetch /api/kpi only for Product Batch Summary (Detailed Report uses /api/reports daily — avoids duplicate mega-requests).
   useEffect(() => {
-    // Fetch data for Product Batch Summary and Detailed Report tabs
-    if (activeTab === "Product Batch Summary" || activeTab === "Detailed Report") {
+    if (activeTab === "Product Batch Summary") {
       fetchData();
     }
   }, [appliedStartDate, appliedEndDate, selectedProduct, selectedBatch, selectedMaterial, activeTab]);
 
+  // Avoid merging stale KPI rows into filter dropdowns when Detailed Report does not load /api/kpi.
+  useEffect(() => {
+    if (activeTab === "Detailed Report") {
+      setRawData([]);
+    }
+  }, [activeTab]);
+
   // Fetch daily report data when Detailed Report or Material Consumption Report is active to ensure consistency
   useEffect(() => {
     if (activeTab === "Detailed Report" || activeTab === "Material Consumption Report" || activeTab === "Total Material Consumption") {
-      // Always fetch daily report data when these reports are active to ensure consistent data and 4-hour offset
       const startDate = new Date(appliedStartDate);
       const endDate = new Date(appliedEndDate);
       fetchReportData('daily', startDate.toISOString(), endDate.toISOString());
     }
-  }, [activeTab, appliedStartDate, appliedEndDate]);
+  }, [activeTab, appliedStartDate, appliedEndDate, selectedProduct, selectedBatch, selectedMaterial]);
 
   // Refetch filter options when dates change
   useEffect(() => {
@@ -630,10 +643,20 @@ export function Reports() {
       params.append('limit', '1000000');
       params.append('page', '1');
 
+      if (selectedBatch.length > 0) {
+        selectedBatch.forEach((batch) => params.append('batch', batch));
+      }
+      if (selectedProduct.length > 0) {
+        selectedProduct.forEach((product) => params.append('product', product));
+      }
+      if (selectedMaterial.length > 0) {
+        selectedMaterial.forEach((material) => params.append('material', material));
+      }
+
       const fullUrl = apiUrl + '?' + params.toString();
 
       const response = await axios.get(fullUrl, {
-        timeout: 30000 // 30 second timeout
+        timeout: LARGE_REPORT_TIMEOUT_MS,
       });
       let data = response.data;
 
@@ -648,6 +671,7 @@ export function Reports() {
           materialName: item["Material Name"] || "Unknown",
           materialCode: item["Material Code"] || "Unknown",
           quantity: item["Quantity"] || 0,
+          batchQuantity: item["Quantity"] ?? item["Batch Quantity"] ?? 0,
           setPointFloat: item["SetPoint Float"] || 0,
           actualValueFloat: item["Actual Value Float"] || 0,
           sourceServer: item["Source Server"] || "Unknown",
@@ -677,7 +701,8 @@ export function Reports() {
         }
       }
     } catch (error) {
-      // Clear the appropriate report data state
+      const msg = error instanceof Error ? error.message : 'Failed to fetch report data';
+      setError(msg);
       if (reportType === 'daily') {
         setDailyReportData([]);
       } else if (reportType === 'weekly') {
@@ -691,30 +716,16 @@ export function Reports() {
     }
   };
 
-  // Get unique values for filter dropdowns - use backend data when available
+  // Filter dropdown options: union API lists + rawData-derived names + pending selections.
+  // Do not cross-filter by sibling pending fields (e.g. material on batch list), or the menus
+  // collapse to a single batch/material and multi-select cannot add a second item.
   const productOptions = useMemo(() => {
-    // If we have backend data and no products are selected, use backend data
-    if (allProductOptions.length > 0 && pendingProduct.length === 0) {
-      return allProductOptions;
-    }
-    
-    // Otherwise, compute from raw data like before
     const set = new Set<string>();
-    
-    // Filter data based on current selections
+
     let filteredData = rawData;
-    
-    // If batches are selected, filter by those batches
     if (pendingBatch.length > 0) {
-      filteredData = filteredData.filter(item => pendingBatch.includes(item.batchName));
+      filteredData = filteredData.filter((item) => pendingBatch.includes(item.batchName));
     }
-    
-    // If materials are selected, filter by those materials
-    if (pendingMaterial.length > 0) {
-      filteredData = filteredData.filter(item => pendingMaterial.includes(item.materialName));
-    }
-    
-    // Date filtering
     filteredData = filteredData.filter((item: any) => {
       if (!item.batchStart) return false;
       const itemDate = new Date(item.batchStart);
@@ -722,36 +733,21 @@ export function Reports() {
       const end = new Date(pendingEndDate);
       return itemDate >= start && itemDate <= end;
     });
-    
     filteredData.forEach((item: any) => {
       if (item.productName) set.add(item.productName);
     });
-    return Array.from(set);
-  }, [rawData, pendingBatch, pendingMaterial, pendingStartDate, pendingEndDate, allProductOptions, pendingProduct]);
+    allProductOptions.forEach((p) => set.add(p));
+    pendingProduct.forEach((p) => set.add(p));
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [rawData, pendingBatch, pendingStartDate, pendingEndDate, allProductOptions, pendingProduct]);
 
   const batchOptions = useMemo(() => {
-    // If we have backend data and no batches are selected, use backend data
-    if (allBatchOptions.length > 0 && pendingBatch.length === 0) {
-      return allBatchOptions;
-    }
-    
-    // Otherwise, compute from raw data like before
     const set = new Set<string>();
-    
-    // Filter data based on current selections
+
     let filteredData = rawData;
-    
-    // If products are selected, filter by those products
     if (pendingProduct.length > 0) {
-      filteredData = filteredData.filter(item => pendingProduct.includes(item.productName));
+      filteredData = filteredData.filter((item) => pendingProduct.includes(item.productName));
     }
-    
-    // If materials are selected, filter by those materials
-    if (pendingMaterial.length > 0) {
-      filteredData = filteredData.filter(item => pendingMaterial.includes(item.materialName));
-    }
-    
-    // Date filtering
     filteredData = filteredData.filter((item: any) => {
       if (!item.batchStart) return false;
       const itemDate = new Date(item.batchStart);
@@ -759,36 +755,24 @@ export function Reports() {
       const end = new Date(pendingEndDate);
       return itemDate >= start && itemDate <= end;
     });
-    
     filteredData.forEach((item: any) => {
       if (item.batchName) set.add(item.batchName);
     });
-    return Array.from(set);
-  }, [rawData, pendingProduct, pendingMaterial, pendingStartDate, pendingEndDate, allBatchOptions, pendingBatch]);
+    allBatchOptions.forEach((b) => set.add(b));
+    pendingBatch.forEach((b) => set.add(b));
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [rawData, pendingProduct, pendingStartDate, pendingEndDate, allBatchOptions, pendingBatch]);
 
   const materialOptions = useMemo(() => {
-    // If we have backend data and no materials are selected, use backend data
-    if (allMaterialOptions.length > 0 && pendingMaterial.length === 0) {
-      return allMaterialOptions;
-    }
-    
-    // Otherwise, compute from raw data like before
     const set = new Set<string>();
-    
-    // Filter data based on current selections
+
     let filteredData = rawData;
-    
-    // If products are selected, filter by those products
     if (pendingProduct.length > 0) {
-      filteredData = filteredData.filter(item => pendingProduct.includes(item.productName));
+      filteredData = filteredData.filter((item) => pendingProduct.includes(item.productName));
     }
-    
-    // If batches are selected, filter by those batches
     if (pendingBatch.length > 0) {
-      filteredData = filteredData.filter(item => pendingBatch.includes(item.batchName));
+      filteredData = filteredData.filter((item) => pendingBatch.includes(item.batchName));
     }
-    
-    // Date filtering
     filteredData = filteredData.filter((item: any) => {
       if (!item.batchStart) return false;
       const itemDate = new Date(item.batchStart);
@@ -796,11 +780,12 @@ export function Reports() {
       const end = new Date(pendingEndDate);
       return itemDate >= start && itemDate <= end;
     });
-    
     filteredData.forEach((item: any) => {
       if (item.materialName) set.add(item.materialName);
     });
-    return Array.from(set);
+    allMaterialOptions.forEach((m) => set.add(m));
+    pendingMaterial.forEach((m) => set.add(m));
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
   }, [rawData, pendingProduct, pendingBatch, pendingStartDate, pendingEndDate, allMaterialOptions, pendingMaterial]);
 
   // Auto-clear selections that are no longer available
@@ -1430,7 +1415,7 @@ export function Reports() {
       csvContent += `${activeTab} Report\n`;
       csvContent += `${getDateRangeString()}\n`;
       csvContent += `ASM Logo: ASM Company Logo\n`;
-      csvContent += `Aghtia Logo: Aghtia Company Logo\n`;
+      // csvContent += `Aghtia Logo: Aghtia Company Logo\n`; // Agthia logo commented out
       if (selectedProduct.length > 0) {
         csvContent += `Product Filter: ${selectedProduct.join(', ')}\n`;
       }
@@ -1578,7 +1563,7 @@ export function Reports() {
       csvContent += `${activeTab} Report\n`;
       csvContent += `${getDateRangeString()}\n`;
       csvContent += `ASM Logo: ASM Company Logo\n`;
-      csvContent += `Aghtia Logo: Aghtia Company Logo\n`;
+      // csvContent += `Aghtia Logo: Aghtia Company Logo\n`; // Agthia logo commented out
       if (selectedProduct.length > 0) {
         csvContent += `Product Filter: ${selectedProduct.join(', ')}\n`;
       }
@@ -1723,18 +1708,18 @@ export function Reports() {
       
       // Convert logos to base64
       let asmLogoBase64 = '';
-      let aghtiaLogoBase64 = '';
+      // let aghtiaLogoBase64 = ''; // Agthia logo commented out
       let herculesLogoBase64 = '';
       
       try {
         asmLogoBase64 = await imageToBase64(asmLogo);
-        aghtiaLogoBase64 = await imageToBase64(aghtiaLogo);
+        // aghtiaLogoBase64 = await imageToBase64(aghtiaLogo); // Agthia logo commented out
         herculesLogoBase64 = await imageToBase64(herculesLogo);
       } catch (error) {
         console.error('Error converting logos to base64:', error);
         // Fallback: use the image paths directly
         asmLogoBase64 = asmLogo;
-        aghtiaLogoBase64 = aghtiaLogo;
+        // aghtiaLogoBase64 = aghtiaLogo; // Agthia logo commented out
         herculesLogoBase64 = herculesLogo;
       }
       
@@ -1843,6 +1828,7 @@ export function Reports() {
             }
             table {
               width: 100%;
+              table-layout: fixed;
               border-collapse: collapse;
               margin-top: 20px;
               font-size: 12px;
@@ -1857,6 +1843,9 @@ export function Reports() {
               border: 1px solid #ddd;
               padding: 8px;
               text-align: left;
+              word-wrap: break-word;
+              overflow-wrap: break-word;
+              vertical-align: top;
             }
             th {
               background-color: #0088a9;
@@ -1988,7 +1977,6 @@ export function Reports() {
               </div>
               <div class="logo-right">
                 <img src="${asmLogoBase64}" alt="ASM Logo" />
-                <img src="${aghtiaLogoBase64}" alt="Aghtia Logo" />
               </div>
             </div>
           </div>
@@ -2049,9 +2037,10 @@ export function Reports() {
             
             // For detailed report, we need to handle the batch info display
             if (itemIndex === 0 && !isTotalRow) {
-              // First row of each batch group - show batch info
+              // First row of each batch group - show batch info (rowspan excludes total row — matches on-screen renderTableRow)
+              const batchRowSpan = Math.max(1, group.length - 1);
               htmlContent += `
-                <td rowspan="${group.length}">
+                <td rowspan="${batchRowSpan}">
                   <strong>Batch:</strong> ${item.batchName || 'N/A'}<br>
                   <strong>Product:</strong> ${item.productName || 'N/A'}<br>
                   <strong>Start:</strong> ${formatToLocalCustom(item.batchStart || 'N/A', true)}<br>
@@ -2166,7 +2155,7 @@ export function Reports() {
           </table>
           
           <div class="footer">
-            <p>Total Records: ${currentData.length} | Generated by NFM System</p>
+            <p>Total Records: ${currentData.length} | Generated by Khamis System</p>
           </div>
         </body>
         </html>

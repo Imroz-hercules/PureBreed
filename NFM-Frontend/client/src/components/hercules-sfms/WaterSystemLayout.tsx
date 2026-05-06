@@ -73,7 +73,7 @@
 //         <header className="bg-slate-900/95 light:bg-white border-b border-slate-700/50 light:border-gray-200 backdrop-blur-sm 
 //                           px-6 py-4 flex items-center justify-between shadow-lg light:shadow-xl">
 //           <div>
-//             <h1 className="text-xl font-bold text-white light:text-gray-900">NFM-Historical</h1>
+//             <h1 className="text-xl font-bold text-white light:text-gray-900">Khamis-Historical</h1>
 //             <p className="text-sm text-slate-400 light:text-gray-600">{getPageTitle()}</p>
 //           </div>
 
@@ -165,7 +165,7 @@ import { useLocation } from 'wouter'
 import { useTheme } from '@/contexts/ThemeContext'
 import futuristicNeonVideo from '@assets/20250725_1923_Futuristic Neon Serenity_simple_compose_01k112wfdvfd5v7jndrbpsca92_1753707277024.mp4'
 import asmLogo from '../../assets/Asm_Logo.png'
-import aghtiaLogo from '../../assets/aghtia.png'
+// import aghtiaLogo from '../../assets/aghtia.png' // Agthia logo commented out
 
 interface WaterSystemLayoutProps {
   children: React.ReactNode
@@ -266,7 +266,7 @@ export function WaterSystemLayout({ children }: WaterSystemLayoutProps) {
         <header className="bg-slate-900/95 light:bg-white border-b border-slate-700/50 light:border-gray-200 backdrop-blur-sm 
                           px-6 py-4 flex items-center justify-between shadow-lg light:shadow-xl">
           <div>
-            <h1 className="text-xl font-bold text-white light:text-gray-900">NFM-Historical</h1>
+            <h1 className="text-xl font-bold text-white light:text-gray-900">Khamis-Historical</h1>
             <p className="text-sm text-slate-400 light:text-gray-600">{getPageTitle()}</p>
           </div>
 
@@ -309,6 +309,7 @@ export function WaterSystemLayout({ children }: WaterSystemLayoutProps) {
                 alt="ASM Logo" 
                 className="h-16 w-auto opacity-90 hover:opacity-100 transition-opacity"
               />
+              {/* Agthia logo commented out
               <img 
                 src={aghtiaLogo} 
                 alt="Aghtia Logo" 
@@ -317,6 +318,7 @@ export function WaterSystemLayout({ children }: WaterSystemLayoutProps) {
                   filter: theme === 'dark' ? 'invert(1)' : 'none'
                 }}
               />
+              */}
             </div>
           </div>
         </header>

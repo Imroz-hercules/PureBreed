@@ -27,12 +27,16 @@
 
 from extensions import db
 from sqlalchemy.dialects.mssql import UNIQUEIDENTIFIER
+from sqlalchemy import PrimaryKeyConstraint
 
 class KPIMaterial(db.Model):
     __tablename__ = 'BatchMaterials'
-    __table_args__ = {'schema': 'dbo'}
+    __table_args__ = (
+        PrimaryKeyConstraint('Batch GUID', 'OrderId', 'Material Name', 'Batch Act Start'),
+        {'schema': 'dbo'}
+    )
 
-    id = db.Column('ID', db.Integer, primary_key=True)
+    # No ID column - table does not have ID; composite PK used above
     source_server = db.Column('Source Server', db.String(255))
     batch_guid = db.Column('Batch GUID', UNIQUEIDENTIFIER)
     rootguid = db.Column('ROOTGUID', UNIQUEIDENTIFIER)

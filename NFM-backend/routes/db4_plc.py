@@ -1,44 +1,35 @@
 from flask import Blueprint, jsonify, request
 from models.plc_live_data import PLCLiveData
+from models.db4_live_data import DB4LiveData
 from extensions import db
-import snap7
-from snap7.util import get_real
+# import snap7
+# from snap7.util import get_real
 from datetime import datetime, timezone
 from sqlalchemy import desc
 
 db4_blueprint = Blueprint("db4", __name__)
 
-PLC_IP = "192.168.2.3"
-RACK = 0
-SLOT = 3
-DB4_SIZE = 36
+# PLC_IP = "192.168.2.3"  # COMMENTED OUT - no snap7/IP storage
+# RACK = 0
+# SLOT = 3
+# DB4_SIZE = 36
 
-def read_real(data, offset):
-    return get_real(data, offset)
+# def read_real(data, offset):
+#     return get_real(data, offset)
 
 def fetch_db4_data():
-    client = snap7.client.Client()
-    try:
-        client.connect(PLC_IP, RACK, SLOT)
-        data = client.db_read(4, 0, DB4_SIZE)
-        return {
-            "pellet1_ton_hr": read_real(data, 0),
-            "pellet2_ton_hr": read_real(data, 4),
-            "pellet3_ton_hr": read_real(data, 8),
-            "pellet1_kw_ton": read_real(data, 12),
-            "pellet2_kw_ton": read_real(data, 16),
-            "pellet3_kw_ton": read_real(data, 20),
-        "pellet1_temp": read_real(data, 24),  # Temperature values as read from PLC
-        "pellet2_temp": read_real(data, 28),  # Temperature values as read from PLC
-        "pellet3_temp": read_real(data, 32),  # Temperature values as read from PLC
-        }
-    except Exception as e:
-        return {"error": str(e)}
-    finally:
-        try:
-            client.disconnect()
-        except Exception:
-            pass
+    """COMMENTED OUT - snap7 disabled, returning stub"""
+    # client = snap7.client.Client()
+    # try:
+    #     client.connect(PLC_IP, RACK, SLOT)
+    #     data = client.db_read(4, 0, DB4_SIZE)
+    #     return { ... }
+    # except ...
+    return {
+        "pellet1_ton_hr": 0.0, "pellet2_ton_hr": 0.0, "pellet3_ton_hr": 0.0,
+        "pellet1_kw_ton": 0.0, "pellet2_kw_ton": 0.0, "pellet3_kw_ton": 0.0,
+        "pellet1_temp": 0.0, "pellet2_temp": 0.0, "pellet3_temp": 0.0,
+    }
 
 # NEW: read directly from PLC, no DB write
 @db4_blueprint.route("/db4/live/read", methods=["GET"])
@@ -64,16 +55,14 @@ def read_db4_live():
 
     return jsonify(payload), 200
 
-# Existing endpoint that stores a row (unchanged)
+# Existing endpoint that stores a row (COMMENTED OUT - no DB storage)
 @db4_blueprint.route("/db4/live", methods=["POST"])
 def insert_db4_live():
-    data = fetch_db4_data()
-    if "error" in data:
-        return jsonify(data), 500
-    record = DB4LiveData(**data)
-    db.session.add(record)
-    db.session.commit()
-    return jsonify({"message": "DB4 data stored", "data": data}), 201
+    # data = fetch_db4_data()
+    # record = DB4LiveData(**data)
+    # db.session.add(record)
+    # db.session.commit()
+    return jsonify({"message": "DB4 storage disabled (PostgreSQL/snap7 commented out)"}), 503
 
 # Existing query endpoint (unchanged)
 @db4_blueprint.route("/db4/query", methods=["GET"])

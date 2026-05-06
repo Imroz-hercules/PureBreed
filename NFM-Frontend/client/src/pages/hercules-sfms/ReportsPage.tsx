@@ -962,6 +962,7 @@ export function ReportsPage() {
               <FileText className="w-5 h-5" />
               Reports
             </TabsTrigger>
+            {/* Data tab commented out - no longer needed
             <TabsTrigger
               value="plc"
               className="flex items-center gap-2 px-6 py-3 rounded-xl border-2 border-transparent transition-all duration-200 bg-[#0088a9] !text-white data-[state=active]:bg-[#007b98] data-[state=active]:!text-white data-[state=active]:shadow-lg data-[state=active]:border-[#007b98] data-[state=active]:scale-105 hover:bg-[#007b98] hover:!text-white"
@@ -969,6 +970,7 @@ export function ReportsPage() {
               <Database className="w-5 h-5" />
                Data
             </TabsTrigger>
+            */}
           </TabsList>
 
           {/* Reports Tab Content */}
@@ -1147,187 +1149,11 @@ export function ReportsPage() {
             </Card>
           </TabsContent>
 
-          {/* PLC Data Tab Content */}
+          {/* Data tab (PLC / Pellet / Mill Data) commented out - no longer needed
           <TabsContent value="plc" className="space-y-6">
-            {/* PLC Data Header */}
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-cyan-300 dark:text-cyan-400">Data</h2>
-            </div>
-
-
-            {/* PLC Error Alert */}
-            {plcError && (
-              <Alert className="border-red-300 bg-red-50 dark:border-red-500 dark:bg-red-900/20">
-                <AlertTriangle className="h-4 w-4 text-red-500" />
-                <AlertDescription className="text-red-700 dark:text-red-300">
-                  {plcError}
-                </AlertDescription>
-              </Alert>
-            )}
-
-            {/* DB3 Error Alert */}
-            {db3Error && (
-              <Alert className="border-red-300 bg-red-50 dark:border-red-500 dark:bg-red-900/20">
-                <AlertTriangle className="h-4 w-4 text-red-500" />
-                <AlertDescription className="text-red-700 dark:text-red-300">
-                  {db3Error}
-                </AlertDescription>
-              </Alert>
-            )}
-
-
-            {/* PLC Data Tabs */}
-            <Tabs defaultValue="db4" className="space-y-4">
-              <TabsList className="flex gap-3 justify-center p-2 bg-transparent">
-                <TabsTrigger value="db4" className="flex items-center gap-2 px-6 py-3 rounded-xl border-2 border-transparent transition-all duration-200 bg-[#0088a9] !text-white data-[state=active]:bg-[#007b98] data-[state=active]:!text-white data-[state=active]:shadow-lg data-[state=active]:border-[#007b98] data-[state=active]:scale-105 hover:bg-[#007b98] hover:!text-white">
-                  <Database className="w-4 h-4" />
-                   Pellet Data
-                </TabsTrigger>
-                <TabsTrigger value="db3" className="flex items-center gap-2 px-6 py-3 rounded-xl border-2 border-transparent transition-all duration-200 bg-[#0088a9] !text-white data-[state=active]:bg-[#007b98] data-[state=active]:!text-white data-[state=active]:shadow-lg data-[state=active]:border-[#007b98] data-[state=active]:scale-105 hover:bg-[#007b98] hover:!text-white">
-                  <Database className="w-4 h-4" />
-                   Mill Data
-                </TabsTrigger>
-              </TabsList>
-
-              {/* DB4 Table (Pellet Data) */}
-              <TabsContent value="db4">
-                <Card className="bg-white border border-gray-200 shadow-sm dark:bg-gray-900 dark:border-cyan-500 dark:shadow-lg">
-                  <CardHeader className="bg-gray-50 border-b border-gray-200 dark:bg-gray-800 dark:border-b dark:border-gray-700">
-                    <CardTitle className="flex items-center gap-2 text-cyan-300 dark:text-cyan-400">
-                      <Database className="w-5 h-5" />
-                       Pellet
-                      {plcTotalPages > 1 && (
-                        <span className="text-sm ml-2 text-gray-500 dark:text-gray-400">
-                          (Page {plcCurrentPage} of {plcTotalPages})
-                        </span>
-                      )}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="overflow-x-auto p-0">
-                    <Table className="w-full border border-cyan-700 dark:border-cyan-700">
-                      <TableHeader>
-                        <TableRow className="bg-white text-black text-sm font-bold border-b-2 border-blue-200 dark:bg-slate-800 dark:text-cyan-400 dark:text-sm dark:tracking-wider">
-                          <TableHead className="px-2 py-3 text-center font-semibold border-b border-blue-200 text-black dark:border-b dark:border-gray-700 dark:text-cyan-400">Timestamp</TableHead>
-                          <TableHead className="px-2 py-3 text-center font-semibold border-b border-blue-200 text-black dark:border-b dark:border-gray-700 dark:text-cyan-400">Pellet1_TonHr</TableHead>
-                          <TableHead className="px-2 py-3 text-center font-semibold border-b border-blue-200 text-black dark:border-b dark:border-gray-700 dark:text-cyan-400">Pellet2_TonHr</TableHead>
-                          <TableHead className="px-2 py-3 text-center font-semibold border-b border-blue-200 text-black dark:border-b dark:border-gray-700 dark:text-cyan-400">Pellet3_TonHr</TableHead>
-                          <TableHead className="px-2 py-3 text-center font-semibold border-b border-blue-200 text-black dark:border-b dark:border-gray-700 dark:text-cyan-400">Pellet1_KwTon</TableHead>
-                          <TableHead className="px-2 py-3 text-center font-semibold border-b border-blue-200 text-black dark:border-b dark:border-gray-700 dark:text-cyan-400">Pellet2_KwTon</TableHead>
-                          <TableHead className="px-2 py-3 text-center font-semibold border-b border-blue-200 text-black dark:border-b dark:border-gray-700 dark:text-cyan-400">Pellet3_KwTon</TableHead>
-                          <TableHead className="px-2 py-3 text-center font-semibold border-b border-blue-200 text-black dark:border-b dark:border-gray-700 dark:text-cyan-400">Pellet1_Temp</TableHead>
-                          <TableHead className="px-2 py-3 text-center font-semibold border-b border-blue-200 text-black dark:border-b dark:border-gray-700 dark:text-cyan-400">Pellet2_Temp</TableHead>
-                          <TableHead className="px-2 py-3 text-center font-semibold border-b border-blue-200 text-black dark:border-b dark:border-gray-700 dark:text-cyan-400">Pellet3_Temp</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {plcData.length > 0 ? (
-                          plcData.map((row, i) => (
-                            <TableRow
-                              key={i}
-                              className={`hover:bg-gray-100 border-b border-gray-200 transition-colors dark:hover:bg-gray-800 dark:border-b dark:border-gray-700 ${
-                                i % 2 === 0 
-                                  ? 'bg-gray-100 dark:bg-slate-900' 
-                                  : 'bg-white dark:bg-slate-800'
-                              }`}
-                            >
-                              <TableCell className="px-2 py-3 text-center text-gray-900 dark:text-white">
-                                {format(new Date(row.timestamp), "yyyy-MM-dd HH:mm:ss")}
-                              </TableCell>
-                              <TableCell className="px-2 py-3 text-center text-gray-900 dark:text-white">{formatValue(row.pellet1_ton_hr)}</TableCell>
-                              <TableCell className="px-2 py-3 text-center text-gray-900 dark:text-white">{formatValue(row.pellet2_ton_hr)}</TableCell>
-                              <TableCell className="px-2 py-3 text-center text-gray-900 dark:text-white">{formatValue(row.pellet3_ton_hr)}</TableCell>
-                              <TableCell className="px-2 py-3 text-center text-gray-900 dark:text-white">{formatValue(row.pellet1_kw_ton)}</TableCell>
-                              <TableCell className="px-2 py-3 text-center text-gray-900 dark:text-white">{formatValue(row.pellet2_kw_ton)}</TableCell>
-                              <TableCell className="px-2 py-3 text-center text-gray-900 dark:text-white">{formatValue(row.pellet3_kw_ton)}</TableCell>
-                              <TableCell className="px-2 py-3 text-center text-gray-900 dark:text-white">{formatValue(row.pellet1_temp)}</TableCell>
-                              <TableCell className="px-2 py-3 text-center text-gray-900 dark:text-white">{formatValue(row.pellet2_temp)}</TableCell>
-                              <TableCell className="px-2 py-3 text-center text-gray-900 dark:text-white">{formatValue(row.pellet3_temp)}</TableCell>
-                            </TableRow>
-                          ))
-                        ) : (
-                          <TableRow>
-                            <TableCell colSpan={10} className="text-center py-8 text-gray-500 dark:text-gray-400">
-                              {plcLoading ? 'Loading data...' : 'No PLC data available'}
-                            </TableCell>
-                          </TableRow>
-                        )}
-                      </TableBody>
-                    </Table>
-                    {plcTotalPages > 1 && (
-                      <PLCPagination
-                        currentPage={plcCurrentPage}
-                        totalPages={plcTotalPages}
-                        onPageChange={handlePLCPageChange}
-                        totalRecords={plcTotalRecords}
-                      />
-                    )}
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              {/* DB3 Table (Mill Data) */}
-              <TabsContent value="db3">
-                <Card className="bg-white border border-gray-200 shadow-sm dark:bg-gray-900 dark:border-cyan-500 dark:shadow-lg">
-                  <CardHeader className="bg-gray-50 border-b border-gray-200 dark:bg-gray-800 dark:border-b dark:border-gray-700">
-                    <CardTitle className="flex items-center gap-2 text-cyan-300 dark:text-cyan-400">
-                      <Database className="w-5 h-5" />
-                      Mill Amps
-                      {db3TotalPages > 1 && (
-                        <span className="text-sm ml-2 text-gray-500 dark:text-gray-400">
-                          (Page {db3CurrentPage} of {db3TotalPages})
-                        </span>
-                      )}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="overflow-x-auto p-0">
-                    <Table className="w-full border border-cyan-700 dark:border-cyan-700">
-                      <TableHeader>
-                        <TableRow className="bg-white text-black text-sm font-bold border-b-2 border-blue-200 dark:bg-slate-800 dark:text-cyan-400 dark:text-sm dark:tracking-wider">
-                          <TableHead className="px-2 py-3 text-center font-semibold border-b border-blue-200 text-black dark:border-b dark:border-gray-700 dark:text-cyan-400">Timestamp</TableHead>
-                          <TableHead className="px-2 py-3 text-center font-semibold border-b border-blue-200 text-black dark:border-b dark:border-gray-700 dark:text-cyan-400">HammerMill_Amp</TableHead>
-                          <TableHead className="px-2 py-3 text-center font-semibold border-b border-blue-200 text-black dark:border-b dark:border-gray-700 dark:text-cyan-400">RollerMill_Amp</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {db3Data.length > 0 ? (
-                          db3Data.map((row, i) => (
-                            <TableRow
-                              key={i}
-                              className={`hover:bg-gray-100 border-b border-gray-200 transition-colors dark:hover:bg-gray-800 dark:border-b dark:border-gray-700 ${
-                                i % 2 === 0 
-                                  ? 'bg-gray-100 dark:bg-slate-900' 
-                                  : 'bg-white dark:bg-slate-800'
-                              }`}
-                            >
-                              <TableCell className="px-2 py-3 text-center text-gray-900 dark:text-white">
-                                {format(new Date(row.timestamp), "yyyy-MM-dd HH:mm:ss")}
-                              </TableCell>
-                              <TableCell className="px-2 py-3 text-center text-gray-900 dark:text-white">{row.hammermill_amp?.toFixed(2) || '0.00'}</TableCell>
-                              <TableCell className="px-2 py-3 text-center text-gray-900 dark:text-white">{row.rollermill_amp?.toFixed(2) || '0.00'}</TableCell>
-                            </TableRow>
-                          ))
-                        ) : (
-                          <TableRow>
-                            <TableCell colSpan={3} className="text-center py-8 text-gray-500 dark:text-gray-400">
-                              {db3Loading ? 'Loading DB3 data...' : 'No DB3 data available'}
-                            </TableCell>
-                          </TableRow>
-                        )}
-                      </TableBody>
-                    </Table>
-                    {db3TotalPages > 1 && (
-                      <PLCPagination
-                        currentPage={db3CurrentPage}
-                        totalPages={db3TotalPages}
-                        onPageChange={handleDB3PageChange}
-                        totalRecords={db3TotalRecords}
-                      />
-                    )}
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
+            ... Data tab content ...
           </TabsContent>
+          */}
         </Tabs>
       </div>
     </WaterSystemLayout>

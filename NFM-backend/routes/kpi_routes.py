@@ -5,9 +5,11 @@ from models.kpi_material import KPIMaterial
 from datetime import datetime, timedelta
 from sqlalchemy import func
 import traceback
+import logging
 
 # ✅ Changed variable name to match app.py
 kpi_blueprint = Blueprint("kpi", __name__)
+logger = logging.getLogger(__name__)
 
 # Helper function to apply 4-hour offset to dates
 def apply_four_hour_offset(date_obj):
@@ -71,8 +73,8 @@ def get_kpis():
             # Apply 4-hour offset to the filter dates (subtract 4 hours)
             start_date = apply_four_hour_offset(start_date)
             end_date = apply_four_hour_offset(end_date)
-            
-            date_filter = [KPIMaterial.batch_act_start >= start_date, KPIMaterial.batch_act_start <= end_date]
+            # Use batch_transfer_time for date filter (same as Raw Data / csv-format-report) so Historical shows same batches
+            date_filter = [KPIMaterial.batch_transfer_time >= start_date, KPIMaterial.batch_transfer_time <= end_date]
 
         query = KPIMaterial.query
         if date_filter:
@@ -85,7 +87,7 @@ def get_kpis():
             query = query.filter(KPIMaterial.material_name.in_(material_filters))
 
         query = query.filter(func.lower(KPIMaterial.product_name) != 'not selected')
-        query = query.order_by(KPIMaterial.batch_act_start.asc())  # Changed to asc() to show oldest first
+        query = query.order_by(KPIMaterial.batch_transfer_time.asc())  # Match Raw Data column, oldest first
 
         pagination = query.paginate(page=page, per_page=limit, error_out=False)
         materials = pagination.items
@@ -94,7 +96,7 @@ def get_kpis():
         kpi_list = []
         for mat in materials:
             kpi_list.append({
-                "Batch GUID": mat.batch_guid,
+                "Batch GUID": str(mat.batch_guid) if mat.batch_guid is not None else None,
                 "Batch Name": mat.batch_name,
                 "Product Name": mat.product_name,
                 "Batch Act Start": mat.batch_act_start.strftime("%Y-%m-%d %H:%M:%S") if mat.batch_act_start else None,
@@ -105,9 +107,9 @@ def get_kpis():
                 "SetPoint Float": mat.setpoint_float,
                 "Actual Value Float": mat.actual_value_float,
                 "Source Server": mat.source_server,
-                "ROOTGUID": mat.rootguid,
+                "ROOTGUID": str(mat.rootguid) if mat.rootguid is not None else None,
                 "OrderId": mat.order_id,
-                "Batch Transfer Time": mat.batch_transfer_time,
+                "Batch Transfer Time": mat.batch_transfer_time.strftime("%Y-%m-%d %H:%M:%S") if mat.batch_transfer_time else None,
                 "FormulaCategoryName": mat.formula_category_name
             })
 
@@ -119,7 +121,14 @@ def get_kpis():
         }), 200
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        # Debug: log full traceback so exact error is visible in terminal
+        logger.exception("GET /api/kpi failed: %s", e)
+        traceback.print_exc()
+        return jsonify({
+            "error": str(e),
+            "error_type": type(e).__name__,
+            "traceback": traceback.format_exc()
+        }), 500
 
 
 # 🟢 Route to Get Report Data
@@ -177,7 +186,7 @@ def get_reports():
         kpi_list = []
         for mat in materials:
             kpi_list.append({
-                "Batch GUID": mat.batch_guid,
+                "Batch GUID": str(mat.batch_guid) if mat.batch_guid is not None else None,
                 "Batch Name": mat.batch_name,
                 "Product Name": mat.product_name,
                 "Batch Act Start": mat.batch_act_start.strftime("%Y-%m-%d %H:%M:%S") if mat.batch_act_start else None,
@@ -188,9 +197,9 @@ def get_reports():
                 "SetPoint Float": mat.setpoint_float,
                 "Actual Value Float": mat.actual_value_float,
                 "Source Server": mat.source_server,
-                "ROOTGUID": mat.rootguid,
+                "ROOTGUID": str(mat.rootguid) if mat.rootguid is not None else None,
                 "OrderId": mat.order_id,
-                "Batch Transfer Time": mat.batch_transfer_time,
+                "Batch Transfer Time": mat.batch_transfer_time.strftime("%Y-%m-%d %H:%M:%S") if mat.batch_transfer_time else None,
                 "FormulaCategoryName": mat.formula_category_name
             })
 
@@ -255,7 +264,7 @@ def get_kpi_csv_format_report():
         report_data = []
         for mat in materials:
             report_data.append({
-                "Batch GUID": mat.batch_guid,
+                "Batch GUID": str(mat.batch_guid) if mat.batch_guid is not None else None,
                 "Batch Name": mat.batch_name,
                 "Product Name": mat.product_name,
                 "Batch Act Start": mat.batch_act_start.strftime("%Y-%m-%d %H:%M:%S") if mat.batch_act_start else None,
@@ -266,9 +275,9 @@ def get_kpi_csv_format_report():
                 "SetPoint Float": mat.setpoint_float,
                 "Actual Value Float": mat.actual_value_float,
                 "Source Server": mat.source_server,
-                "ROOTGUID": mat.rootguid,
+                "ROOTGUID": str(mat.rootguid) if mat.rootguid is not None else None,
                 "OrderId": mat.order_id,
-                "EventID": mat.id,
+                "EventID": f"{str(mat.batch_guid) if mat.batch_guid else ''}_{mat.order_id}_{mat.material_name or ''}" if (mat.batch_guid or mat.material_name) else None,
                 "Batch Transfer Time": mat.batch_transfer_time.strftime("%Y-%m-%d %H:%M:%S") if mat.batch_transfer_time else None,
                 "FormulaCategoryName": mat.formula_category_name
             })
@@ -305,13 +314,13 @@ def get_filter_options():
                     start_date = datetime.strptime(start_date_str, "%Y-%m-%dT%H:%M:%S.%fZ")
                     end_date = datetime.strptime(end_date_str, "%Y-%m-%dT%H:%M:%S.%fZ")
             
-            # Apply 4-hour offset to start date only for 24-hour period queries
-            # This ensures we get the full 24-hour period when user selects 7 AM to 7 AM
-            start_date, end_date = apply_four_hour_offset_start_only(start_date, end_date)
-            
+            # Match GET /api/kpi: same 4-hour offset on both bounds + batch_transfer_time window
+            # so filter dropdowns list the same batches/materials the report query can return.
+            start_date = apply_four_hour_offset(start_date)
+            end_date = apply_four_hour_offset(end_date)
             query = query.filter(
-                KPIMaterial.batch_act_start >= start_date,
-                KPIMaterial.batch_act_start <= end_date
+                KPIMaterial.batch_transfer_time >= start_date,
+                KPIMaterial.batch_transfer_time <= end_date,
             )
         
         # Filter out 'not selected' products

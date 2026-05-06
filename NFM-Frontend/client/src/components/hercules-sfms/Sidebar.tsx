@@ -10,8 +10,8 @@ import {
   Activity,
   Database,
   Cpu,
-  TrendingUp,
-  BarChart3
+  TrendingUp
+  // BarChart3 // KPI Overview commented out
 } from 'lucide-react'
 import herculesLogo from "../../assets/hercules-logo-final.png"
 interface SidebarProps {
@@ -25,12 +25,13 @@ const menuItems = [
     label: 'KPI Dashboard',
     description: 'Key Performance Indicators & Analytics'
   },
-  {
-    path: '/kpi-overview',
-    icon: BarChart3,
-    label: 'KPI Overview',
-    description: 'Comprehensive Performance Metrics & Analytics'
-  },
+  // KPI Overview commented out - no longer needed
+  // {
+  //   path: '/kpi-overview',
+  //   icon: BarChart3,
+  //   label: 'KPI Overview',
+  //   description: 'Comprehensive Performance Metrics & Analytics'
+  // },
   // {
   //   path: '/kpi-carousel',
   //   icon: TrendingUp,

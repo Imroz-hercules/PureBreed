@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import ChartComponent, { PLC_COLOR_MAPPING } from "@/components/hercules-sfms/ChartComponent";
+import ChartComponent from "@/components/hercules-sfms/ChartComponent";
 import { FaSyncAlt } from "react-icons/fa";
 import { API_ENDPOINTS } from '@/lib/api';
 import {
@@ -18,11 +18,9 @@ import {
   ChevronDown,
   LucideIcon,
   Check,
-  X,
-  Info
+  X
 } from "lucide-react";
 import axios from "axios";
-import { useLiveData } from '../../hooks/useLiveData';
 
 interface KPIData {
   title: string;
@@ -221,16 +219,6 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
 
 
 export function KPIDashboard() {
-  const { data, status, startStream, stopStream, getSingleReading } = useLiveData();
-
-  // DB3 state
-  const [db3Data, setDb3Data] = useState<any>(null);
-  const [db3Status, setDb3Status] = useState({
-    connected: false,
-    lastUpdated: null as string | null,
-    error: null as string | null
-  });
-
   // Use the same default dates as defined earlier (1 day ago for faster loading)
   const defaultDates = getDefaultDates();
 
@@ -249,22 +237,6 @@ export function KPIDashboard() {
   const [batchesByWeekdayData, setBatchesByWeekdayData] = useState({ labels: [] as string[], values: [] as number[] });
   const [efficiencyComplexityData, setEfficiencyComplexityData] = useState({ labels: [] as string[], values: [] as number[] });
   const [errorPercentageData, setErrorPercentageData] = useState({ labels: [] as string[], values: [] as number[] });
-  const [plcTrendData, setPlcTrendData] = useState({ labels: [] as string[], values: [] as number[] });
-  const [plcDetailedData, setPlcDetailedData] = useState<{
-    labels: string[];
-    datasets: { name: string; values: number[]; color: string; visible: boolean }[];
-  }>({
-    labels: [],
-    datasets: []
-  });
-  const [plcChartZoom, setPlcChartZoom] = useState({ start: 0, end: 100 });
-  const [plcChartControls, setPlcChartControls] = useState({
-    showTemperature: true,
-    showThroughput: true,
-    showAmps: true,
-    autoScale: true
-  });
-  const [showInfo, setShowInfo] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [dataLoading, setDataLoading] = useState(false);
@@ -660,219 +632,6 @@ export function KPIDashboard() {
     fetchGraphData();
   };
 
-  // Helper function to ensure negative values are displayed as zero
-  const formatValue = (value: number): string => {
-    const safeValue = Math.max(0, value); // Ensure value is not negative
-    return safeValue.toFixed(2);
-  };
-
-  // Transform live data to match the expected format
-  const liveDB4Data = data ? [
-    { label: "Pellet1_TonHr", value: formatValue(data.pellet1_ton_hr) },
-    { label: "Pellet2_TonHr", value: formatValue(data.pellet2_ton_hr) },
-    { label: "Pellet3_TonHr", value: formatValue(data.pellet3_ton_hr) },
-    { label: "Pellet1_KwTon", value: formatValue(data.pellet1_kw_ton) },
-    { label: "Pellet2_KwTon", value: formatValue(data.pellet2_kw_ton) },
-    { label: "Pellet3_KwTon", value: formatValue(data.pellet3_kw_ton) },
-    { label: "Pellet1_Temp", value: formatValue(data.pellet1_temp) },
-    { label: "Pellet2_Temp", value: formatValue(data.pellet2_temp) },
-    { label: "Pellet3_Temp", value: formatValue(data.pellet3_temp) },
-  ] : [];
-
-  // Transform DB3 data to match the expected format
-  const liveDB3Data = db3Data ? [
-    { label: "HammerMill_Amp", value: formatValue(db3Data.hammermill_amp || 0) },
-    { label: "RollerMill_Amp", value: formatValue(db3Data.rollermill_amp || 0) },
-  ] : [];
-
-  // Fetch DB3 data
-  const fetchDB3Data = async () => {
-    try {
-      const response = await fetch(API_ENDPOINTS.DB3_LIVE);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const result = await response.json();
-      setDb3Data(result);
-      setDb3Status({
-        connected: true,
-        lastUpdated: new Date().toISOString(),
-        error: null
-      });
-    } catch (err: any) {
-      setDb3Status({
-        connected: false,
-        lastUpdated: null,
-        error: err.message
-      });
-    }
-  };
-
-  // Fetch DB3 data on component mount and when streaming starts
-  useEffect(() => {
-    fetchDB3Data(); // Initial fetch
-
-    if (status.streaming) {
-      const interval = setInterval(fetchDB3Data, 5000); // Poll every 5 seconds
-      return () => clearInterval(interval);
-    }
-  }, [status.streaming]);
-
-  // Update PLC trend data when live data changes
-  useEffect(() => {
-    const updatePlcTrendData = () => {
-      const now = new Date();
-      const currentSeconds = now.getSeconds();
-      
-      // Only add data points at 10-second intervals (0, 10, 20, 30, 40, 50)
-      if (currentSeconds % 10 !== 0) {
-        return; // Skip this update if not at a 10-second boundary
-      }
-      
-      const timeLabel = now.toLocaleTimeString('en-US', {
-        hour12: false,
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit'
-      });
-
-      // Get current values from live data
-      const currentValues = [];
-
-      // DB4 values (normalize to similar scale)
-      if (data) {
-        currentValues.push(
-          data.pellet1_ton_hr || 0,
-          data.pellet2_ton_hr || 0,
-          data.pellet3_ton_hr || 0,
-          (data.pellet1_temp || 0) / 10, // Scale down temperature
-          (data.pellet2_temp || 0) / 10,
-          (data.pellet3_temp || 0) / 10
-        );
-      }
-
-      // DB3 values
-      if (db3Data) {
-        currentValues.push(
-          (db3Data.hammermill_amp || 0) / 10, // Scale down amps
-          (db3Data.rollermill_amp || 0) / 10
-        );
-      }
-
-      // Calculate average value for trend
-      const avgValue = currentValues.length > 0
-        ? currentValues.reduce((sum, val) => sum + val, 0) / currentValues.length
-        : 0;
-
-      setPlcTrendData(prev => {
-        // Check if this time label already exists to avoid duplicates
-        if (prev.labels.includes(timeLabel)) {
-          return prev; // Don't add duplicate time points
-        }
-        
-        const newLabels = [...prev.labels, timeLabel];
-        const newValues = [...prev.values, avgValue];
-
-        // Keep only last 20 data points for performance
-        if (newLabels.length > 20) {
-          return {
-            labels: newLabels.slice(-20),
-            values: newValues.slice(-20)
-          };
-        }
-
-        return { labels: newLabels, values: newValues };
-      });
-
-      // Update detailed datasets for individual metrics
-      setPlcDetailedData(prev => {
-        // Check if this time label already exists to avoid duplicates
-        if (prev.labels.includes(timeLabel)) {
-          return prev; // Don't add duplicate time points
-        }
-        
-        const newLabels = [...prev.labels, timeLabel];
-
-        // Keep only last 20 data points for performance
-        if (newLabels.length > 20) {
-          newLabels.splice(0, newLabels.length - 20);
-        }
-
-        const newDatasets = [
-          // Throughput metrics
-          {
-            name: 'Pellet1_TonHr',
-            values: [...(prev.datasets.find(d => d.name === 'Pellet1_TonHr')?.values || []), data?.pellet1_ton_hr || 0],
-            color: PLC_COLOR_MAPPING['Pellet1_TonHr'],
-            visible: plcChartControls.showThroughput
-          },
-          {
-            name: 'Pellet2_TonHr',
-            values: [...(prev.datasets.find(d => d.name === 'Pellet2_TonHr')?.values || []), data?.pellet2_ton_hr || 0],
-            color: PLC_COLOR_MAPPING['Pellet2_TonHr'],
-            visible: plcChartControls.showThroughput
-          },
-          {
-            name: 'Pellet3_TonHr',
-            values: [...(prev.datasets.find(d => d.name === 'Pellet3_TonHr')?.values || []), data?.pellet3_ton_hr || 0],
-            color: PLC_COLOR_MAPPING['Pellet3_TonHr'],
-            visible: plcChartControls.showThroughput
-          },
-          // Temperature metrics
-          {
-            name: 'Pellet1_Temp',
-            values: [...(prev.datasets.find(d => d.name === 'Pellet1_Temp')?.values || []), data?.pellet1_temp || 0],
-            color: PLC_COLOR_MAPPING['Pellet1_Temp'],
-            visible: plcChartControls.showTemperature
-          },
-          {
-            name: 'Pellet2_Temp',
-            values: [...(prev.datasets.find(d => d.name === 'Pellet2_Temp')?.values || []), data?.pellet2_temp || 0],
-            color: PLC_COLOR_MAPPING['Pellet2_Temp'],
-            visible: plcChartControls.showTemperature
-          },
-          {
-            name: 'Pellet3_Temp',
-            values: [...(prev.datasets.find(d => d.name === 'Pellet3_Temp')?.values || []), data?.pellet3_temp || 0],
-            color: PLC_COLOR_MAPPING['Pellet3_Temp'],
-            visible: plcChartControls.showTemperature
-          },
-          // Amps metrics
-          {
-            name: 'HammerMill_Amp',
-            values: [...(prev.datasets.find(d => d.name === 'HammerMill_Amp')?.values || []), db3Data?.hammermill_amp || 0],
-            color: PLC_COLOR_MAPPING['HammerMill_Amp'],
-            visible: plcChartControls.showAmps
-          },
-          {
-            name: 'RollerMill_Amp',
-            values: [...(prev.datasets.find(d => d.name === 'RollerMill_Amp')?.values || []), db3Data?.rollermill_amp || 0],
-            color: PLC_COLOR_MAPPING['RollerMill_Amp'],
-            visible: plcChartControls.showAmps
-          }
-        ];
-
-        // Trim all datasets to match labels length
-        newDatasets.forEach(dataset => {
-          if (dataset.values.length > newLabels.length) {
-            dataset.values = dataset.values.slice(-newLabels.length);
-          }
-        });
-
-        return {
-          labels: newLabels,
-          datasets: newDatasets
-        };
-      });
-    };
-
-    // Check every second but only add data at 10-second intervals
-    if (status.streaming) {
-      const interval = setInterval(updatePlcTrendData, 1000);
-      return () => clearInterval(interval);
-    }
-  }, [data, db3Data, status.streaming, plcChartControls]);
-
   if (loading && !initialLoadComplete) return <div className="min-h-screen bg-[#0f172a] flex items-center justify-center text-cyan-400 text-xl">Loading...</div>;
   if (error) return <div className="min-h-screen bg-[#0f172a] flex items-center justify-center text-red-400 text-xl">Error: {error.message}</div>;
 
@@ -892,6 +651,7 @@ export function KPIDashboard() {
             >
               KPI Dashboard
             </TabsTrigger>
+            {/* PLC Live Data tab commented out - no longer needed
             <TabsTrigger 
               value="plc" 
               className="custom-tab-button data-[state=active]:bg-[#007b98] data-[state=active]:text-white px-6 py-3 rounded-xl transition-all duration-200 bg-[#0088a9] text-white border border-[#0088a9] hover:bg-[#007b98] hover:text-white hover:scale-105"
@@ -899,6 +659,7 @@ export function KPIDashboard() {
             >
               PLC Live Data
             </TabsTrigger>
+            */}
           </TabsList>
 
           <TabsContent value="kpi" className="space-y-6">
@@ -1020,218 +781,13 @@ export function KPIDashboard() {
                   </Card>
                 </div>
                 
-                {/* Second Row - PLC Live Data Trend, No. Batches by Weekday, Throughput Trend */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                  {/* PLC Live Data Trend */}
-                  <Card className="bg-slate-900/95 dark:bg-slate-900/95 light:bg-white/95 border-purple-500/30 dark:border-purple-500/30 light:border-slate-300 shadow-[0_0_20px_rgba(168,85,247,0.1)]">
-                    <CardContent className="pt-4 pb-4">
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-3">
-                          <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
-                            PLC Live Data Trend
-                          </h3>
-                        </div>
-                        
-                        <div className="flex items-center gap-4">
-                          {/* Info Button for PLC Chart */}
-                          <div className="relative">
-                            <button
-                              onMouseEnter={() => setShowInfo(true)}
-                              onMouseLeave={() => setShowInfo(false)}
-                              className="p-1.5 rounded-full bg-cyan-500 hover:bg-cyan-600 border border-cyan-400 transition-all duration-200 hover:scale-110 group"
-                              aria-label="PLC chart information"
-                            >
-                              <Info className="h-4 w-4 text-white group-hover:text-white transition-colors" />
-                            </button>
-                            
-                            {/* Info Tooltip */}
-                            {showInfo && (
-                              <div className="absolute right-0 top-full mt-2 w-80 p-4 bg-slate-800/95 dark:bg-slate-800/95 border border-cyan-500/50 dark:border-cyan-500/50 rounded-lg shadow-xl z-50 backdrop-blur-sm chart-info-tooltip">
-                                <div className="text-sm text-slate-200 dark:text-slate-200 leading-relaxed">
-                                  <div className="font-semibold text-cyan-400 dark:text-cyan-400 mb-2 flex items-center gap-2">
-                                    <Info className="h-4 w-4" />
-                                    PLC Chart Information
-                                  </div>
-                                  <p className="text-slate-300 dark:text-slate-300">
-                                    Real-time production monitoring dashboard. Tracks live sensor readings including: • Throughput (tons/hour) - Production speed • Temperature (°C) - Equipment health • Electrical current (amps) - Power consumption. Use to detect anomalies, monitor trends, and ensure optimal production conditions.
-                                  </p>
-                                </div>
-                                
-                                {/* Tooltip Arrow */}
-                                <div className="absolute -top-2 right-4 w-4 h-4 bg-slate-800/95 dark:bg-slate-800/95 border-l border-t border-cyan-500/50 dark:border-cyan-500/50 transform rotate-45 tooltip-arrow"></div>
-                              </div>
-                            )}
-                          </div>
-                          
-                          {status.streaming && (
-                            <div className="flex items-center gap-2 text-xs text-purple-400">
-                              <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse"></div>
-                              LIVE
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Chart Controls */}
-                      <div className="mb-3 p-2 bg-slate-100 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-600/30">
-                        <div className="flex flex-wrap items-center gap-4 text-sm">
-                          {/* Metric Type Toggles */}
-                          <div className="flex items-center gap-2">
-                            <input
-                              type="checkbox"
-                              id="showThroughput"
-                              checked={plcChartControls.showThroughput}
-                              onChange={(e) => setPlcChartControls(prev => ({ ...prev, showThroughput: e.target.checked }))}
-                              className="w-4 h-4 text-purple-600 bg-white dark:bg-slate-700 border-slate-300 dark:border-slate-600 rounded focus:ring-purple-500"
-                            />
-                            <label htmlFor="showThroughput" className="text-slate-700 dark:text-slate-300">Throughput</label>
-                          </div>
-
-                          <div className="flex items-center gap-2">
-                            <input
-                              type="checkbox"
-                              id="showTemperature"
-                              checked={plcChartControls.showTemperature}
-                              onChange={(e) => setPlcChartControls(prev => ({ ...prev, showTemperature: e.target.checked }))}
-                              className="w-4 h-4 text-cyan-600 bg-white dark:bg-slate-700 border-slate-300 dark:border-slate-600 rounded focus:ring-cyan-500"
-                            />
-                            <label htmlFor="showTemperature" className="text-slate-700 dark:text-slate-300">Temperature</label>
-                          </div>
-
-                          <div className="flex items-center gap-2">
-                            <input
-                              type="checkbox"
-                              id="showAmps"
-                              checked={plcChartControls.showAmps}
-                              onChange={(e) => setPlcChartControls(prev => ({ ...prev, showAmps: e.target.checked }))}
-                              className="w-4 h-4 text-pink-600 bg-white dark:bg-slate-700 border-slate-300 dark:border-slate-600 rounded focus:ring-pink-500"
-                            />
-                            <label htmlFor="showAmps" className="text-slate-700 dark:text-slate-300">Amps</label>
-                          </div>
-
-                          {/* Zoom Controls */}
-                          <div className="flex items-center gap-2 ml-auto">
-                            <button
-                              onClick={() => setPlcChartZoom(prev => ({
-                                start: Math.max(0, prev.start - 10),
-                                end: Math.min(100, prev.end + 10)
-                              }))}
-                              className="px-3 py-1.5 text-xs bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 rounded border border-slate-300 dark:border-slate-600 transition-colors hover:shadow-sm"
-                            >
-                              🔍+
-                            </button>
-                            <button
-                              onClick={() => setPlcChartZoom(prev => ({
-                                start: Math.min(90, prev.start + 10),
-                                end: Math.max(10, prev.end - 10)
-                              }))}
-                              className="px-3 py-1.5 text-xs bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 rounded border border-slate-300 dark:border-slate-600 transition-colors hover:shadow-sm"
-                            >
-                              🔍-
-                            </button>
-                            <button
-                              onClick={() => setPlcChartZoom({ start: 0, end: 100 })}
-                              className="px-3 py-1.5 text-xs bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 rounded border border-slate-300 dark:border-slate-600 transition-colors hover:shadow-sm"
-                            >
-                              Reset
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-
-                      <ChartComponent
-                        type="line"
-                        data={plcDetailedData}
-                        title=""
-                        colors={['#a855f7', '#06b6d4', '#10b981']}
-                        zoom={plcChartZoom}
-                        isMultiLine={true}
-                      />
-                    </CardContent>
-                  </Card>
-
-                  {/* No. Batches by Weekday */}
+                {/* No. Batches by Weekday + Material Error Analysis */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                   <Card className="bg-slate-900/95 dark:bg-slate-900/95 light:bg-white/95 border-emerald-500/30 dark:border-emerald-500/30 light:border-slate-300 shadow-[0_0_20px_rgba(16,185,129,0.1)]">
                     <CardContent className="pt-4 pb-4">
                       <ChartComponent type="bar" data={batchesByWeekdayData} title="No. Batches by Weekday" colors={['#3b82f6', '#f97316', '#ef4444', '#06b6d4', '#10b981', '#f59e0b', '#8b5cf6']} />
                     </CardContent>
                   </Card>
-
-                  {/* Throughput Trend */}
-                  <Card className="bg-slate-900/95 dark:bg-slate-900/95 light:bg-white/95 border-blue-500/30 dark:border-blue-500/30 light:border-slate-300 shadow-[0_0_20px_rgba(59,130,246,0.1)]">
-                    <CardContent className="pt-4 pb-4">
-                      <div className="flex items-center justify-between mb-3">
-                        <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
-                          Throughput Trend
-                        </h3>
-                        {status.streaming && (
-                          <div className="flex items-center gap-2 text-sm text-blue-400">
-                            <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
-                            LIVE
-                          </div>
-                        )}
-                      </div>
-                      <div className="h-72">
-                        <ChartComponent
-                          type="line"
-                          data={{
-                            labels: plcDetailedData.labels,
-                            datasets: plcDetailedData.datasets.filter(d => 
-                              d.name.includes('TonHr') && d.visible
-                            )
-                          }}
-                          title=""
-                          colors={[PLC_COLOR_MAPPING['Pellet1_TonHr'], PLC_COLOR_MAPPING['Pellet2_TonHr'], PLC_COLOR_MAPPING['Pellet3_TonHr']]}
-                          isMultiLine={true}
-                        />
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                {/* Third Row - Temperature Trend, Amps Trend, Material Error Analysis */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                  {/* Temperature Trend */}
-                  <Card className="bg-slate-900/95 dark:bg-slate-900/95 light:bg-white/95 border-cyan-500/30 dark:border-cyan-500/30 light:border-slate-300 shadow-[0_0_20px_rgba(6,182,212,0.1)]">
-                    <CardContent className="pt-4 pb-4">
-                      <div className="h-80">
-                        <ChartComponent
-                          type="line"
-                          data={{
-                            labels: plcDetailedData.labels,
-                            datasets: plcDetailedData.datasets.filter(d => 
-                              d.name.includes('Temp') && d.visible
-                            )
-                          }}
-                          title="Temperature Trend"
-                          colors={[PLC_COLOR_MAPPING['Pellet1_Temp'], PLC_COLOR_MAPPING['Pellet2_Temp'], PLC_COLOR_MAPPING['Pellet3_Temp']]}
-                          isMultiLine={true}
-                        />
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Amps Trend */}
-                  <Card className="bg-slate-900/95 dark:bg-slate-900/95 light:bg-white/95 border-purple-500/30 dark:border-purple-500/30 light:border-slate-300 shadow-[0_0_20px_rgba(139,92,246,0.1)]">
-                    <CardContent className="pt-4 pb-4">
-                      <div className="h-80">
-                        <ChartComponent
-                          type="line"
-                          data={{
-                            labels: plcDetailedData.labels,
-                            datasets: plcDetailedData.datasets.filter(d => 
-                              d.name.includes('Amp') && d.visible
-                            )
-                          }}
-                          title="Amps Trend"
-                          colors={[PLC_COLOR_MAPPING['HammerMill_Amp'], PLC_COLOR_MAPPING['RollerMill_Amp']]}
-                          isMultiLine={true}
-                        />
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Material Error Analysis */}
                   <Card className="bg-slate-900/95 dark:bg-slate-900/95 light:bg-white/95 border-red-500/30 dark:border-red-500/30 light:border-slate-300 shadow-[0_0_20px_rgba(239,68,68,0.1)]">
                     <CardContent className="pt-4 pb-4">
                       <div className="h-80">
@@ -1249,139 +805,11 @@ export function KPIDashboard() {
             </LoadingOverlay>
           </TabsContent>
 
+          {/* PLC Live Data tab content commented out - no longer needed
           <TabsContent value="plc" className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-cyan-300 dark:text-cyan-300 light:text-midnight-blue">PLC Live Data</h2>
-              <div className="flex items-center gap-4">
-                {/* Connection Status */}
-                <div className={`px-3 py-1 rounded-full text-sm font-medium ${status.connected
-                    ? 'bg-green-500/20 light:bg-green-100 text-green-400 light:text-green-700 border border-green-500/30 light:border-green-300'
-                    : 'bg-red-500/20 light:bg-red-100 text-red-400 light:text-red-700 border border-red-500/30 light:border-red-300'
-                  }`}>
-                  {status.connected ? '🟢 Connected' : '🔴 API Disconnected'}
-                </div>
-
-              </div>
-            </div>
-
-            {/* Error Display */}
-            {status.error && (
-              <div className="bg-red-500/20 light:bg-red-100 border border-red-500/30 light:border-red-300 rounded-lg p-4 text-red-400 light:text-red-700">
-                <div className="flex items-center gap-2">
-                  <span>⚠️</span>
-                  <span className="font-medium">Connection Error:</span>
-                  <span>{status.error}</span>
-                </div>
-              </div>
-            )}
-
-            <Tabs defaultValue="db4" className="space-y-4 plc-tabs">
-              <TabsList className="inline-flex bg-transparent border-none p-0 gap-3 mx-auto justify-center w-full">
-                <TabsTrigger 
-                  value="db4" 
-                  className="custom-tab-button data-[state=active]:bg-[#007b98] data-[state=active]:text-white data-[state=inactive]:bg-[#0088a9] data-[state=inactive]:text-white px-6 py-3 rounded-xl transition-all duration-200 border border-[#0088a9] hover:bg-[#007b98] hover:text-white hover:scale-105 hover:shadow-lg"
-                  style={{ color: 'white' }}
-                >
-                  Pellet Data
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="db3" 
-                  className="custom-tab-button data-[state=active]:bg-[#007b98] data-[state=active]:text-white data-[state=inactive]:bg-[#0088a9] data-[state=inactive]:text-white px-6 py-3 rounded-xl transition-all duration-200 border border-[#0088a9] hover:bg-[#007b98] hover:text-white hover:scale-105 hover:shadow-lg"
-                  style={{ color: 'white' }}
-                >
-                  Mill Amps Data
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="db4">
-                <Card className="bg-white dark:bg-gradient-to-r dark:from-gray-900 dark:to-gray-800 border border-gray-200 dark:border-cyan-500 shadow-lg dark:shadow-[0_0_12px_rgba(34,211,238,0.6)]">
-                  <CardHeader>
-                    <CardTitle className="text-blue-600 dark:text-cyan-400">Pellet Data</CardTitle>
-                    {status.lastUpdated && (
-                      <p className="text-sm text-blue-500 dark:text-cyan-300 mt-2">
-                        Last Updated: {new Date(status.lastUpdated).toLocaleString()}
-                      </p>
-                    )}
-                  </CardHeader>
-                  <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {liveDB4Data.length > 0 ? (
-                      liveDB4Data.map((item, index) => (
-                        <div
-                          key={index}
-                          className="flex items-center justify-between p-4 rounded-lg bg-gray-50 dark:bg-gray-900/60 border border-gray-200 dark:border-cyan-500/30 
-                                     shadow-md dark:shadow-[0_0_8px_rgba(34,211,238,0.4)] hover:shadow-lg dark:hover:shadow-[0_0_15px_rgba(34,211,238,0.7)]
-                                     transition-shadow duration-300"
-                        >
-                          {/* Left side: label */}
-                          <p className="text-sm font-medium text-blue-600 dark:text-cyan-300">{item.label}</p>
-
-                          {/* Right side: value */}
-                          <p className="text-lg font-semibold text-green-600 dark:text-green-400 animate-pulse">
-                            {item.value}
-                            <span className="ml-2 text-xs text-blue-500 dark:text-cyan-400">● LIVE</span>
-                          </p>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="col-span-full flex items-center justify-center p-8">
-                        <div className="text-center">
-                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 dark:border-cyan-400 mx-auto mb-4"></div>
-                          <p className="text-blue-600 dark:text-cyan-300">Loading live data...</p>
-                          {status.error && (
-                            <p className="text-red-600 dark:text-red-400 text-sm mt-2">{status.error}</p>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="db3">
-                <Card className="bg-white dark:bg-gradient-to-r dark:from-gray-900 dark:to-gray-800 border border-gray-200 dark:border-cyan-500 shadow-lg dark:shadow-[0_0_12px_rgba(34,211,238,0.6)]">
-                  <CardHeader>
-                    <CardTitle className="text-blue-600 dark:text-cyan-400">Mill Amps Data</CardTitle>
-                    {db3Status.lastUpdated && (
-                      <p className="text-sm text-blue-500 dark:text-cyan-300 mt-2">
-                        Last Updated: {new Date(db3Status.lastUpdated).toLocaleString()}
-                      </p>
-                    )}
-                  </CardHeader>
-                  <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {liveDB3Data.length > 0 ? (
-                      liveDB3Data.map((item: any, index: number) => (
-                        <div
-                          key={index}
-                          className="flex items-center justify-between p-4 rounded-lg bg-gray-50 dark:bg-gray-900/60 border border-gray-200 dark:border-cyan-500/30 
-                                     shadow-md dark:shadow-[0_0_8px_rgba(34,211,238,0.4)] hover:shadow-lg dark:hover:shadow-[0_0_15px_rgba(34,211,238,0.7)]
-                                     transition-shadow duration-300"
-                        >
-                          {/* Left side: label */}
-                          <p className="text-sm font-medium text-blue-600 dark:text-cyan-300">{item.label}</p>
-
-                          {/* Right side: value */}
-                          <p className="text-lg font-semibold text-green-600 dark:text-green-400 animate-pulse">
-                            {item.value}
-                            <span className="ml-2 text-xs text-blue-500 dark:text-cyan-400">● LIVE</span>
-                          </p>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="col-span-full flex items-center justify-center p-8">
-                        <div className="text-center">
-                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 dark:border-cyan-400 mx-auto mb-4"></div>
-                          <p className="text-blue-600 dark:text-cyan-300">Loading DB3 data...</p>
-                          {db3Status.error && (
-                            <p className="text-red-600 dark:text-red-400 text-sm mt-2">{db3Status.error}</p>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
+            ... (Pellet Data / Mill Amps Data content)
           </TabsContent>
+          */}
         </Tabs>
       </div>
     </WaterSystemLayout>
