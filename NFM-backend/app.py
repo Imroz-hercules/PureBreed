@@ -95,12 +95,19 @@ app.logger.addHandler(handler)
 # 🔓 Enable CORS
 # ------------------------------------------------------
 CORS(app, supports_credentials=True, origins=[
-    "http://localhost:5174", "http://localhost:5173", "http://localhost:3000",
-    "http://host.docker.internal:5000", "http://192.168.1.212:5174",
-    "http://192.168.1.253:5174", "http://192.168.1.252:5174", "http://192.168.1.213:5174",
-    "http://192.168.0.251:5174", "http://172.29.16.1:5174", "http://172.20.16.1:5174",
-    "http://172.18.128.1:5174",
-    "http://192.168.8.13:5174", "http://192.168.2.40:5174"
+    # Any local Vite/dev port (5173, 5174, 5180, …)
+    r"http://localhost:\d+",
+    r"http://127\.0\.0\.1:\d+",
+    "http://localhost:5174", "http://localhost:5173", "http://localhost:5180", "http://localhost:3000",
+    "http://127.0.0.1:5180", "http://127.0.0.1:5174",
+    "http://host.docker.internal:5000",
+    "http://192.168.1.212:5174", "http://192.168.1.253:5174", "http://192.168.1.252:5174",
+    "http://192.168.1.213:5174", "http://192.168.0.251:5174",
+    "http://172.29.16.1:5174", "http://172.20.16.1:5174", "http://172.18.128.1:5174",
+    "http://192.168.8.13:5174", "http://192.168.2.40:5174",
+    # PureBread Vite port 5180 (LAN)
+    "http://192.168.8.117:5180", "http://192.168.2.40:5180", "http://192.168.20.13:5180",
+    "http://192.168.8.13:5180",
 ])
 
 # ------------------------------------------------------
@@ -192,6 +199,13 @@ try:
         blueprints_loaded.append("kpi_calendar_api")
     except ImportError:
         pass
+
+    try:
+        from routes.ssrs_reports import ssrs_bp
+        app.register_blueprint(ssrs_bp, url_prefix="/api")
+        blueprints_loaded.append("ssrs_reports")
+    except ImportError as e:
+        app.logger.warning(f"⚠️ Failed to import ssrs_reports: {str(e)}")
 
     app.logger.info(f"✅ Loaded blueprints: {', '.join(blueprints_loaded)}")
     

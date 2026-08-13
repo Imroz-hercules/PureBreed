@@ -1,42 +1,41 @@
 from flask import Blueprint, request, jsonify
 from extensions import db
-from models.kpi_material import KPIMaterial
-from sqlalchemy import func, text
+from sqlalchemy import text
 from datetime import datetime
+from utils.timezone_utils import parse_filter_date, parse_filter_end_date
 
 kpi_calendar_bp = Blueprint("kpi_calendar", __name__)
+
+SAUDI_DATE_EXPR = "CAST(DATEADD(HOUR, 3, dbo.[BatchMaterials_Shadow].[Batch Act Start]) AS DATE)"
+
 
 @kpi_calendar_bp.route("/kpi_calendar", methods=["GET"])
 def get_kpi_calendar():
     try:
-        # Parse date range
         start_date_str = request.args.get("startDate")
         end_date_str = request.args.get("endDate")
         if not start_date_str or not end_date_str:
             return jsonify({"error": "Start date and end date are required"}), 400
 
-        # Parse dates
-        try:
-            start_date = datetime.fromisoformat(start_date_str.replace("Z", "+00:00"))
-            end_date = datetime.fromisoformat(end_date_str.replace("Z", "+00:00"))
-        except Exception:
-            start_date = datetime.strptime(start_date_str, "%Y-%m-%d")
-            end_date = datetime.strptime(end_date_str, "%Y-%m-%d")
+        start_date = parse_filter_date(start_date_str)
+        end_date = parse_filter_end_date(end_date_str)
 
-        # Query: Use raw SQL to match exactly with manual SQL query
-        sql_query = """
-        SELECT CAST(dbo.[BatchMaterials].[Batch Act Start] AS DATE) AS date, 
-               sum(dbo.[BatchMaterials].[Actual Value Float]) AS total_actual, 
-               count(distinct(dbo.[BatchMaterials].[Batch GUID])) AS batch_count, 
-               count(distinct(dbo.[BatchMaterials].[Product Name])) AS product_count
-        FROM dbo.[BatchMaterials]
-        WHERE dbo.[BatchMaterials].[Batch Act Start] >= :start_date AND dbo.[BatchMaterials].[Batch Act Start] <= :end_date 
-          AND lower(dbo.[BatchMaterials].[Product Name]) != 'not selected' 
-        GROUP BY CAST(dbo.[BatchMaterials].[Batch Act Start] AS DATE) 
-        ORDER BY CAST(dbo.[BatchMaterials].[Batch Act Start] AS DATE)
+        sql_query = f"""
+        SELECT {SAUDI_DATE_EXPR} AS date,
+               sum(dbo.[BatchMaterials_Shadow].[Actual Value Float]) AS total_actual,
+               count(distinct(dbo.[BatchMaterials_Shadow].[Batch GUID])) AS batch_count,
+               count(distinct(dbo.[BatchMaterials_Shadow].[Product Name])) AS product_count
+        FROM dbo.[BatchMaterials_Shadow]
+        WHERE dbo.[BatchMaterials_Shadow].[Batch Act Start] >= :start_date
+          AND dbo.[BatchMaterials_Shadow].[Batch Act Start] <= :end_date
+          AND lower(dbo.[BatchMaterials_Shadow].[Product Name]) != 'not selected'
+        GROUP BY {SAUDI_DATE_EXPR}
+        ORDER BY {SAUDI_DATE_EXPR}
         """
-        
-        results = db.session.execute(text(sql_query), {"start_date": start_date, "end_date": end_date}).fetchall()
+
+        results = db.session.execute(
+            text(sql_query), {"start_date": start_date, "end_date": end_date}
+        ).fetchall()
 
         data = [
             {
@@ -44,7 +43,7 @@ def get_kpi_calendar():
                 "total_actual_kg": float(row.total_actual or 0),
                 "total_actual_ton": float(row.total_actual or 0) / 1000,
                 "batch_count": int(row.batch_count),
-                "product_count": int(row.product_count)
+                "product_count": int(row.product_count),
             }
             for row in results
         ]
@@ -56,6 +55,7 @@ def get_kpi_calendar():
         print(traceback.format_exc())
         return jsonify({"error": str(e)}), 500
 
+
 @kpi_calendar_bp.route("/kpi_calendar/details", methods=["GET"])
 def get_kpi_calendar_details():
     try:
@@ -63,24 +63,24 @@ def get_kpi_calendar_details():
         if not date_str:
             return jsonify({"error": "Date is required"}), 400
 
-        # Parse date
         try:
             target_date = datetime.fromisoformat(date_str.replace("Z", "+00:00")).date()
         except ValueError:
             target_date = datetime.strptime(date_str, "%Y-%m-%d").date()
 
-        # Query to get product-wise details for the specific date
-        sql_query = """
-        SELECT dbo.[BatchMaterials].[Product Name] as product_name,
-               SUM(dbo.[BatchMaterials].[Actual Value Float]) as quantity_kg
-        FROM dbo.[BatchMaterials]
-        WHERE CAST(dbo.[BatchMaterials].[Batch Act Start] AS DATE) = :target_date
-          AND lower(dbo.[BatchMaterials].[Product Name]) != 'not selected'
-        GROUP BY dbo.[BatchMaterials].[Product Name]
+        sql_query = f"""
+        SELECT dbo.[BatchMaterials_Shadow].[Product Name] as product_name,
+               SUM(dbo.[BatchMaterials_Shadow].[Actual Value Float]) as quantity_kg
+        FROM dbo.[BatchMaterials_Shadow]
+        WHERE {SAUDI_DATE_EXPR} = :target_date
+          AND lower(dbo.[BatchMaterials_Shadow].[Product Name]) != 'not selected'
+        GROUP BY dbo.[BatchMaterials_Shadow].[Product Name]
         ORDER BY quantity_kg DESC
         """
-        
-        results = db.session.execute(text(sql_query), {"target_date": target_date}).fetchall()
+
+        results = db.session.execute(
+            text(sql_query), {"target_date": target_date}
+        ).fetchall()
 
         details = [
             {
@@ -89,7 +89,7 @@ def get_kpi_calendar_details():
             }
             for row in results
         ]
-        
+
         return jsonify(details), 200
 
     except Exception as e:

@@ -2,30 +2,15 @@ from flask import Blueprint, request, jsonify
 from extensions import db
 from models.kpi import KPI
 from models.kpi_material import KPIMaterial
-from datetime import datetime, timedelta
+from datetime import datetime
 from sqlalchemy import func
+from utils.timezone_utils import parse_filter_date, utc_to_saudi, serialize_kpi_material
 import traceback
 import logging
 
 # ✅ Changed variable name to match app.py
 kpi_blueprint = Blueprint("kpi", __name__)
 logger = logging.getLogger(__name__)
-
-# Helper function to apply 4-hour offset to dates
-def apply_four_hour_offset(date_obj):
-    """Apply 4-hour offset to datetime object (subtract 4 hours)"""
-    if date_obj:
-        return date_obj - timedelta(hours=4)
-    return date_obj
-
-# Helper function to apply 4-hour offset to start date only (for 24-hour period queries)
-def apply_four_hour_offset_start_only(start_date, end_date):
-    """Apply 4-hour offset to start date only, keep end date as is for 24-hour period"""
-    if start_date and end_date:
-        # Subtract 4 hours from start date, keep end date the same
-        adjusted_start = start_date - timedelta(hours=4)
-        return adjusted_start, end_date
-    return start_date, end_date
 
 # 🟢 Route to Insert KPI Data
 @kpi_blueprint.route("/kpi", methods=["POST"])
@@ -59,20 +44,8 @@ def get_kpis():
 
         date_filter = []
         if start_date_str and end_date_str:
-            try:
-                start_date = datetime.fromisoformat(start_date_str.replace("Z", "+00:00"))
-                end_date = datetime.fromisoformat(end_date_str.replace("Z", "+00:00"))
-            except Exception:
-                try:
-                    start_date = datetime.strptime(start_date_str, "%Y-%m-%d %H:%M:%S")
-                    end_date = datetime.strptime(end_date_str, "%Y-%m-%d %H:%M:%S")
-                except Exception:
-                    start_date = datetime.strptime(start_date_str, "%Y-%m-%dT%H:%M:%S.%fZ")
-                    end_date = datetime.strptime(end_date_str, "%Y-%m-%dT%H:%M:%S.%fZ")
-            
-            # Apply 4-hour offset to the filter dates (subtract 4 hours)
-            start_date = apply_four_hour_offset(start_date)
-            end_date = apply_four_hour_offset(end_date)
+            start_date = parse_filter_date(start_date_str)
+            end_date = parse_filter_date(end_date_str)
             # Use batch_transfer_time for date filter (same as Raw Data / csv-format-report) so Historical shows same batches
             date_filter = [KPIMaterial.batch_transfer_time >= start_date, KPIMaterial.batch_transfer_time <= end_date]
 
@@ -95,23 +68,7 @@ def get_kpis():
 
         kpi_list = []
         for mat in materials:
-            kpi_list.append({
-                "Batch GUID": str(mat.batch_guid) if mat.batch_guid is not None else None,
-                "Batch Name": mat.batch_name,
-                "Product Name": mat.product_name,
-                "Batch Act Start": mat.batch_act_start.strftime("%Y-%m-%d %H:%M:%S") if mat.batch_act_start else None,
-                "Batch Act End": mat.batch_act_end.strftime("%Y-%m-%d %H:%M:%S") if mat.batch_act_end else None,
-                "Quantity": mat.quantity,
-                "Material Name": mat.material_name,
-                "Material Code": mat.material_code,
-                "SetPoint Float": mat.setpoint_float,
-                "Actual Value Float": mat.actual_value_float,
-                "Source Server": mat.source_server,
-                "ROOTGUID": str(mat.rootguid) if mat.rootguid is not None else None,
-                "OrderId": mat.order_id,
-                "Batch Transfer Time": mat.batch_transfer_time.strftime("%Y-%m-%d %H:%M:%S") if mat.batch_transfer_time else None,
-                "FormulaCategoryName": mat.formula_category_name
-            })
+            kpi_list.append(serialize_kpi_material(mat))
 
         return jsonify({
             "data": kpi_list,
@@ -147,23 +104,8 @@ def get_reports():
         if not start_date_str or not end_date_str:
             return jsonify({"error": "Start date and end date are required"}), 400
 
-        try:
-            start_date = datetime.fromisoformat(start_date_str.replace("Z", "+00:00"))
-            end_date = datetime.fromisoformat(end_date_str.replace("Z", "+00:00"))
-        except Exception:
-            try:
-                start_date = datetime.strptime(start_date_str, "%Y-%m-%d %H:%M:%S")
-                end_date = datetime.strptime(end_date_str, "%Y-%m-%d %H:%M:%S")
-            except Exception:
-                start_date = datetime.strptime(start_date_str, "%Y-%m-%dT%H:%M:%S.%fZ")
-                end_date = datetime.strptime(end_date_str, "%Y-%m-%dT%H:%M:%S.%fZ")
-
-        # Apply 4-hour offset only for non-daily reports
-        # Daily Report should use exact times without offset
-        if report_type != 'daily':
-            # Apply 4-hour offset to start date only for 24-hour period queries
-            # This ensures we get the full 24-hour period when user selects 7 AM to 7 AM
-            start_date, end_date = apply_four_hour_offset_start_only(start_date, end_date)
+        start_date = parse_filter_date(start_date_str)
+        end_date = parse_filter_date(end_date_str)
 
         query = KPIMaterial.query.filter(
             KPIMaterial.batch_act_start >= start_date,
@@ -185,23 +127,7 @@ def get_reports():
 
         kpi_list = []
         for mat in materials:
-            kpi_list.append({
-                "Batch GUID": str(mat.batch_guid) if mat.batch_guid is not None else None,
-                "Batch Name": mat.batch_name,
-                "Product Name": mat.product_name,
-                "Batch Act Start": mat.batch_act_start.strftime("%Y-%m-%d %H:%M:%S") if mat.batch_act_start else None,
-                "Batch Act End": mat.batch_act_end.strftime("%Y-%m-%d %H:%M:%S") if mat.batch_act_end else None,
-                "Quantity": mat.quantity,
-                "Material Name": mat.material_name,
-                "Material Code": mat.material_code,
-                "SetPoint Float": mat.setpoint_float,
-                "Actual Value Float": mat.actual_value_float,
-                "Source Server": mat.source_server,
-                "ROOTGUID": str(mat.rootguid) if mat.rootguid is not None else None,
-                "OrderId": mat.order_id,
-                "Batch Transfer Time": mat.batch_transfer_time.strftime("%Y-%m-%d %H:%M:%S") if mat.batch_transfer_time else None,
-                "FormulaCategoryName": mat.formula_category_name
-            })
+            kpi_list.append(serialize_kpi_material(mat))
 
         return jsonify({
             "data": kpi_list,
@@ -230,20 +156,8 @@ def get_kpi_csv_format_report():
         if not start_date_str or not end_date_str:
             return jsonify({"error": "startDate and endDate are required"}), 400
 
-        try:
-            start_date = datetime.fromisoformat(start_date_str.replace("Z", "+00:00"))
-            end_date = datetime.fromisoformat(end_date_str.replace("Z", "+00:00"))
-        except Exception:
-            try:
-                start_date = datetime.strptime(start_date_str, "%Y-%m-%d %H:%M:%S")
-                end_date = datetime.strptime(end_date_str, "%Y-%m-%d %H:%M:%S")
-            except Exception:
-                start_date = datetime.strptime(start_date_str, "%Y-%m-%dT%H:%M:%S.%fZ")
-                end_date = datetime.strptime(end_date_str, "%Y-%m-%dT%H:%M:%S.%fZ")
-
-        # Apply 4-hour offset to the filter dates (subtract 4 hours)
-        start_date = apply_four_hour_offset(start_date)
-        end_date = apply_four_hour_offset(end_date)
+        start_date = parse_filter_date(start_date_str)
+        end_date = parse_filter_date(end_date_str)
 
         query = KPIMaterial.query.filter(
             KPIMaterial.batch_transfer_time >= start_date,
@@ -263,24 +177,7 @@ def get_kpi_csv_format_report():
 
         report_data = []
         for mat in materials:
-            report_data.append({
-                "Batch GUID": str(mat.batch_guid) if mat.batch_guid is not None else None,
-                "Batch Name": mat.batch_name,
-                "Product Name": mat.product_name,
-                "Batch Act Start": mat.batch_act_start.strftime("%Y-%m-%d %H:%M:%S") if mat.batch_act_start else None,
-                "Batch Act End": mat.batch_act_end.strftime("%Y-%m-%d %H:%M:%S") if mat.batch_act_end else None,
-                "Quantity": mat.quantity,
-                "Material Name": mat.material_name,
-                "Material Code": mat.material_code,
-                "SetPoint Float": mat.setpoint_float,
-                "Actual Value Float": mat.actual_value_float,
-                "Source Server": mat.source_server,
-                "ROOTGUID": str(mat.rootguid) if mat.rootguid is not None else None,
-                "OrderId": mat.order_id,
-                "EventID": f"{str(mat.batch_guid) if mat.batch_guid else ''}_{mat.order_id}_{mat.material_name or ''}" if (mat.batch_guid or mat.material_name) else None,
-                "Batch Transfer Time": mat.batch_transfer_time.strftime("%Y-%m-%d %H:%M:%S") if mat.batch_transfer_time else None,
-                "FormulaCategoryName": mat.formula_category_name
-            })
+            report_data.append(serialize_kpi_material(mat, include_event_id=True))
 
         return jsonify({
             "data": report_data,
@@ -303,21 +200,8 @@ def get_filter_options():
         # Build base query with date filtering only
         query = KPIMaterial.query
         if start_date_str and end_date_str:
-            try:
-                start_date = datetime.fromisoformat(start_date_str.replace("Z", "+00:00"))
-                end_date = datetime.fromisoformat(end_date_str.replace("Z", "+00:00"))
-            except Exception:
-                try:
-                    start_date = datetime.strptime(start_date_str, "%Y-%m-%d %H:%M:%S")
-                    end_date = datetime.strptime(end_date_str, "%Y-%m-%d %H:%M:%S")
-                except Exception:
-                    start_date = datetime.strptime(start_date_str, "%Y-%m-%dT%H:%M:%S.%fZ")
-                    end_date = datetime.strptime(end_date_str, "%Y-%m-%dT%H:%M:%S.%fZ")
-            
-            # Match GET /api/kpi: same 4-hour offset on both bounds + batch_transfer_time window
-            # so filter dropdowns list the same batches/materials the report query can return.
-            start_date = apply_four_hour_offset(start_date)
-            end_date = apply_four_hour_offset(end_date)
+            start_date = parse_filter_date(start_date_str)
+            end_date = parse_filter_date(end_date_str)
             query = query.filter(
                 KPIMaterial.batch_transfer_time >= start_date,
                 KPIMaterial.batch_transfer_time <= end_date,
@@ -374,19 +258,8 @@ def get_dashboard_analytics():
         if not start_date_str or not end_date_str:
             return jsonify({"error": "Start date and end date are required"}), 400
         
-        try:
-            start_date = datetime.fromisoformat(start_date_str.replace("Z", "+00:00"))
-            end_date = datetime.fromisoformat(end_date_str.replace("Z", "+00:00"))
-        except Exception:
-            try:
-                start_date = datetime.strptime(start_date_str, "%Y-%m-%d %H:%M:%S")
-                end_date = datetime.strptime(end_date_str, "%Y-%m-%d %H:%M:%S")
-            except Exception:
-                start_date = datetime.strptime(start_date_str, "%Y-%m-%dT%H:%M:%S.%fZ")
-                end_date = datetime.strptime(end_date_str, "%Y-%m-%dT%H:%M:%S.%fZ")
-        
-        # Apply 4-hour offset to start date only
-        start_date, end_date = apply_four_hour_offset_start_only(start_date, end_date)
+        start_date = parse_filter_date(start_date_str)
+        end_date = parse_filter_date(end_date_str)
         
         # Build base query with filters
         query = KPIMaterial.query.filter(
@@ -447,7 +320,7 @@ def get_dashboard_analytics():
         daily_production = {}
         for mat in materials:
             if mat.batch_act_start:
-                date_key = mat.batch_act_start.strftime("%Y-%m-%d")
+                date_key = utc_to_saudi(mat.batch_act_start).strftime("%Y-%m-%d")
                 # Sum quantity per batch (avoid double counting)
                 batch_key = f"{date_key}_{mat.batch_guid}"
                 if batch_key not in daily_production:
@@ -473,7 +346,7 @@ def get_dashboard_analytics():
         daily_downtime = {}
         for mat in materials:
             if mat.batch_act_end and mat.batch_transfer_time and mat.batch_act_start:
-                date_key = mat.batch_act_start.strftime("%Y-%m-%d")
+                date_key = utc_to_saudi(mat.batch_act_start).strftime("%Y-%m-%d")
                 batch_key = f"{date_key}_{mat.batch_guid}"
                 
                 # Calculate idle time only once per batch
@@ -591,7 +464,7 @@ def get_dashboard_analytics():
         hourly_consumption = {}
         for mat in materials:
             if mat.batch_act_start and mat.quantity:
-                hour = mat.batch_act_start.strftime("%H:00")
+                hour = utc_to_saudi(mat.batch_act_start).strftime("%H:00")
                 # Normalize quantity to consumption proxy
                 hourly_consumption[hour] = hourly_consumption.get(hour, 0) + (mat.quantity / 1000)
         
@@ -606,7 +479,7 @@ def get_dashboard_analytics():
         daily_comparison = {}
         for mat in materials:
             if mat.batch_act_start:
-                date_key = mat.batch_act_start.strftime("%Y-%m-%d")
+                date_key = utc_to_saudi(mat.batch_act_start).strftime("%Y-%m-%d")
                 if date_key not in daily_comparison:
                     daily_comparison[date_key] = {"planned": 0, "actual": 0}
                 daily_comparison[date_key]["planned"] += mat.setpoint_float or 0
@@ -661,7 +534,7 @@ def get_dashboard_analytics():
         
         for mat in materials:
             if mat.batch_act_start:
-                hour = mat.batch_act_start.hour
+                hour = utc_to_saudi(mat.batch_act_start).hour
                 if 6 <= hour < 14:
                     shift = "Shift A"
                 elif 14 <= hour < 22:
@@ -685,7 +558,7 @@ def get_dashboard_analytics():
         hourly_load = {}
         for mat in materials:
             if mat.batch_act_start and mat.quantity:
-                hour = mat.batch_act_start.strftime("%H:00")
+                hour = utc_to_saudi(mat.batch_act_start).strftime("%H:00")
                 # Normalize to load proxy (divide by 100)
                 hourly_load[hour] = hourly_load.get(hour, 0) + (mat.quantity / 100)
         
@@ -699,7 +572,7 @@ def get_dashboard_analytics():
         daily_efficiency = {}
         for mat in materials:
             if mat.batch_act_start and mat.quantity and mat.quantity > 0:
-                date_key = mat.batch_act_start.strftime("%Y-%m-%d")
+                date_key = utc_to_saudi(mat.batch_act_start).strftime("%Y-%m-%d")
                 if date_key not in daily_efficiency:
                     daily_efficiency[date_key] = {"energy_sum": 0, "quantity_sum": 0}
                 # Use actual_value_float as energy proxy (or quantity if not available)
@@ -721,7 +594,7 @@ def get_dashboard_analytics():
         daily_variance = {}
         for mat in materials:
             if mat.batch_act_start and mat.setpoint_float and mat.actual_value_float and mat.setpoint_float > 0:
-                date_key = mat.batch_act_start.strftime("%Y-%m-%d")
+                date_key = utc_to_saudi(mat.batch_act_start).strftime("%Y-%m-%d")
                 variance_pct = ((mat.actual_value_float - mat.setpoint_float) / mat.setpoint_float) * 100
                 if date_key not in daily_variance:
                     daily_variance[date_key] = []

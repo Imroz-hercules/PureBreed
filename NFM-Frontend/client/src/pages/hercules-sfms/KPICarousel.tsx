@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+﻿import React, { useState, useEffect, useRef } from "react";
 import { WaterSystemLayout } from '../../components/hercules-sfms/WaterSystemLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import ChartComponent from "@/components/hercules-sfms/ChartComponent";
 import { FaSyncAlt } from "react-icons/fa";
 import { API_ENDPOINTS } from '@/lib/api';
+import { dateToApiIso, getSaudiNow } from '@/lib/saudiTime';
 import {
   ChevronLeft,
   ChevronRight,
@@ -57,12 +58,12 @@ const MultiSelect: React.FC<MultiSelectProps> = ({ options, selected, onChange, 
 
   return (
     <div className="relative">
-      <Label className="text-sm font-medium text-slate-300 mb-2 block">{label}</Label>
+      <Label className="text-sm font-medium text-[color:var(--text-secondary)] mb-2 block">{label}</Label>
       <div className="relative">
         <button
           type="button"
           onClick={() => setIsOpen(!isOpen)}
-          className="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent flex items-center justify-between"
+          className="w-full px-3 py-2 bg-surface-sunken border border-border rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent flex items-center justify-between"
         >
           <span className="truncate">
             {selected.length === 0 ? placeholder : `${selected.length} selected`}
@@ -71,19 +72,19 @@ const MultiSelect: React.FC<MultiSelectProps> = ({ options, selected, onChange, 
         </button>
 
         {isOpen && (
-          <div className="absolute z-50 w-full mt-1 bg-slate-800 border border-slate-600 rounded-lg shadow-lg max-h-60 overflow-auto">
-            <div className="p-2 border-b border-slate-600 flex gap-2">
+          <div className="absolute z-50 w-full mt-1 bg-surface-sunken border border-border rounded-lg shadow-lg max-h-60 overflow-auto">
+            <div className="p-2 border-b border-border flex gap-2">
               <button
                 type="button"
                 onClick={selectAll}
-                className="px-2 py-1 text-xs bg-cyan-600 text-white rounded hover:bg-cyan-700"
+                className="px-2 py-1 text-xs bg-brand hover:bg-brand-hover"
               >
                 Select All
               </button>
               <button
                 type="button"
                 onClick={clearAll}
-                className="px-2 py-1 text-xs bg-slate-600 text-white rounded hover:bg-slate-700"
+                className="px-2 py-1 text-xs bg-surface-sunken text-white rounded hover:bg-surface-sunken"
               >
                 Clear All
               </button>
@@ -91,13 +92,13 @@ const MultiSelect: React.FC<MultiSelectProps> = ({ options, selected, onChange, 
             {options.map((option) => (
               <label
                 key={option}
-                className="flex items-center px-3 py-2 hover:bg-slate-700 cursor-pointer"
+                className="flex items-center px-3 py-2 hover:bg-surface-sunken cursor-pointer"
               >
                 <input
                   type="checkbox"
                   checked={selected.includes(option)}
                   onChange={() => toggleOption(option)}
-                  className="w-4 h-4 text-cyan-600 bg-slate-700 border-slate-600 rounded focus:ring-cyan-500 focus:ring-2"
+                  className="w-4 h-4 text-brand bg-surface-sunken border-border rounded focus:ring-brand focus:ring-2"
                 />
                 <span className="ml-2 text-sm text-white truncate">{option}</span>
               </label>
@@ -134,30 +135,25 @@ interface MultiSelectProps {
   placeholder?: string;
 }
 
-// Helper function to get default dates (1 day ago for faster loading)
+function toDatetimeLocalString(date: Date): string {
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
 const getDefaultDates = () => {
-  const today = new Date();
-  
-  // Set start date to 7 days ago at 7 AM (last week)
-  const startDate = new Date(today);
-  startDate.setDate(today.getDate() - 7);
+  const saudiNow = getSaudiNow();
+
+  const startDate = new Date(saudiNow);
+  startDate.setDate(saudiNow.getDate() - 7);
   startDate.setHours(7, 0, 0, 0);
 
-  // Set end date to today at 7 AM
-  const endDate = new Date(today);
+  const endDate = new Date(saudiNow);
   endDate.setHours(7, 0, 0, 0);
-  
-  return {
-    startDate: startDate.toISOString(),
-    endDate: endDate.toISOString()
-  };
-};
 
-// Helper function to apply 4-hour offset for API calls
-const getApiDateWithOffset = (dateString: string) => {
-  const date = new Date(dateString);
-  date.setHours(date.getHours() - 4);
-  return date;
+  return {
+    startDate: toDatetimeLocalString(startDate),
+    endDate: toDatetimeLocalString(endDate)
+  };
 };
 
 // Debounce function
@@ -182,10 +178,10 @@ const LoadingOverlay: React.FC<{ isLoading: boolean; children: React.ReactNode }
         <div className="opacity-50 pointer-events-none">
           {children}
         </div>
-        <div className="absolute inset-0 flex items-center justify-center bg-slate-900/80 backdrop-blur-sm rounded-lg">
+        <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm rounded-lg">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-400 mx-auto mb-4"></div>
-            <p className="text-cyan-400 text-lg font-medium">Loading charts...</p>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand mx-auto mb-4"></div>
+            <p className="text-brand text-lg font-medium">Loading charts...</p>
           </div>
         </div>
       </div>
@@ -540,11 +536,8 @@ export function KPICarousel() {
       let apiUrl = API_ENDPOINTS.KPI;
       const params = new URLSearchParams();
 
-      const apiStartDate = getApiDateWithOffset(filters.startDate);
-      const apiEndDate = getApiDateWithOffset(filters.endDate);
-      
-      if (apiStartDate) params.append('startDate', apiStartDate.toISOString());
-      if (apiEndDate) params.append('endDate', apiEndDate.toISOString());
+      if (filters.startDate) params.append('startDate', dateToApiIso(filters.startDate));
+      if (filters.endDate) params.append('endDate', dateToApiIso(filters.endDate));
       params.append('strictDateFilter', 'true');
       params.append('page', 'all');
       params.append('limit', 'none');
@@ -649,24 +642,24 @@ export function KPICarousel() {
 
   return (
     <WaterSystemLayout>
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 p-6">
+      <div className="min-h-screen bg-background p-6">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-blue-600 dark:text-cyan-400 mb-2">KPI Carousel</h1>
-          <p className="text-gray-600 dark:text-slate-400">Interactive chart carousel with production analytics</p>
+          <h1 className="text-4xl font-bold text-brand mb-2">KPI Carousel</h1>
+          <p className="text-[color:var(--text-muted)]">Interactive chart carousel with production analytics</p>
         </div>
 
         {/* Filters Section */}
-        <Card className="bg-white dark:bg-slate-900/95 border-blue-200 dark:border-cyan-500/30 shadow-lg dark:shadow-[0_0_20px_rgba(0,255,255,0.1)] mb-8">
+        <Card className="bg-surface/95 border-brand/30 shadow-lg dark:shadow-[0_0_20px_rgba(0,255,255,0.1)] mb-8">
           <CardContent className="p-6">
             <div className="flex items-center gap-4 mb-6">
-              <Filter className="h-5 w-5 text-blue-600 dark:text-cyan-400" />
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Dashboard Filters</h2>
+              <Filter className="h-5 w-5 text-brand" />
+              <h2 className="text-xl font-semibold text-foreground">Dashboard Filters</h2>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
               <div>
-                <Label htmlFor="startDate" className="text-sm font-medium text-gray-700 dark:text-slate-300 mb-2 block">
+                <Label htmlFor="startDate" className="text-sm font-medium text-[color:var(--text-muted)] mb-2 block">
                   Start Date
                 </Label>
                 <Input
@@ -674,12 +667,12 @@ export function KPICarousel() {
                   type="date"
                   value={filters.startDate}
                   onChange={(e) => setFilters(prev => ({ ...prev, startDate: e.target.value }))}
-                  className="bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600 text-gray-900 dark:text-white w-full"
+                  className="bg-surface border-gray-300 dark:border-border text-foreground w-full"
                 />
               </div>
               
               <div>
-                <Label htmlFor="endDate" className="text-sm font-medium text-gray-700 dark:text-slate-300 mb-2 block">
+                <Label htmlFor="endDate" className="text-sm font-medium text-[color:var(--text-muted)] mb-2 block">
                   End Date
                 </Label>
                 <Input
@@ -687,7 +680,7 @@ export function KPICarousel() {
                   type="date"
                   value={filters.endDate}
                   onChange={(e) => setFilters(prev => ({ ...prev, endDate: e.target.value }))}
-                  className="bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600 text-gray-900 dark:text-white w-full"
+                  className="bg-surface border-gray-300 dark:border-border text-foreground w-full"
                 />
               </div>
 
@@ -725,7 +718,7 @@ export function KPICarousel() {
                 <Button
                   onClick={handleApplyFilters}
                   disabled={dataLoading}
-                  className="custom-apply-button flex items-center gap-2 bg-blue-600 hover:bg-blue-700 dark:bg-[#0088a9] dark:hover:bg-[#007b98] text-white font-medium py-2 px-4 rounded-[8px] shadow-md transition-all duration-200 w-full"
+                  className="custom-apply-button flex items-center gap-2 bg-blue-600 hover:bg-blue-700 dark:bg-brand dark:hover:bg-brand-hover text-white font-medium py-2 px-4 rounded-[8px] shadow-md transition-all duration-200 w-full"
                   style={{ color: 'white' }}
                 >
                   {dataLoading ? (
@@ -763,15 +756,15 @@ export function KPICarousel() {
           {kpiData.map((kpi) => {
             const IconComponent = kpi.icon;
             return (
-              <Card key={kpi.title} className={`group relative bg-white dark:bg-slate-900/95 border-gray-200 dark:border-slate-700 ${kpi.glow} hover:scale-[1.02] transition-all duration-300 overflow-hidden shadow-lg hover:shadow-xl`}>
+              <Card key={kpi.title} className={`group relative bg-surface/95 border-gray-200 dark:border-border ${kpi.glow} hover:scale-[1.02] transition-all duration-300 overflow-hidden shadow-lg hover:shadow-xl`}>
                 <div className={`absolute inset-0 bg-gradient-to-br ${kpi.color} opacity-5 group-hover:opacity-10 transition-opacity`}></div>
                 <CardContent className="p-4 relative">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex-1">
-                      <p className="text-gray-600 dark:text-slate-400 text-xs font-medium uppercase tracking-wider mb-1">{kpi.title}</p>
+                      <p className="text-[color:var(--text-muted)] text-xs font-medium uppercase tracking-wider mb-1">{kpi.title}</p>
                       <div className="flex items-baseline gap-1">
-                        <p className="text-2xl font-bold text-gray-900 dark:text-white leading-none">{kpi.value}</p>
-                        {kpi.unit && <span className="text-gray-600 dark:text-slate-400 text-xs font-medium">{kpi.unit}</span>}
+                        <p className="text-2xl font-bold text-foreground leading-none">{kpi.value}</p>
+                        {kpi.unit && <span className="text-[color:var(--text-muted)] text-xs font-medium">{kpi.unit}</span>}
                       </div>
                     </div>
                     <div className={`p-2 rounded-lg bg-gradient-to-br ${kpi.color} shadow-lg group-hover:shadow-xl transition-shadow`}>
@@ -786,13 +779,13 @@ export function KPICarousel() {
 
         {/* Carousel Section */}
         <LoadingOverlay isLoading={dataLoading}>
-          <Card className="bg-white dark:bg-slate-900/95 border-blue-200 dark:border-cyan-500/30 shadow-lg dark:shadow-[0_0_20px_rgba(0,255,255,0.1)]">
+          <Card className="bg-surface/95 border-brand/30 shadow-lg dark:shadow-[0_0_20px_rgba(0,255,255,0.1)]">
             <CardContent className="p-6">
               {/* Carousel Controls */}
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-4">
-                  <h2 className="text-2xl font-bold text-blue-600 dark:text-cyan-400">Chart Carousel</h2>
-                  <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-slate-400">
+                  <h2 className="text-2xl font-bold text-brand">Chart Carousel</h2>
+                  <div className="flex items-center gap-2 text-sm text-[color:var(--text-muted)]">
                     <span>{selectedIndex + 1} / {chartConfigs.length}</span>
                   </div>
                 </div>
@@ -802,7 +795,7 @@ export function KPICarousel() {
                     onClick={scrollPrev}
                     variant="outline"
                     size="sm"
-                    className="border-blue-300 dark:border-cyan-500/30 text-blue-600 dark:text-cyan-400 hover:bg-blue-50 dark:hover:bg-cyan-500/10"
+                    className="border-brand/30 text-brand hover:bg-blue-50 dark:hover:bg-cyan-500/10"
                   >
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
@@ -811,7 +804,7 @@ export function KPICarousel() {
                     onClick={toggleAutoplay}
                     variant="outline"
                     size="sm"
-                    className="border-blue-300 dark:border-cyan-500/30 text-blue-600 dark:text-cyan-400 hover:bg-blue-50 dark:hover:bg-cyan-500/10"
+                    className="border-brand/30 text-brand hover:bg-blue-50 dark:hover:bg-cyan-500/10"
                   >
                     {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
                   </Button>
@@ -820,7 +813,7 @@ export function KPICarousel() {
                     onClick={scrollNext}
                     variant="outline"
                     size="sm"
-                    className="border-blue-300 dark:border-cyan-500/30 text-blue-600 dark:text-cyan-400 hover:bg-blue-50 dark:hover:bg-cyan-500/10"
+                    className="border-brand/30 text-brand hover:bg-blue-50 dark:hover:bg-cyan-500/10"
                   >
                     <ChevronRight className="h-4 w-4" />
                   </Button>
@@ -832,11 +825,11 @@ export function KPICarousel() {
                 <div className="embla__container flex">
                   {chartConfigs.map((config, index) => (
                     <div key={config.id} className="embla__slide flex-[0_0_100%] min-w-0">
-                      <Card className={`bg-white dark:bg-slate-900/95 border-gray-200 dark:border-slate-700 shadow-lg dark:shadow-[0_0_20px_rgba(0,255,255,0.1)] h-[600px]`}>
+                      <Card className={`bg-surface/95 border-gray-200 dark:border-border shadow-lg dark:shadow-[0_0_20px_rgba(0,255,255,0.1)] h-[600px]`}>
                         <CardContent className="p-6 h-full flex flex-col">
                           {/* Chart Title */}
                           <div className="mb-4">
-                            <h3 className="text-xl font-semibold text-blue-600 dark:text-cyan-400">
+                            <h3 className="text-xl font-semibold text-brand">
                               {config.title}
                             </h3>
                           </div>
@@ -867,7 +860,7 @@ export function KPICarousel() {
                     className={`w-3 h-3 rounded-full transition-all duration-300 ${
                       index === selectedIndex
                         ? 'bg-blue-600 dark:bg-cyan-400 scale-125'
-                        : 'bg-gray-300 dark:bg-slate-600 hover:bg-gray-400 dark:hover:bg-slate-500'
+                        : 'bg-gray-300 dark:bg-surface-sunken hover:bg-gray-400 dark:hover:bg-slate-500'
                     }`}
                   />
                 ))}

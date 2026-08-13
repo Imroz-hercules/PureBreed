@@ -2,6 +2,172 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ===== Hercules SFMS design tokens ===== */
+:root {
+  --brand: #0098cc;
+  --brand-hover: #007aa3;
+  --brand-subtle: rgba(0, 152, 204, 0.06);
+  --brand-ring: rgba(0, 152, 204, 0.25);
+
+  --background: #f4f7fa;
+  --surface: #ffffff;
+  --surface-elevated: #ffffff;
+  --surface-sunken: #f0f3f7;
+
+  --foreground: #1a2744;
+  --text-primary: #1a2744;
+  --text-secondary: #3d4f66;
+  --text-muted: #5a6f88;
+  --text-faint: #8a9bb5;
+
+  --card: #ffffff;
+  --card-foreground: #1a2744;
+  --popover: #ffffff;
+  --popover-foreground: #1a2744;
+  --primary: #0098cc;
+  --primary-foreground: #ffffff;
+  --secondary: #e6f4fa;
+  --secondary-foreground: #1a2744;
+  --muted: #f0f3f7;
+  --muted-foreground: #5a6f88;
+  --accent: #e6f4fa;
+  --accent-foreground: #007aa3;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+
+  --border: #dce3ed;
+  --border-strong: #c5cdd8;
+  --border-faint: #edf0f5;
+  --input: #dce3ed;
+  --ring: #0098cc;
+
+  --success: #059669;
+  --warning: #d97706;
+  --danger: #dc2626;
+  --info: #0098cc;
+
+  --shell-bg: #111827;
+  --shell-border: #1e293b;
+  --shell-hover: #1a2233;
+  --shell-text: #f0f4f8;
+  --shell-text-secondary: #8899ab;
+  --shell-text-muted: #556677;
+  --shell-accent: #22d3ee;
+  --shell-deep: #0a0f1a;
+
+  --radius: 0.5rem;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
+  --shadow-lg: 0 8px 24px rgba(15, 23, 42, 0.1);
+
+  --chart-1: #0098cc;
+  --chart-2: #059669;
+  --chart-3: #d97706;
+  --chart-4: #dc2626;
+  --chart-5: #7c3aed;
+  --chart-text-color: #3d4f66;
+  --chart-axis-color: #dce3ed;
+
+  --sidebar-background: #111827;
+  --sidebar-foreground: #f0f4f8;
+  --sidebar-primary: #22d3ee;
+  --sidebar-primary-foreground: #0a0f1a;
+  --sidebar-accent: #1a2233;
+  --sidebar-accent-foreground: #f0f4f8;
+  --sidebar-border: #1e293b;
+  --sidebar-ring: #22d3ee;
+
+  --nav-height: 72px;
+  --sidebar-width: 220px;
+  --sidebar-collapsed: 60px;
+}
+
+.dark {
+  --brand: #22d3ee;
+  --brand-hover: #67e8f9;
+  --brand-subtle: rgba(34, 211, 238, 0.08);
+  --brand-ring: rgba(34, 211, 238, 0.3);
+
+  --background: #0a0f1a;
+  --surface: #111827;
+  --surface-elevated: #111827;
+  --surface-sunken: #0d1320;
+
+  --foreground: #f1f5f9;
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --text-faint: #475569;
+
+  --card: #111827;
+  --card-foreground: #f1f5f9;
+  --popover: #111827;
+  --popover-foreground: #f1f5f9;
+  --primary: #22d3ee;
+  --primary-foreground: #0a0f1a;
+  --secondary: #1a2233;
+  --secondary-foreground: #f1f5f9;
+  --muted: #0d1320;
+  --muted-foreground: #64748b;
+  --accent: #1a2233;
+  --accent-foreground: #22d3ee;
+  --destructive: #f87171;
+  --destructive-foreground: #0a0f1a;
+
+  --border: #1e293b;
+  --border-strong: #2a3347;
+  --border-faint: #1e293b;
+  --input: #1e293b;
+  --ring: #22d3ee;
+
+  --success: #34d399;
+  --warning: #fbbf24;
+  --danger: #f87171;
+  --info: #60a5fa;
+
+  --shell-bg: #111827;
+  --shell-border: #1e293b;
+  --shell-hover: #1a2233;
+  --shell-text: #f0f4f8;
+  --shell-text-secondary: #8899ab;
+  --shell-text-muted: #556677;
+  --shell-accent: #22d3ee;
+  --shell-deep: #0a0f1a;
+
+  --shadow-sm: none;
+  --shadow-md: none;
+  --shadow-lg: none;
+
+  --chart-1: #22d3ee;
+  --chart-2: #34d399;
+  --chart-3: #fbbf24;
+  --chart-4: #f87171;
+  --chart-5: #a78bfa;
+  --chart-text-color: #94a3b8;
+  --chart-axis-color: #1e293b;
+}
+
+.section-header {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.dark .section-header {
+  color: var(--brand);
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
 /* Embla Carousel Styles */
 .embla {
   overflow: hidden;
@@ -92,62 +258,31 @@
 :root.dark .bg-slate-800 .text-cyan-200 { color: #a5f3fc !important; }
 
 /* Chart Tooltip Color Fixes - Ensure consistent colors in both themes */
-:root.dark .recharts-tooltip-wrapper .recharts-tooltip-content {
-  color: #06b6d4 !important;
-  font-weight: bold !important;
-}
-
-:root.dark .recharts-tooltip-wrapper .recharts-tooltip-label {
-  color: #06b6d4 !important;
-  font-weight: bold !important;
-}
-
-:root.dark .recharts-tooltip-wrapper .recharts-tooltip-item {
-  color: #06b6d4 !important;
-  font-weight: bold !important;
-}
-
-:root.light .recharts-tooltip-wrapper .recharts-tooltip-content {
-  color: #06b6d4 !important;
-  font-weight: bold !important;
-}
-
-:root.light .recharts-tooltip-wrapper .recharts-tooltip-label {
-  color: #06b6d4 !important;
-  font-weight: bold !important;
-}
-
+:root.dark .recharts-tooltip-wrapper .recharts-tooltip-content,
+:root.dark .recharts-tooltip-wrapper .recharts-tooltip-label,
+:root.dark .recharts-tooltip-wrapper .recharts-tooltip-item,
+:root.light .recharts-tooltip-wrapper .recharts-tooltip-content,
+:root.light .recharts-tooltip-wrapper .recharts-tooltip-label,
 :root.light .recharts-tooltip-wrapper .recharts-tooltip-item {
-  color: #06b6d4 !important;
-  font-weight: bold !important;
+  color: var(--text-primary) !important;
+  font-weight: 600 !important;
+}
+
+.recharts-default-tooltip {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text-primary) !important;
 }
 
 /* Force tooltip text colors with maximum specificity */
-.recharts-tooltip-wrapper .recharts-tooltip-content {
-  color: #06b6d4 !important;
-  font-weight: bold !important;
-}
-
-.recharts-tooltip-wrapper .recharts-tooltip-label {
-  color: #06b6d4 !important;
-  font-weight: bold !important;
-}
-
+.recharts-tooltip-wrapper .recharts-tooltip-content,
+.recharts-tooltip-wrapper .recharts-tooltip-label,
 .recharts-tooltip-wrapper .recharts-tooltip-item {
-  color: #06b6d4 !important;
-  font-weight: bold !important;
+  color: var(--text-primary) !important;
+  font-weight: 600 !important;
 }
 
 /* Chart Axis Label Visibility Fixes */
-:root {
-  --chart-text-color: #374151;
-  --chart-axis-color: #d1d5db;
-}
-
-:root.dark {
-  --chart-text-color: #e2e8f0;
-  --chart-axis-color: #64748b;
-}
 
 /* Force chart axis labels to be visible in dark mode */
 :root.dark .recharts-xAxis .recharts-cartesian-axis-tick text,
@@ -491,7 +626,7 @@
 }
 
 .modern-legend-item:hover .product-name {
-  color: #06b6d4 !important;
+  color: var(--brand) !important;
   font-weight: 700 !important;
 }
 
@@ -567,12 +702,12 @@
   color: white !important;
 }
 
-/* Force white text for tab buttons in both light and dark modes */
-[data-state="active"] .bg-\[#007b98\],
-[data-state="active"] .bg-\[#0088a9\],
-.bg-\[#0088a9\],
-.bg-\[#007b98\] {
-  color: rgb(14, 13, 13) !important;
+/* Brand button / tab surfaces */
+.bg-brand,
+.bg-brand-hover,
+[data-state="active"].bg-brand,
+[data-state="active"].bg-brand-hover {
+  color: var(--primary-foreground) !important;
 }
 
 /* Ensure tab text is always white regardless of theme */

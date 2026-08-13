@@ -20,22 +20,22 @@ import KPIOverview from "./pages/hercules-sfms/KPIOverview"
 function Router() {
   return (
     <Switch>
-      {/* Hercules SFMS Core System Routes */}
-      <Route path="/" component={KPIDashboard} />
+      {/* Hercules SFMS Core System Routes — home opens Historical Reports */}
+      <Route path="/" component={DataTable} />
+      <Route path="/data-table" component={DataTable} />
       <Route path="/kpi-dashboard" component={KPIDashboard} />
       <Route path="/kpi-carousel" component={KPICarousel} />
       <Route path="/batch-calendar" component={BatchCalendar} />
-      <Route path="/data-table" component={DataTable} />
       <Route path="/reports" component={ReportsPage} />
       <Route path="/plc-reports" component={PLCReportsPage} />
       <Route path="/plc-configuration" component={PLCConfiguration} />
       <Route path="/admin" component={Admin} />
       <Route path="/databases" component={DatabasesPage} />
       <Route path="/kpi-overview" component={KPIOverview} />
-      {/* Catch all - redirect to KPI dashboard */}
+      {/* Catch all - redirect to Historical Reports */}
       <Route
         component={() => {
-          window.location.href = "/kpi-dashboard"
+          window.location.href = "/data-table"
           return null
         }}
       />

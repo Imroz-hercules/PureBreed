@@ -51,10 +51,10 @@ const colorMap = {
     glow: 'shadow-purple-500/20'
   },
   cyan: {
-    bg: 'from-cyan-500/10 to-cyan-900/20',
-    border: 'border-cyan-500/30',
-    text: 'text-cyan-400',
-    glow: 'shadow-cyan-500/20'
+    bg: 'from-brand/10 to-brand/20',
+    border: 'border-brand/30',
+    text: 'text-brand',
+    glow: 'shadow-[0_0_20px_var(--brand-ring)]'
   },
   yellow: {
     bg: 'from-yellow-500/10 to-yellow-900/20',
@@ -215,10 +215,11 @@ export function KPICard({
       'text-green-400': '#4ade80',
       'text-orange-400': '#fb923c',
       'text-purple-400': '#c084fc',
-      'text-cyan-400': '#22d3ee',
+      'text-cyan-400': '#0098cc',
+      'text-brand': '#0098cc',
       'text-yellow-400': '#facc15'
     }
-    return colorMapping[colorName as keyof typeof colorMapping] || '#22d3ee'
+    return colorMapping[colorName as keyof typeof colorMapping] || '#0098cc'
   }
 
   const renderChart = () => {

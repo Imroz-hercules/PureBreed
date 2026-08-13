@@ -42,23 +42,19 @@ import os
 from sqlalchemy import create_engine
 
 class Config:
-    # ✅ Primary database (SQL Server)
-    SQLALCHEMY_DATABASE_URI = os.getenv(
-        "SQLALCHEMY_DATABASE_URI",
-#    r"mssql+pyodbc://DESKTOP-VNO43MQ\SQLEXPRESS/ASMREPORTING"
-#     "?driver=ODBC+Driver+18+for+SQL+Server&trusted_connection=yes&TrustServerCertificate=yes"
-        "mssql+pyodbc://HERCULES/ASMBatchReports?driver=ODBC+Driver+17+for+SQL+Server&trusted_connection=yes&TrustServerCertificate=yes"
+    # Shared default: localhost HerculesBatchDB (BatchMaterials_Shadow)
+    _HERCULES_BATCH = (
+        r"mssql+pyodbc://localhost\MSSQLSERVER01/HerculesBatchDB"
+        "?driver=ODBC+Driver+17+for+SQL+Server&trusted_connection=yes&TrustServerCertificate=yes"
     )
+
+    # Primary — KPI, calendar, old Historical Reports (/api/kpi, /api/reports)
+    SQLALCHEMY_DATABASE_URI = os.getenv("SQLALCHEMY_DATABASE_URI", _HERCULES_BATCH)
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    # # ✅ PostgreSQL bind for storing DB4 live data (COMMENTED OUT - no PostgreSQL)
-    # SQLALCHEMY_BINDS = {
-    #     'postgresql': os.getenv(
-    #         "POSTGRESQL_DB_URI",
-    #         # "postgresql+psycopg2://postgres:admin123@localhost:5432/nfm_reporting"
-    #         "postgresql+psycopg2://postgres:Hercules@localhost:5432/nfm_reporting"
-    #     )
-    # }
+    # Same DB for MaterialInfo-view / SSRS-style report routes (/api/ssrs/*)
+    SSRS_DATABASE_URI = os.getenv("SSRS_DATABASE_URI", _HERCULES_BATCH)
+    SQLALCHEMY_BINDS = {"ssrs": SSRS_DATABASE_URI}
 
 # Optional DB test code
 if __name__ == "__main__":
@@ -69,7 +65,7 @@ if __name__ == "__main__":
         sqlserver_engine = create_engine(Config.SQLALCHEMY_DATABASE_URI)
         with sqlserver_engine.connect() as conn:
             print("✅ Connected to SQL Server")
-            result = conn.execute("SELECT TOP 1 * FROM dbo.BatchMaterials")
+            result = conn.execute("SELECT TOP 1 * FROM dbo.BatchMaterials_Shadow")
             for row in result:
                 print("Sample SQL Server Row:", row)
     except Exception as e:

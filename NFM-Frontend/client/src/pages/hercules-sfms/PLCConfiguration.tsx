@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+﻿import { useState, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import { WaterSystemLayout } from '@/components/hercules-sfms/WaterSystemLayout'
 import { Input } from '@/components/ui/input'
@@ -178,7 +178,7 @@ function LiveReadingsView({ plcId }: LiveReadingsViewProps) {
   }
 
   return (
-    <Card className="bg-slate-800/30 border-slate-700/50">
+    <Card className="bg-surface-sunken/30 border-border/50">
       <CardHeader>
         <CardTitle className="text-white flex items-center justify-between">
           <span className="flex items-center gap-2">
@@ -190,7 +190,7 @@ function LiveReadingsView({ plcId }: LiveReadingsViewProps) {
               size="sm"
               variant="outline"
               onClick={() => refetch()}
-              className="border-slate-600"
+              className="border-border"
             >
               <RefreshCw className="h-4 w-4 mr-2" />
               Refresh
@@ -201,23 +201,23 @@ function LiveReadingsView({ plcId }: LiveReadingsViewProps) {
             </div>
           </div>
         </CardTitle>
-        <CardDescription className="text-slate-400">
+        <CardDescription className="text-[color:var(--text-muted)]">
           Real-time data from IoT Gateway - {plcId}
         </CardDescription>
       </CardHeader>
       <CardContent>
         {isLoading ? (
-          <div className="text-center py-8 text-slate-400">
+          <div className="text-center py-8 text-[color:var(--text-muted)]">
             <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-2" />
             Reading from PLC...
           </div>
         ) : error ? (
-          <div className="text-center py-8 text-red-400">
+          <div className="text-center py-8 text-danger">
             <AlertCircle className="h-8 w-8 mx-auto mb-2" />
             Failed to read from PLC
           </div>
         ) : readings.length === 0 ? (
-          <div className="text-center py-8 text-slate-400">
+          <div className="text-center py-8 text-[color:var(--text-muted)]">
             <Database className="h-8 w-8 mx-auto mb-2" />
             No data available. Add tags to start monitoring.
           </div>
@@ -225,17 +225,17 @@ function LiveReadingsView({ plcId }: LiveReadingsViewProps) {
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow className="border-slate-700">
-                  <TableHead className="text-slate-300">Tag ID</TableHead>
-                  <TableHead className="text-slate-300">Current Value</TableHead>
-                  <TableHead className="text-slate-300">Quality</TableHead>
-                  <TableHead className="text-slate-300">Last Update</TableHead>
-                  <TableHead className="text-slate-300">PLC</TableHead>
+                <TableRow className="border-border">
+                  <TableHead className="text-[color:var(--text-secondary)]">Tag ID</TableHead>
+                  <TableHead className="text-[color:var(--text-secondary)]">Current Value</TableHead>
+                  <TableHead className="text-[color:var(--text-secondary)]">Quality</TableHead>
+                  <TableHead className="text-[color:var(--text-secondary)]">Last Update</TableHead>
+                  <TableHead className="text-[color:var(--text-secondary)]">PLC</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {readings.map((reading: GatewayDataPoint) => (
-                  <TableRow key={reading.tag_id} className="border-slate-700 hover:bg-slate-700/30">
+                  <TableRow key={reading.tag_id} className="border-border hover:bg-surface-sunken/30">
                     <TableCell className="text-white font-medium">
                       {reading.tag_id}
                     </TableCell>
@@ -248,10 +248,10 @@ function LiveReadingsView({ plcId }: LiveReadingsViewProps) {
                         {reading.quality.toUpperCase()}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-slate-400 text-sm">
+                    <TableCell className="text-[color:var(--text-muted)] text-sm">
                       {getTimeAgo(reading.timestamp)}
                     </TableCell>
-                    <TableCell className="text-slate-300">
+                    <TableCell className="text-[color:var(--text-secondary)]">
                       {reading.plc_id}
                     </TableCell>
                   </TableRow>
@@ -327,15 +327,15 @@ function AddPLCDialog({ onSuccess }: { onSuccess: () => void }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-cyan-600 hover:bg-cyan-700">
+        <Button className="bg-brand hover:bg-brand-hover">
           <Plus className="h-4 w-4 mr-2" />
           Add PLC
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-slate-800 border-slate-700">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-surface-sunken border-border">
         <DialogHeader>
           <DialogTitle className="text-white">Add New PLC to Gateway</DialogTitle>
-          <DialogDescription className="text-slate-400">
+          <DialogDescription className="text-[color:var(--text-muted)]">
             Configure PLC connection and tags for real-time monitoring
           </DialogDescription>
         </DialogHeader>
@@ -346,18 +346,18 @@ function AddPLCDialog({ onSuccess }: { onSuccess: () => void }) {
             <h3 className="text-lg font-semibold text-white">PLC Configuration</h3>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label className="text-slate-300">PLC ID</Label>
+                <Label className="text-[color:var(--text-secondary)]">PLC ID</Label>
                 <Input
                   value={formData.plc_id}
                   onChange={(e) => setFormData({...formData, plc_id: e.target.value})}
                   placeholder="e.g., MASA_PLC_01"
-                  className="bg-slate-700/50 border-slate-600 text-white"
+                  className="bg-surface-sunken/50 border-border text-white"
                 />
               </div>
               <div>
-                <Label className="text-slate-300">Protocol</Label>
+                <Label className="text-[color:var(--text-secondary)]">Protocol</Label>
                 <Select value={formData.protocol} onValueChange={(value: any) => setFormData({...formData, protocol: value})}>
-                  <SelectTrigger className="bg-slate-700/50 border-slate-600 text-white">
+                  <SelectTrigger className="bg-surface-sunken/50 border-border text-white">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -367,41 +367,41 @@ function AddPLCDialog({ onSuccess }: { onSuccess: () => void }) {
                 </Select>
               </div>
               <div>
-                <Label className="text-slate-300">IP Address</Label>
+                <Label className="text-[color:var(--text-secondary)]">IP Address</Label>
                 <Input
                   value={formData.ip}
                   onChange={(e) => setFormData({...formData, ip: e.target.value})}
                   placeholder="192.168.1.100"
-                  className="bg-slate-700/50 border-slate-600 text-white"
+                  className="bg-surface-sunken/50 border-border text-white"
                 />
               </div>
               <div>
-                <Label className="text-slate-300">Port</Label>
+                <Label className="text-[color:var(--text-secondary)]">Port</Label>
                 <Input
                   type="number"
                   value={formData.port}
                   onChange={(e) => setFormData({...formData, port: parseInt(e.target.value)})}
-                  className="bg-slate-700/50 border-slate-600 text-white"
+                  className="bg-surface-sunken/50 border-border text-white"
                 />
               </div>
               {formData.protocol === 's7' && (
                 <>
                   <div>
-                    <Label className="text-slate-300">Rack</Label>
+                    <Label className="text-[color:var(--text-secondary)]">Rack</Label>
                     <Input
                       type="number"
                       value={formData.rack}
                       onChange={(e) => setFormData({...formData, rack: parseInt(e.target.value)})}
-                      className="bg-slate-700/50 border-slate-600 text-white"
+                      className="bg-surface-sunken/50 border-border text-white"
                     />
                   </div>
                   <div>
-                    <Label className="text-slate-300">Slot</Label>
+                    <Label className="text-[color:var(--text-secondary)]">Slot</Label>
                     <Input
                       type="number"
                       value={formData.slot}
                       onChange={(e) => setFormData({...formData, slot: parseInt(e.target.value)})}
-                      className="bg-slate-700/50 border-slate-600 text-white"
+                      className="bg-surface-sunken/50 border-border text-white"
                     />
                   </div>
                 </>
@@ -414,18 +414,18 @@ function AddPLCDialog({ onSuccess }: { onSuccess: () => void }) {
             <h3 className="text-lg font-semibold text-white">Add Tags</h3>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label className="text-slate-300">Tag ID</Label>
+                <Label className="text-[color:var(--text-secondary)]">Tag ID</Label>
                 <Input
                   value={currentTag.tag_id}
                   onChange={(e) => setCurrentTag({...currentTag, tag_id: e.target.value})}
                   placeholder="e.g., Bin1_Qty_SP"
-                  className="bg-slate-700/50 border-slate-600 text-white"
+                  className="bg-surface-sunken/50 border-border text-white"
                 />
               </div>
               <div>
-                <Label className="text-slate-300">Data Type</Label>
+                <Label className="text-[color:var(--text-secondary)]">Data Type</Label>
                 <Select value={currentTag.data_type} onValueChange={(value) => setCurrentTag({...currentTag, data_type: value})}>
-                  <SelectTrigger className="bg-slate-700/50 border-slate-600 text-white">
+                  <SelectTrigger className="bg-surface-sunken/50 border-border text-white">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -439,30 +439,30 @@ function AddPLCDialog({ onSuccess }: { onSuccess: () => void }) {
                 </Select>
               </div>
               <div>
-                <Label className="text-slate-300">DB Number</Label>
+                <Label className="text-[color:var(--text-secondary)]">DB Number</Label>
                 <Input
                   type="number"
                   value={currentTag.db_number}
                   onChange={(e) => setCurrentTag({...currentTag, db_number: parseInt(e.target.value)})}
-                  className="bg-slate-700/50 border-slate-600 text-white"
+                  className="bg-surface-sunken/50 border-border text-white"
                 />
               </div>
               <div>
-                <Label className="text-slate-300">Address (Byte Offset)</Label>
+                <Label className="text-[color:var(--text-secondary)]">Address (Byte Offset)</Label>
                 <Input
                   type="number"
                   value={currentTag.address}
                   onChange={(e) => setCurrentTag({...currentTag, address: parseInt(e.target.value)})}
-                  className="bg-slate-700/50 border-slate-600 text-white"
+                  className="bg-surface-sunken/50 border-border text-white"
                 />
               </div>
               <div className="col-span-2">
-                <Label className="text-slate-300">Description (Optional)</Label>
+                <Label className="text-[color:var(--text-secondary)]">Description (Optional)</Label>
                 <Input
                   value={currentTag.description}
                   onChange={(e) => setCurrentTag({...currentTag, description: e.target.value})}
                   placeholder="Tag description"
-                  className="bg-slate-700/50 border-slate-600 text-white"
+                  className="bg-surface-sunken/50 border-border text-white"
                 />
               </div>
             </div>
@@ -478,10 +478,10 @@ function AddPLCDialog({ onSuccess }: { onSuccess: () => void }) {
               <h3 className="text-lg font-semibold text-white">Configured Tags ({tags.length})</h3>
               <div className="space-y-2 max-h-60 overflow-y-auto">
                 {tags.map((tag, index) => (
-                  <div key={index} className="flex items-center justify-between bg-slate-700/30 p-3 rounded border border-slate-600">
+                  <div key={index} className="flex items-center justify-between bg-surface-sunken/30 p-3 rounded border border-border">
                     <div>
                       <span className="text-white font-mono">{tag.tag_id}</span>
-                      <span className="text-slate-400 text-sm ml-2">
+                      <span className="text-[color:var(--text-muted)] text-sm ml-2">
                         DB{tag.db_number}.{tag.address} ({tag.data_type})
                       </span>
                     </div>
@@ -489,7 +489,7 @@ function AddPLCDialog({ onSuccess }: { onSuccess: () => void }) {
                       size="sm"
                       variant="ghost"
                       onClick={() => removeTag(index)}
-                      className="text-red-400 hover:text-red-300"
+                      className="text-danger hover:text-red-300"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -501,13 +501,13 @@ function AddPLCDialog({ onSuccess }: { onSuccess: () => void }) {
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)} className="border-slate-600">
+          <Button variant="outline" onClick={() => setOpen(false)} className="border-border">
             Cancel
           </Button>
           <Button
             onClick={() => addPLCMutation.mutate()}
             disabled={!formData.plc_id || !formData.ip || tags.length === 0 || addPLCMutation.isPending}
-            className="bg-cyan-600 hover:bg-cyan-700"
+            className="bg-brand hover:bg-brand-hover"
           >
             {addPLCMutation.isPending ? 'Adding...' : 'Add PLC'}
           </Button>
@@ -580,48 +580,48 @@ export function PLCConfiguration() {
 
     return (
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <Card className="bg-slate-800/50 border-slate-700/50">
+        <Card className="bg-surface-sunken/50 border-border/50">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-slate-300 flex items-center gap-2">
+            <CardTitle className="text-sm font-medium text-[color:var(--text-secondary)] flex items-center gap-2">
               <Database className="h-4 w-4 text-cyan-400" />
               Connected PLCs
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-white">{connectedCount}/{gatewayStatus?.plc_count || 0}</div>
-            <p className="text-xs text-slate-400">Gateway PLCs</p>
+            <p className="text-xs text-[color:var(--text-muted)]">Gateway PLCs</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-slate-800/50 border-slate-700/50">
+        <Card className="bg-surface-sunken/50 border-border/50">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-slate-300 flex items-center gap-2">
+            <CardTitle className="text-sm font-medium text-[color:var(--text-secondary)] flex items-center gap-2">
               <Settings className="h-4 w-4 text-green-400" />
               Total Tags
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-white">{totalTags}</div>
-            <p className="text-xs text-slate-400">Monitored data points</p>
+            <p className="text-xs text-[color:var(--text-muted)]">Monitored data points</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-slate-800/50 border-slate-700/50">
+        <Card className="bg-surface-sunken/50 border-border/50">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-slate-300 flex items-center gap-2">
+            <CardTitle className="text-sm font-medium text-[color:var(--text-secondary)] flex items-center gap-2">
               <Activity className="h-4 w-4 text-blue-400" />
               Polling Interval
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-white">{pollingInterval}s</div>
-            <p className="text-xs text-slate-400">Auto-refresh rate</p>
+            <p className="text-xs text-[color:var(--text-muted)]">Auto-refresh rate</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-slate-800/50 border-slate-700/50">
+        <Card className="bg-surface-sunken/50 border-border/50">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-slate-300 flex items-center gap-2">
+            <CardTitle className="text-sm font-medium text-[color:var(--text-secondary)] flex items-center gap-2">
               <CheckCircle className="h-4 w-4 text-green-400" />
               Gateway Status
             </CardTitle>
@@ -630,7 +630,7 @@ export function PLCConfiguration() {
             <div className="text-2xl font-bold text-green-400">
               {isLoading ? 'Loading...' : error ? 'Offline' : 'Online'}
             </div>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-[color:var(--text-muted)]">
               {error ? 'Cannot connect' : 'Connected'}
             </p>
           </CardContent>
@@ -645,14 +645,14 @@ export function PLCConfiguration() {
         <KPICards />
 
         <Tabs defaultValue="plcs" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 bg-slate-800/50 border-slate-700/50">
+          <TabsList className="grid w-full grid-cols-3 bg-surface-sunken/50 border-border/50">
             <TabsTrigger value="plcs" className="data-[state=active]:bg-cyan-600">Gateway PLCs</TabsTrigger>
             <TabsTrigger value="readings" className="data-[state=active]:bg-cyan-600">Live Readings</TabsTrigger>
             <TabsTrigger value="control" className="data-[state=active]:bg-cyan-600">Polling Control</TabsTrigger>
           </TabsList>
 
           <TabsContent value="plcs" className="space-y-4">
-            <Card className="bg-slate-800/30 border-slate-700/50">
+            <Card className="bg-surface-sunken/30 border-border/50">
               <CardHeader>
                 <CardTitle className="text-white flex items-center justify-between">
                   <span className="flex items-center gap-2">
@@ -664,44 +664,44 @@ export function PLCConfiguration() {
               </CardHeader>
               <CardContent>
                 {isLoading ? (
-                  <div className="text-center py-8 text-slate-400">
+                  <div className="text-center py-8 text-[color:var(--text-muted)]">
                     <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-2" />
                     Loading PLCs...
                   </div>
                 ) : error ? (
-                  <div className="text-center py-8 text-red-400">
+                  <div className="text-center py-8 text-danger">
                     <AlertCircle className="h-8 w-8 mx-auto mb-2" />
                     Cannot connect to Gateway at {GATEWAY_API_URL}
                   </div>
                 ) : Object.keys(gatewayStatus?.plcs || {}).length === 0 ? (
-                  <div className="text-center py-8 text-slate-400">
+                  <div className="text-center py-8 text-[color:var(--text-muted)]">
                     <Database className="h-8 w-8 mx-auto mb-2" />
                     No PLCs configured. Add your first PLC to start monitoring.
                   </div>
                 ) : (
                   <Table>
                     <TableHeader>
-                      <TableRow className="border-slate-700">
-                        <TableHead className="text-slate-300">PLC ID</TableHead>
-                        <TableHead className="text-slate-300">Protocol</TableHead>
-                        <TableHead className="text-slate-300">IP:Port</TableHead>
-                        <TableHead className="text-slate-300">Tags</TableHead>
-                        <TableHead className="text-slate-300">Status</TableHead>
-                        <TableHead className="text-slate-300">Actions</TableHead>
+                      <TableRow className="border-border">
+                        <TableHead className="text-[color:var(--text-secondary)]">PLC ID</TableHead>
+                        <TableHead className="text-[color:var(--text-secondary)]">Protocol</TableHead>
+                        <TableHead className="text-[color:var(--text-secondary)]">IP:Port</TableHead>
+                        <TableHead className="text-[color:var(--text-secondary)]">Tags</TableHead>
+                        <TableHead className="text-[color:var(--text-secondary)]">Status</TableHead>
+                        <TableHead className="text-[color:var(--text-secondary)]">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {Object.entries(gatewayStatus?.plcs || {}).map(([id, plc]) => (
-                        <TableRow key={id} className="border-slate-700 hover:bg-slate-700/30">
+                        <TableRow key={id} className="border-border hover:bg-surface-sunken/30">
                           <TableCell className="text-white font-medium">{plc.plc_id}</TableCell>
                           <TableCell>
                             <Badge variant="default">{plc.protocol.toUpperCase()}</Badge>
                           </TableCell>
-                          <TableCell className="text-slate-300 font-mono">
+                          <TableCell className="text-[color:var(--text-secondary)] font-mono">
                             {plc.ip}:{plc.port}
                             {plc.rack !== undefined && <span className="ml-2 text-xs">R{plc.rack}/S{plc.slot}</span>}
                           </TableCell>
-                          <TableCell className="text-slate-300">{plc.tags?.length || 0} tags</TableCell>
+                          <TableCell className="text-[color:var(--text-secondary)]">{plc.tags?.length || 0} tags</TableCell>
                           <TableCell>
                             <Badge variant={plc.connected ? 'default' : 'destructive'}
                                    className={plc.connected ? 'bg-green-600/20 text-green-400 border-green-600/50' : ''}>
@@ -714,7 +714,7 @@ export function PLCConfiguration() {
                                 size="sm"
                                 variant="outline"
                                 onClick={() => setSelectedPLC(plc.plc_id)}
-                                className="h-8 border-slate-600"
+                                className="h-8 border-border"
                               >
                                 <Activity className="h-3 w-3 mr-1" />
                                 View
@@ -723,7 +723,7 @@ export function PLCConfiguration() {
                                 size="sm"
                                 variant="outline"
                                 onClick={() => removePLCMutation.mutate(plc.plc_id)}
-                                className="h-8 border-slate-600 text-red-400"
+                                className="h-8 border-border text-danger"
                               >
                                 <Trash2 className="h-3 w-3" />
                               </Button>
@@ -742,37 +742,37 @@ export function PLCConfiguration() {
             {selectedPLC ? (
               <LiveReadingsView plcId={selectedPLC} />
             ) : (
-              <Card className="bg-slate-800/30 border-slate-700/50">
+              <Card className="bg-surface-sunken/30 border-border/50">
                 <CardContent className="text-center py-12">
-                  <Database className="h-12 w-12 mx-auto mb-4 text-slate-600" />
-                  <p className="text-slate-400">Select a PLC from the Gateway PLCs tab to view live readings</p>
+                  <Database className="h-12 w-12 mx-auto mb-4 text-[color:var(--text-muted)]" />
+                  <p className="text-[color:var(--text-muted)]">Select a PLC from the Gateway PLCs tab to view live readings</p>
                 </CardContent>
               </Card>
             )}
           </TabsContent>
 
           <TabsContent value="control" className="space-y-4">
-            <Card className="bg-slate-800/30 border-slate-700/50">
+            <Card className="bg-surface-sunken/30 border-border/50">
               <CardHeader>
                 <CardTitle className="text-white flex items-center gap-2">
                   <Zap className="h-5 w-5 text-yellow-400" />
                   Auto-Polling Control
                 </CardTitle>
-                <CardDescription className="text-slate-400">
+                <CardDescription className="text-[color:var(--text-muted)]">
                   Configure automatic PLC polling interval
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label className="text-slate-300">Polling Interval (seconds)</Label>
+                    <Label className="text-[color:var(--text-secondary)]">Polling Interval (seconds)</Label>
                     <Input
                       type="number"
                       value={pollingInterval}
                       onChange={(e) => setPollingInterval(parseInt(e.target.value))}
                       min={1}
                       max={60}
-                      className="bg-slate-700/50 border-slate-600 text-white"
+                      className="bg-surface-sunken/50 border-border text-white"
                     />
                   </div>
                 </div>

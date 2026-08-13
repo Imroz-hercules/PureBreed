@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { WaterSystemLayout } from "@/components/hercules-sfms/WaterSystemLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -255,7 +255,7 @@ export default function PLCReportsPage() {
             className={`flex items-center gap-1 font-medium ${
               theme === 'light'
                 ? 'bg-white border-blue-300 text-blue-700 hover:bg-blue-50 hover:border-blue-500 hover:text-blue-800 disabled:bg-gray-100 disabled:border-gray-300 disabled:text-gray-500 disabled:hover:bg-gray-100 disabled:hover:text-gray-500'
-                : 'border-cyan-500 text-cyan-400 hover:bg-cyan-900/20 hover:border-cyan-400 disabled:border-gray-600 disabled:text-gray-500 disabled:hover:bg-transparent'
+                : 'border-brand text-brand hover:bg-cyan-900/20 hover:border-brand disabled:border-gray-600 disabled:text-gray-500 disabled:hover:bg-transparent'
             }`}
           >
             <ChevronLeft className="w-4 h-4" />
@@ -277,10 +277,10 @@ export default function PLCReportsPage() {
                     currentPage === page 
                       ? theme === 'light'
                         ? "bg-blue-600 text-white hover:bg-blue-700 shadow-sm border-blue-600"
-                        : "bg-cyan-600 text-white hover:bg-cyan-700 shadow-sm"
+                        : "bg-brand hover:bg-brand-hover shadow-sm"
                       : theme === 'light'
                         ? "bg-white border-blue-300 text-blue-700 hover:bg-blue-50 hover:border-blue-500 hover:text-blue-800"
-                        : "border-cyan-500 text-cyan-400 hover:bg-cyan-900/20 hover:border-cyan-400"
+                        : "border-brand text-brand hover:bg-cyan-900/20 hover:border-brand"
                   }`}
                 >
                   {page}
@@ -297,7 +297,7 @@ export default function PLCReportsPage() {
             className={`flex items-center gap-1 font-medium ${
               theme === 'light'
                 ? 'bg-white border-blue-300 text-blue-700 hover:bg-blue-50 hover:border-blue-500 hover:text-blue-800 disabled:bg-gray-100 disabled:border-gray-300 disabled:text-gray-500 disabled:hover:bg-gray-100 disabled:hover:text-gray-500'
-                : 'border-cyan-500 text-cyan-400 hover:bg-cyan-900/20 hover:border-cyan-400 disabled:border-gray-600 disabled:text-gray-500 disabled:hover:bg-transparent'
+                : 'border-brand text-brand hover:bg-cyan-900/20 hover:border-brand disabled:border-gray-600 disabled:text-gray-500 disabled:hover:bg-transparent'
             }`}
           >
             Next
@@ -315,7 +315,7 @@ export default function PLCReportsPage() {
       }`}>
           <div className="flex items-center justify-between">
             <h1 className={`text-4xl font-bold ${
-              theme === 'light' ? 'text-blue-600' : 'text-cyan-400'
+              theme === 'light' ? 'text-blue-600' : 'text-brand'
             }`}>PLC Reports </h1>
             
           </div>
@@ -342,10 +342,10 @@ export default function PLCReportsPage() {
          {loading && (
            <div className="flex items-center justify-center py-8">
              <div className={`animate-spin rounded-full h-8 w-8 border-b-2 ${
-               theme === 'light' ? 'border-blue-600' : 'border-cyan-400'
+               theme === 'light' ? 'border-blue-600' : 'border-brand'
              }`}></div>
              <span className={`ml-2 ${
-               theme === 'light' ? 'text-blue-600' : 'text-cyan-400'
+               theme === 'light' ? 'text-blue-600' : 'text-brand'
              }`}>Loading database data...</span>
            </div>
          )}
@@ -358,7 +358,7 @@ export default function PLCReportsPage() {
             <TabsTrigger value="db4" className={`flex items-center gap-2 ${
               theme === 'light'
                 ? 'data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm'
-                : 'data-[state=active]:bg-gray-700 data-[state=active]:text-cyan-400 data-[state=active]:shadow-sm'
+                : 'data-[state=active]:bg-gray-700 data-[state=active]:text-brand data-[state=active]:shadow-sm'
             }`}>
               <Database className="w-4 h-4" />
               DB4 - Pellet Data
@@ -366,7 +366,7 @@ export default function PLCReportsPage() {
             <TabsTrigger value="db3" className={`flex items-center gap-2 ${
               theme === 'light'
                 ? 'data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm'
-                : 'data-[state=active]:bg-gray-700 data-[state=active]:text-cyan-400 data-[state=active]:shadow-sm'
+                : 'data-[state=active]:bg-gray-700 data-[state=active]:text-brand data-[state=active]:shadow-sm'
             }`}>
               <Database className="w-4 h-4" />
               DB3 - Mill Data
@@ -378,7 +378,7 @@ export default function PLCReportsPage() {
             <Card className={
               theme === 'light' 
                 ? 'bg-white border border-gray-200 shadow-sm' 
-                : 'bg-gray-900 border border-cyan-500 shadow-lg'
+                : 'bg-gray-900 border border-brand shadow-lg'
             }>
               <CardHeader className={
                 theme === 'light' 
@@ -386,7 +386,7 @@ export default function PLCReportsPage() {
                   : 'bg-gray-800 border-b border-gray-700'
               }>
                 <CardTitle className={`flex items-center gap-2 ${
-                  theme === 'light' ? 'text-blue-600' : 'text-cyan-400'
+                  theme === 'light' ? 'text-blue-600' : 'text-brand'
                 }`}>
                   <Database className="w-5 h-5" />
                   DB4 - Pellet 
@@ -407,37 +407,37 @@ export default function PLCReportsPage() {
                     <TableRow className={
                       theme === 'light' 
                         ? 'bg-blue-50 text-blue-900 text-sm font-bold border-b-2 border-blue-200' 
-                        : 'bg-slate-800 text-cyan-400 text-sm tracking-wider'
+                        : 'bg-slate-800 text-brand text-sm tracking-wider'
                     }>
                       <TableHead className={`px-2 py-3 text-center font-semibold border-b border-blue-200 ${
-                        theme === 'light' ? 'text-blue-900' : 'text-cyan-200 dark:border-b dark:border-gray-700'
+                        theme === 'light' ? 'text-blue-900' : 'text-brand dark:border-b dark:border-gray-700'
                       }`}>Timestamp</TableHead>
                       <TableHead className={`px-2 py-3 text-center font-semibold border-b border-blue-200 ${
-                        theme === 'light' ? 'text-blue-900' : 'text-cyan-200 dark:border-b dark:border-gray-700'
+                        theme === 'light' ? 'text-blue-900' : 'text-brand dark:border-b dark:border-gray-700'
                       }`}>Pellet1_TonHr</TableHead>
                       <TableHead className={`px-2 py-3 text-center font-semibold border-b border-blue-200 ${
-                        theme === 'light' ? 'text-blue-900' : 'text-cyan-200 dark:border-b dark:border-gray-700'
+                        theme === 'light' ? 'text-blue-900' : 'text-brand dark:border-b dark:border-gray-700'
                       }`}>Pellet2_TonHr</TableHead>
                       <TableHead className={`px-2 py-3 text-center font-semibold border-b border-blue-200 ${
-                        theme === 'light' ? 'text-blue-900' : 'text-cyan-200 dark:border-b dark:border-gray-700'
+                        theme === 'light' ? 'text-blue-900' : 'text-brand dark:border-b dark:border-gray-700'
                       }`}>Pellet3_TonHr</TableHead>
                       <TableHead className={`px-2 py-3 text-center font-semibold border-b border-blue-200 ${
-                        theme === 'light' ? 'text-blue-900' : 'text-cyan-200 dark:border-b dark:border-gray-700'
+                        theme === 'light' ? 'text-blue-900' : 'text-brand dark:border-b dark:border-gray-700'
                       }`}>Pellet1_KwTon</TableHead>
                       <TableHead className={`px-2 py-3 text-center font-semibold border-b border-blue-200 ${
-                        theme === 'light' ? 'text-blue-900' : 'text-cyan-200 dark:border-b dark:border-gray-700'
+                        theme === 'light' ? 'text-blue-900' : 'text-brand dark:border-b dark:border-gray-700'
                       }`}>Pellet2_KwTon</TableHead>
                       <TableHead className={`px-2 py-3 text-center font-semibold border-b border-blue-200 ${
-                        theme === 'light' ? 'text-blue-900' : 'text-cyan-200 dark:border-b dark:border-gray-700'
+                        theme === 'light' ? 'text-blue-900' : 'text-brand dark:border-b dark:border-gray-700'
                       }`}>Pellet3_KwTon</TableHead>
                       <TableHead className={`px-2 py-3 text-center font-semibold border-b border-blue-200 ${
-                        theme === 'light' ? 'text-blue-900' : 'text-cyan-200 dark:border-b dark:border-gray-700'
+                        theme === 'light' ? 'text-blue-900' : 'text-brand dark:border-b dark:border-gray-700'
                       }`}>Pellet1_Temp</TableHead>
                       <TableHead className={`px-2 py-3 text-center font-semibold border-b border-blue-200 ${
-                        theme === 'light' ? 'text-blue-900' : 'text-cyan-200 dark:border-b dark:border-gray-700'
+                        theme === 'light' ? 'text-blue-900' : 'text-brand dark:border-b dark:border-gray-700'
                       }`}>Pellet2_Temp</TableHead>
                       <TableHead className={`px-2 py-3 text-center font-semibold border-b border-blue-200 ${
-                        theme === 'light' ? 'text-blue-900' : 'text-cyan-200 dark:border-b dark:border-gray-700'
+                        theme === 'light' ? 'text-blue-900' : 'text-brand dark:border-b dark:border-gray-700'
                       }`}>Pellet3_Temp</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -514,7 +514,7 @@ export default function PLCReportsPage() {
             <Card className={
               theme === 'light' 
                 ? 'bg-white border border-gray-200 shadow-sm' 
-                : 'bg-gray-900 border border-cyan-500 shadow-lg'
+                : 'bg-gray-900 border border-brand shadow-lg'
             }>
               <CardHeader className={
                 theme === 'light' 
@@ -522,7 +522,7 @@ export default function PLCReportsPage() {
                   : 'bg-gray-800 border-b border-gray-700'
               }>
                 <CardTitle className={`flex items-center gap-2 ${
-                  theme === 'light' ? 'text-blue-600' : 'text-cyan-400'
+                  theme === 'light' ? 'text-blue-600' : 'text-brand'
                 }`}>
                   <Database className="w-5 h-5" />
                   DB3 - Mill Amps
@@ -543,16 +543,16 @@ export default function PLCReportsPage() {
                     <TableRow className={
                       theme === 'light' 
                         ? 'bg-blue-50 text-blue-900 text-sm font-bold border-b-2 border-blue-200' 
-                        : 'bg-slate-800 text-cyan-400 text-sm tracking-wider'
+                        : 'bg-slate-800 text-brand text-sm tracking-wider'
                     }>
                       <TableHead className={`px-2 py-3 text-center font-semibold border-b border-blue-200 ${
-                        theme === 'light' ? 'text-blue-900' : 'text-cyan-200 dark:border-b dark:border-gray-700'
+                        theme === 'light' ? 'text-blue-900' : 'text-brand dark:border-b dark:border-gray-700'
                       }`}>Timestamp</TableHead>
                       <TableHead className={`px-2 py-3 text-center font-semibold border-b border-blue-200 ${
-                        theme === 'light' ? 'text-blue-900' : 'text-cyan-200 dark:border-b dark:border-gray-700'
+                        theme === 'light' ? 'text-blue-900' : 'text-brand dark:border-b dark:border-gray-700'
                       }`}>HammerMill_Amp</TableHead>
                       <TableHead className={`px-2 py-3 text-center font-semibold border-b border-blue-200 ${
-                        theme === 'light' ? 'text-blue-900' : 'text-cyan-200 dark:border-b dark:border-gray-700'
+                        theme === 'light' ? 'text-blue-900' : 'text-brand dark:border-b dark:border-gray-700'
                       }`}>RollerMill_Amp</TableHead>
                     </TableRow>
                   </TableHeader>

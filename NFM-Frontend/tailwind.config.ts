@@ -13,6 +13,31 @@ export default {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
+        brand: {
+          DEFAULT: "var(--brand)",
+          hover: "var(--brand-hover)",
+          subtle: "var(--brand-subtle)",
+          ring: "var(--brand-ring)",
+        },
+        surface: {
+          DEFAULT: "var(--surface)",
+          elevated: "var(--surface-elevated)",
+          sunken: "var(--surface-sunken)",
+        },
+        shell: {
+          DEFAULT: "var(--shell-bg)",
+          border: "var(--shell-border)",
+          hover: "var(--shell-hover)",
+          text: "var(--shell-text)",
+          secondary: "var(--shell-text-secondary)",
+          muted: "var(--shell-text-muted)",
+          accent: "var(--shell-accent)",
+          deep: "var(--shell-deep)",
+        },
+        success: "var(--success)",
+        warning: "var(--warning)",
+        danger: "var(--danger)",
+        info: "var(--info)",
         card: {
           DEFAULT: "var(--card)",
           foreground: "var(--card-foreground)",

@@ -29,7 +29,9 @@ export default defineConfig({
     emptyOutDir: true,
   },
   server: {
-    port: 5174,
+    // Fixed port for PureBread reports — avoids clash with Desktop/3d_demo on 5173/5174
+    port: 5180,
+    strictPort: true,
     host: true,
     fs: {
       strict: true,

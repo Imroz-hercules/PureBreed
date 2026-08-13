@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import axios from "axios";
 import DetailsPopup from "@/components/hercules-sfms/DetailsPopup";
 import { API_ENDPOINTS } from '@/lib/api';
+import { getSaudiNow } from '@/lib/saudiTime';
 
 interface CalendarData {
   date: string;
@@ -36,13 +37,10 @@ export function BatchCalendar() {
 
   // Set default date range (current month)
   useEffect(() => {
-    const now = new Date();
-    
-    // Set start date to first day of current month
-    const start = new Date(now.getFullYear(), now.getMonth(), 1);
-    
-    // Set end date to last day of current month
-    const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    const saudiNow = getSaudiNow();
+
+    const start = new Date(saudiNow.getFullYear(), saudiNow.getMonth(), 1);
+    const end = new Date(saudiNow.getFullYear(), saudiNow.getMonth() + 1, 0);
     
     // Format dates as YYYY-MM-DD without timezone conversion
     const formatDate = (date: Date) => {
@@ -202,8 +200,8 @@ export function BatchCalendar() {
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             {/* Title with Icon */}
             <div className="flex items-center gap-3">
-              <Calendar className="text-cyan-400 dark:text-cyan-400 light:text-midnight-blue text-2xl" />
-              <h1 className="text-2xl font-bold text-cyan-300 dark:text-cyan-300 light:text-midnight-blue tracking-wide">
+              <Calendar className="text-brand dark:text-brand light:text-midnight-blue text-2xl" />
+              <h1 className="text-2xl font-bold text-brand dark:text-brand light:text-midnight-blue tracking-wide">
                 Batch Calendar
               </h1>
             </div>
@@ -211,27 +209,27 @@ export function BatchCalendar() {
             {/* Date Filters */}
             <div className="flex flex-wrap gap-3">
               <div className="flex flex-col">
-                <Label className="text-sm text-cyan-300 dark:text-cyan-300 light:text-midnight-blue mb-1 font-medium">
+                <Label className="text-sm text-brand dark:text-brand light:text-midnight-blue mb-1 font-medium">
                   Start Date
                 </Label>
                 <Input
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="bg-slate-800 dark:bg-slate-800 light:bg-white border-slate-600 dark:border-slate-600 light:border-slate-300 text-white dark:text-white light:text-slate-900 cursor-pointer hover:border-cyan-400 transition-colors"
+                  className="bg-surface border-border text-foreground cursor-pointer hover:border-brand transition-colors"
                   onClick={(e) => e.currentTarget.showPicker?.()}
                 />
               </div>
 
               <div className="flex flex-col">
-                <Label className="text-sm text-cyan-300 dark:text-cyan-300 light:text-midnight-blue mb-1 font-medium">
+                <Label className="text-sm text-brand dark:text-brand light:text-midnight-blue mb-1 font-medium">
                   End Date
                 </Label>
                 <Input
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="bg-slate-800 dark:bg-slate-800 light:bg-white border-slate-600 dark:border-slate-600 light:border-slate-300 text-white dark:text-white light:text-slate-900 cursor-pointer hover:border-cyan-400 transition-colors"
+                  className="bg-surface border-border text-foreground cursor-pointer hover:border-brand transition-colors"
                   onClick={(e) => e.currentTarget.showPicker?.()}
                 />
               </div>
@@ -249,8 +247,8 @@ export function BatchCalendar() {
           {/* Loading State */}
           {loading && (
             <div className="flex items-center justify-center p-8">
-              <Loader2 className="h-8 w-8 text-cyan-400 animate-spin" />
-              <span className="ml-2 text-cyan-400">Loading calendar data...</span>
+              <Loader2 className="h-8 w-8 text-brand animate-spin" />
+              <span className="ml-2 text-brand">Loading calendar data...</span>
             </div>
           )}
 
@@ -261,12 +259,12 @@ export function BatchCalendar() {
                 <div
                   key={index}
                   onClick={() => handleCardClick(item.fullDate, item.data)}
-                  className={`p-4 rounded-xl bg-slate-900/95 dark:bg-slate-900/95 light:bg-white/95 border border-slate-700 dark:border-slate-700 light:border-slate-300 shadow-md transition-all
-                    ${item.data.total_actual_ton > 0 ? "cursor-pointer hover:shadow-[0_0_20px_rgba(0,255,255,0.4)] hover:border-cyan-400" : "opacity-60"}
+                  className={`p-4 rounded-xl bg-surface/95 border border-border shadow-md transition-all
+                    ${item.data.total_actual_ton > 0 ? "cursor-pointer hover:shadow-[0_0_20px_rgba(0,255,255,0.4)] hover:border-brand" : "opacity-60"}
                   `}
                 >
                   {/* Day & Date */}
-                  <div className="text-white dark:text-white light:text-slate-900 font-bold border-b border-slate-500 dark:border-slate-500 light:border-slate-300 pb-1 mb-3 text-center">
+                  <div className="text-foreground font-bold border-b border-border pb-1 mb-3 text-center">
                     <div className="text-sm font-bold">{item.day}</div>
                     <div className="text-base font-bold">{item.date}</div>
                   </div>
@@ -304,7 +302,7 @@ export function BatchCalendar() {
                   </div>
 
                   {/* Actual KG (small text) */}
-                  <div className="mt-2 text-xs text-slate-400 dark:text-slate-400 light:text-slate-600 text-center font-bold">
+                  <div className="mt-2 text-xs text-[color:var(--text-muted)] text-center font-bold">
                     {item.data.total_actual_kg.toFixed(0)} kg
                   </div>
                 </div>
@@ -315,8 +313,8 @@ export function BatchCalendar() {
           {/* No Data Message */}
           {!loading && !error && filteredData.length === 0 && (
             <div className="text-center py-8">
-              <Calendar className="h-12 w-12 text-slate-500 mx-auto mb-4" />
-              <p className="text-slate-400">No calendar data available for the selected date range.</p>
+              <Calendar className="h-12 w-12 text-[color:var(--text-faint)] mx-auto mb-4" />
+              <p className="text-[color:var(--text-muted)]">No calendar data available for the selected date range.</p>
             </div>
           )}
         </div>
@@ -325,14 +323,14 @@ export function BatchCalendar() {
       {isPopupOpen && selectedDate && selectedDayData && (
         detailsLoading ? (
             <div className="fixed inset-0 bg-white/30 dark:bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
-                <div className="bg-white dark:bg-slate-800 p-6 rounded-lg shadow-2xl border border-slate-300 dark:border-slate-700">
-                    <Loader2 className="h-8 w-8 text-cyan-400 animate-spin mx-auto mb-4" />
-                    <p className="text-slate-700 dark:text-slate-300 text-center">Loading details...</p>
+                <div className="bg-surface p-6 rounded-lg shadow-2xl border border-border">
+                    <Loader2 className="h-8 w-8 text-brand animate-spin mx-auto mb-4" />
+                    <p className="text-[color:var(--text-secondary)] text-center">Loading details...</p>
                 </div>
             </div>
         ) : detailsError ? (
             <div className="fixed inset-0 bg-white/30 dark:bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
-                <div className="bg-white dark:bg-slate-800 p-6 rounded-lg shadow-2xl border border-slate-300 dark:border-slate-700">
+                <div className="bg-surface p-6 rounded-lg shadow-2xl border border-border">
                     <p className="text-red-500 mb-4">{detailsError}</p>
                     <button 
                         onClick={() => setIsPopupOpen(false)}

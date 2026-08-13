@@ -30,7 +30,7 @@ from sqlalchemy.dialects.mssql import UNIQUEIDENTIFIER
 from sqlalchemy import PrimaryKeyConstraint
 
 class KPIMaterial(db.Model):
-    __tablename__ = 'BatchMaterials'
+    __tablename__ = 'BatchMaterials_Shadow'
     __table_args__ = (
         PrimaryKeyConstraint('Batch GUID', 'OrderId', 'Material Name', 'Batch Act Start'),
         {'schema': 'dbo'}

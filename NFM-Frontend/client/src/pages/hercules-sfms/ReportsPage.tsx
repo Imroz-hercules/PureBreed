@@ -1,4 +1,4 @@
-// import React, { useState, useEffect, useMemo } from "react";
+﻿// import React, { useState, useEffect, useMemo } from "react";
 // import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 // import { Button } from "@/components/ui/button";
 // import { Input } from '@/components/ui/input';
@@ -117,18 +117,18 @@
 //   const renderTableRow = (item: any, index: number) => {
 //     return (
 //       <tr key={index} className="border-b border-slate-700/50 hover:bg-slate-800/40">
-//         <td className="px-4 py-2 text-cyan-300 font-mono text-sm">{item["Batch GUID"] || '-'}</td>
+//         <td className="px-4 py-2 text-brand font-mono text-sm">{item["Batch GUID"] || '-'}</td>
 //         <td className="px-4 py-2 text-white text-sm">{item["Batch Name"] || '-'}</td>
 //         <td className="px-4 py-2 text-white text-sm">{item["Product Name"] || '-'}</td>
 //         <td className="px-4 py-2 text-blue-400 text-sm">{item["Batch Act Start"] || '-'}</td>
 //         <td className="px-4 py-2 text-blue-400 text-sm">{item["Batch Act End"] || '-'}</td>
-//         <td className="px-4 py-2 text-cyan-400 text-sm">{item["Quantity"] || '-'}</td>
+//         <td className="px-4 py-2 text-brand text-sm">{item["Quantity"] || '-'}</td>
 //         <td className="px-4 py-2 text-green-400 text-sm">{item["Material Name"] || '-'}</td>
 //         <td className="px-4 py-2 text-purple-400 font-mono text-sm">{item["Material Code"] || '-'}</td>
 //         <td className="px-4 py-2 text-orange-400 text-sm">{typeof item["SetPoint Float"] === 'number' ? item["SetPoint Float"].toFixed(2) : (item["SetPoint Float"] || '-')}</td>
 //         <td className="px-4 py-2 text-blue-400 text-sm">{typeof item["Actual Value Float"] === 'number' ? item["Actual Value Float"].toFixed(2) : (item["Actual Value Float"] || '-')}</td>
 //         <td className="px-4 py-2 text-slate-300 text-sm">{item["Source Server"] || '-'}</td>
-//         <td className="px-4 py-2 text-cyan-300 font-mono text-sm">{item["ROOTGUID"] || '-'}</td>
+//         <td className="px-4 py-2 text-brand font-mono text-sm">{item["ROOTGUID"] || '-'}</td>
 //         <td className="px-4 py-2 text-white text-sm">{item["OrderId"] || '-'}</td>
 //         <td className="px-4 py-2 text-white text-sm">{item["EventID"] || '-'}</td>
 //         <td className="px-4 py-2 text-blue-400 text-sm">{item["Batch Transfer Time"] || '-'}</td>
@@ -142,16 +142,16 @@
 //       <div className="space-y-6">
 //         {/* Header */}
 //         <div className="flex items-center gap-3">
-//           <FileText className="text-cyan-400 text-2xl" />
-//           <h1 className="text-2xl font-bold text-cyan-300 tracking-wide">
+//           <FileText className="text-brand text-2xl" />
+//           <h1 className="text-2xl font-bold text-brand tracking-wide">
 //             Reports
 //           </h1>
 //         </div>
 
 //         {/* Filter Section */}
-//         <Card className="bg-slate-900/95 dark:bg-slate-900/95 bg-white/95 border-slate-700 dark:border-slate-700 border-slate-300">
+//         <Card className="bg-surface/95 border-border">
 //           <CardHeader>
-//             <CardTitle className="text-cyan-300 dark:text-cyan-300 text-slate-700 flex items-center gap-2">
+//             <CardTitle className="text-brand flex items-center gap-2">
 //               <Calendar className="h-5 w-5" />
 //               Report Filters
 //             </CardTitle>
@@ -159,21 +159,21 @@
 //           <CardContent>
 //             <div className="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
 //               <div className="space-y-2">
-//                 <Label className="text-slate-300 dark:text-slate-300 text-slate-600 font-medium">Start Date:</Label>
+//                 <Label className="text-[color:var(--text-muted)] font-medium">Start Date:</Label>
 //                 <Input
 //                   type="datetime-local"
 //                   value={startDate}
 //                   onChange={(e) => setStartDate(e.target.value)}
-//                   className="bg-slate-800 dark:bg-slate-800 bg-white border-slate-600 dark:border-slate-600 border-slate-300 text-white dark:text-white text-slate-900"
+//                   className="bg-surface border-border text-white dark:text-white text-foreground"
 //                 />
 //               </div>
 //               <div className="space-y-2">
-//                 <Label className="text-slate-300 dark:text-slate-300 text-slate-600 font-medium">End Date:</Label>
+//                 <Label className="text-[color:var(--text-muted)] font-medium">End Date:</Label>
 //                 <Input
 //                   type="datetime-local"
 //                   value={endDate}
 //                   onChange={(e) => setEndDate(e.target.value)}
-//                   className="bg-slate-800 dark:bg-slate-800 bg-white border-slate-600 dark:border-slate-600 border-slate-300 text-white dark:text-white text-slate-900"
+//                   className="bg-surface border-border text-white dark:text-white text-foreground"
 //                 />
 //               </div>
 //               <div className="space-y-2 md:col-span-2">
@@ -208,11 +208,11 @@
 
 
 //         {/* Data Table */}
-//         <Card className="bg-slate-900/95 dark:bg-slate-900/95 bg-white/95 border-slate-700 dark:border-slate-700 border-slate-300">
+//         <Card className="bg-surface/95 border-border">
 //           <CardContent className="p-0">
 //             {loading ? (
 //               <div className="flex items-center justify-center py-8">
-//                 <Loader2 className="h-8 w-8 animate-spin text-cyan-400" />
+//                 <Loader2 className="h-8 w-8 animate-spin text-brand" />
 //                 <span className="ml-2 text-slate-300">Loading report data...</span>
 //               </div>
 //             ) : error ? (
@@ -221,18 +221,18 @@
 //               </div>
 //             ) : (
 //               <div className="overflow-x-auto">
-//                 <table className="min-w-full text-sm text-white dark:text-white text-slate-900 border-collapse">
-//                   <thead className="bg-slate-800 dark:bg-slate-800 bg-slate-200 text-cyan-400 dark:text-cyan-400 text-slate-700 uppercase text-xs tracking-wider">
+//                 <table className="min-w-full text-sm text-white dark:text-white text-foreground border-collapse">
+//                   <thead className="bg-slate-800 dark:bg-slate-800 bg-slate-200 text-brand dark:text-brand text-foreground uppercase text-xs tracking-wider">
 //                     <tr>
 //                       {tableHeaders.map((header) => (
-//                         <th key={header} className="border border-slate-600 dark:border-slate-600 border-slate-300 px-4 py-3">{header}</th>
+//                         <th key={header} className="border border-border px-4 py-3">{header}</th>
 //                       ))}
 //                     </tr>
 //                   </thead>
 //                   <tbody>
 //                     {paginatedData.length === 0 ? (
 //                       <tr>
-//                         <td colSpan={tableHeaders.length} className="px-4 py-8 text-center text-slate-400">
+//                         <td colSpan={tableHeaders.length} className="px-4 py-8 text-center text-[color:var(--text-muted)]">
 //                           No data found for the selected date range.
 //                         </td>
 //                       </tr>
@@ -250,7 +250,7 @@
 //                         setRowsPerPage(Number(e.target.value));
 //                         setCurrentPage(1); // reset to first page
 //                       }}
-//                       className="bg-slate-800 border border-slate-600 rounded px-2 py-1 text-white"
+//                       className="bg-slate-800 border border-border rounded px-2 py-1 text-white"
 //                     >
 //                       {[5, 10, 20, 50].map(size => (
 //                         <option key={size} value={size}>{size}</option>
@@ -305,6 +305,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { format } from "date-fns";
 import axios from "axios";
 import { API_ENDPOINTS, API_BASE_URL } from '@/lib/api';
+import { formatApiDateTime, dateToApiIso, getSaudiNow } from '@/lib/saudiTime';
 
 // MultiSelect Component
 interface MultiSelectProps {
@@ -370,22 +371,22 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
   return (
     <div className="relative" ref={dropdownRef}>
       <div
-        className={`w-full min-h-[2.25rem] px-3 py-2 rounded-md bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white cursor-pointer hover:border-cyan-400 focus-within:border-cyan-500 transition-all duration-200 text-sm ${
+        className={`w-full min-h-[2.25rem] px-3 py-2 rounded-md bg-surface border border-border text-foreground cursor-pointer hover:border-brand focus-within:border-brand transition-all duration-200 text-sm ${
           options.length === 0 ? 'opacity-50 cursor-not-allowed' : ''
         }`}
         onClick={() => options.length > 0 && setIsOpen(!isOpen)}
       >
         <div className="flex items-center justify-between">
           <span className="text-sm truncate">{getDisplayText()}</span>
-          <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+          <ChevronDown className={`h-4 w-4 text-[color:var(--text-muted)] transition-transform ${isOpen ? 'rotate-180' : ''}`} />
         </div>
       </div>
 
       {isOpen && (
-        <div className="absolute z-50 w-full mt-1 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-md shadow-xl max-h-64 overflow-y-auto">
+        <div className="absolute z-50 w-full mt-1 bg-surface border border-border rounded-md shadow-xl max-h-64 overflow-y-auto">
           {/* Select All Option */}
           <div
-            className="px-3 py-2 hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer border-b border-slate-200 dark:border-slate-600 text-cyan-600 dark:text-cyan-400 font-medium"
+            className="px-3 py-2 hover:bg-surface-sunken/50 cursor-pointer border-b border-border dark:border-border text-brand font-medium"
             onClick={handleSelectAll}
           >
             <div className="flex items-center justify-between">
@@ -404,14 +405,14 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
           {options.map((option) => (
             <div
               key={option}
-              className={`px-3 py-2 hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer flex items-center justify-between ${
-                selectedValues.includes(option) ? 'bg-slate-100 dark:bg-slate-700' : ''
+              className={`px-3 py-2 hover:bg-surface-sunken/50 cursor-pointer flex items-center justify-between ${
+                selectedValues.includes(option) ? 'bg-surface-sunken' : ''
               }`}
               onClick={() => handleOptionClick(option)}
             >
-              <span className="text-sm text-slate-900 dark:text-white truncate">{option}</span>
+              <span className="text-sm text-foreground truncate">{option}</span>
               {selectedValues.includes(option) && (
-                <Check className="h-4 w-4 text-cyan-600 dark:text-cyan-400" />
+                <Check className="h-4 w-4 text-brand" />
               )}
             </div>
           ))}
@@ -421,11 +422,11 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
   );
 };
 
-// Default dates: Last month with 7 AM time
+// Default dates: Last month with 7 AM Saudi time
 const getDefaultDates = () => {
-  const today = new Date();
-  const lastMonth = new Date();
-  lastMonth.setMonth(today.getMonth() - 1);
+  const saudiNow = getSaudiNow();
+  const lastMonth = new Date(saudiNow);
+  lastMonth.setMonth(saudiNow.getMonth() - 1);
 
   const startDate = new Date(lastMonth.getFullYear(), lastMonth.getMonth(), 1, 7, 0, 0);
   const endDate = new Date(lastMonth.getFullYear(), lastMonth.getMonth() + 1, 0, 7, 0, 0);
@@ -442,32 +443,7 @@ const getDefaultDates = () => {
   return { startDate: formatForInput(startDate), endDate: formatForInput(endDate) };
 };
 
-// Format date and time for display
-const formatToUTCCustom = (dateString: string, includeSeconds: boolean = false) => {
-  if (!dateString || dateString === 'N/A') return 'N/A';
-  try {
-    const date = new Date(dateString);
-    if (isNaN(date.getTime())) return 'Invalid Date';
-    
-    const options: Intl.DateTimeFormatOptions = {
-      timeZone: 'UTC',
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true
-    };
-    
-    if (includeSeconds) {
-      options.second = '2-digit';
-    }
-    
-    return date.toLocaleString('en-US', options);
-  } catch (error) {
-    return 'Invalid Date';
-  }
-};
+const formatToSaudiTime = formatApiDateTime;
 
 export function ReportsPage() {
   const defaultDates = getDefaultDates();
@@ -519,38 +495,24 @@ export function ReportsPage() {
   // Tab state
   const [currentTab, setCurrentTab] = useState("reports");
 
-  // 4-hour offset function like in old code
-  const getApiDateWithOffset = (displayDate: Date) => {
-    if (!displayDate) return null;
-    const apiDate = new Date(displayDate);
-    apiDate.setHours(apiDate.getHours() - 4);
-    return apiDate;
-  };
-
-
   // Fetch filter options
   const fetchFilterOptions = async () => {
     try {
       const params = new URLSearchParams();
-      const startDateOffset = getApiDateWithOffset(new Date(startDate));
-      const endDateOffset = getApiDateWithOffset(new Date(endDate));
+      params.append("startDate", dateToApiIso(startDate));
+      params.append("endDate", dateToApiIso(endDate));
+      params.append("limit", "10000");
 
-      if (startDateOffset && endDateOffset) {
-        params.append("startDate", startDateOffset.toISOString());
-        params.append("endDate", endDateOffset.toISOString());
-        params.append("limit", "10000");
+      const response = await axios.get(`${API_ENDPOINTS.KPI}?${params}`);
+      const data = response.data.data || [];
 
-        const response = await axios.get(`${API_ENDPOINTS.KPI}?${params}`);
-        const data = response.data.data || [];
+      const products = Array.from(new Set(data.map((item: any) => item["Product Name"]).filter((name: any): name is string => typeof name === 'string' && name.length > 0))) as string[];
+      const batches = Array.from(new Set(data.map((item: any) => item["Batch Name"]).filter((name: any): name is string => typeof name === 'string' && name.length > 0))) as string[];
+      const materials = Array.from(new Set(data.map((item: any) => item["Material Name"]).filter((name: any): name is string => typeof name === 'string' && name.length > 0))) as string[];
 
-        const products = Array.from(new Set(data.map((item: any) => item["Product Name"]).filter((name: any): name is string => typeof name === 'string' && name.length > 0))) as string[];
-        const batches = Array.from(new Set(data.map((item: any) => item["Batch Name"]).filter((name: any): name is string => typeof name === 'string' && name.length > 0))) as string[];
-        const materials = Array.from(new Set(data.map((item: any) => item["Material Name"]).filter((name: any): name is string => typeof name === 'string' && name.length > 0))) as string[];
-
-        setProductOptions(products);
-        setBatchOptions(batches);
-        setMaterialOptions(materials);
-      }
+      setProductOptions(products);
+      setBatchOptions(batches);
+      setMaterialOptions(materials);
     } catch (error) {
     }
   };
@@ -561,29 +523,24 @@ export function ReportsPage() {
       setError(null);
 
       const params = new URLSearchParams();
-      const startDateOffset = getApiDateWithOffset(new Date(startDate));
-      const endDateOffset = getApiDateWithOffset(new Date(endDate));
+      params.append("startDate", dateToApiIso(startDate));
+      params.append("endDate", dateToApiIso(endDate));
+      params.append("page", currentPage.toString());
+      params.append("limit", rowsPerPage.toString());
 
-      if (startDateOffset && endDateOffset) {
-        params.append("startDate", startDateOffset.toISOString());
-        params.append("endDate", endDateOffset.toISOString());
-        params.append("page", currentPage.toString());
-        params.append("limit", rowsPerPage.toString());
-
-        if (selectedProducts.length > 0) {
-          selectedProducts.forEach(product => params.append("product", product));
-        }
-        if (selectedBatches.length > 0) {
-          selectedBatches.forEach(batch => params.append("batch", batch));
-        }
-        if (selectedMaterials.length > 0) {
-          selectedMaterials.forEach(material => params.append("material", material));
-        }
-
-        const response = await axios.get(`${API_ENDPOINTS.KPI}/csv-format-report?${params}`);
-        setRawData(response.data.data || []);
-        setTotalRecords(response.data.total || 0);
+      if (selectedProducts.length > 0) {
+        selectedProducts.forEach(product => params.append("product", product));
       }
+      if (selectedBatches.length > 0) {
+        selectedBatches.forEach(batch => params.append("batch", batch));
+      }
+      if (selectedMaterials.length > 0) {
+        selectedMaterials.forEach(material => params.append("material", material));
+      }
+
+      const response = await axios.get(`${API_ENDPOINTS.KPI}/csv-format-report?${params}`);
+      setRawData(response.data.data || []);
+      setTotalRecords(response.data.total || 0);
     } catch (err: any) {
       setError(err.message || "Failed to fetch data");
       setRawData([]);
@@ -710,32 +667,27 @@ export function ReportsPage() {
 
       // Fetch all data for export (not just current page)
       const params = new URLSearchParams();
-      const startDateOffset = getApiDateWithOffset(new Date(startDate));
-      const endDateOffset = getApiDateWithOffset(new Date(endDate));
+      params.append("startDate", dateToApiIso(startDate));
+      params.append("endDate", dateToApiIso(endDate));
+      params.append("page", "1");
+      params.append("limit", "100000");
 
-      if (startDateOffset && endDateOffset) {
-        params.append("startDate", startDateOffset.toISOString());
-        params.append("endDate", endDateOffset.toISOString());
-        params.append("page", "1");
-        params.append("limit", "100000"); // Large limit to get all data
+      if (selectedProducts.length > 0) {
+        selectedProducts.forEach(product => params.append("product", product));
+      }
+      if (selectedBatches.length > 0) {
+        selectedBatches.forEach(batch => params.append("batch", batch));
+      }
+      if (selectedMaterials.length > 0) {
+        selectedMaterials.forEach(material => params.append("material", material));
+      }
 
-        // Apply same filters as current view
-        if (selectedProducts.length > 0) {
-          selectedProducts.forEach(product => params.append("product", product));
-        }
-        if (selectedBatches.length > 0) {
-          selectedBatches.forEach(batch => params.append("batch", batch));
-        }
-        if (selectedMaterials.length > 0) {
-          selectedMaterials.forEach(material => params.append("material", material));
-        }
+      const response = await axios.get(`${API_ENDPOINTS.KPI}/csv-format-report?${params}`);
+      const allData = response.data.data || [];
 
-        const response = await axios.get(`${API_ENDPOINTS.KPI}/csv-format-report?${params}`);
-        const allData = response.data.data || [];
-
-        if (allData.length === 0) {
-          return;
-        }
+      if (allData.length === 0) {
+        return;
+      }
 
         // Create CSV headers
         const headers = tableHeaders.join(',');
@@ -769,11 +721,8 @@ export function ReportsPage() {
         link.setAttribute('download', filename);
         link.style.visibility = 'hidden';
         document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-
-        // Show success message (no popup)
-      }
+      link.click();
+      document.body.removeChild(link);
     } catch (error) {
     } finally {
       // Reset button state
@@ -852,7 +801,7 @@ export function ReportsPage() {
             size="sm"
             onClick={() => onPageChange(currentPage - 1)}
             disabled={currentPage === 1}
-            className="flex items-center gap-1 font-medium bg-white border-blue-300 text-blue-700 hover:bg-blue-50 hover:border-blue-500 hover:text-blue-800 disabled:bg-gray-100 disabled:border-gray-300 disabled:text-gray-500 disabled:hover:bg-gray-100 disabled:hover:text-gray-500 dark:border-cyan-500 dark:text-cyan-400 dark:hover:bg-cyan-900/20 dark:hover:border-cyan-400 dark:disabled:border-gray-600 dark:disabled:text-gray-500 dark:disabled:hover:bg-transparent"
+            className="flex items-center gap-1 font-medium bg-white border-blue-300 text-blue-700 hover:bg-blue-50 hover:border-blue-500 hover:text-blue-800 disabled:bg-gray-100 disabled:border-gray-300 disabled:text-gray-500 disabled:hover:bg-gray-100 disabled:hover:text-gray-500 dark:border-cyan-500 dark:text-brand dark:hover:bg-cyan-900/20 dark:hover:border-brand dark:disabled:border-gray-600 dark:disabled:text-gray-500 dark:disabled:hover:bg-transparent"
           >
             <ChevronLeft className="w-4 h-4" />
             Previous
@@ -869,7 +818,7 @@ export function ReportsPage() {
                   onClick={() => onPageChange(page as number)}
                   className={`min-w-[40px] font-medium ${currentPage === page
                       ? "bg-blue-600 text-white hover:bg-blue-700 shadow-sm border-blue-600 dark:bg-cyan-600 dark:hover:bg-cyan-700"
-                      : "bg-white border-blue-300 text-blue-700 hover:bg-blue-50 hover:border-blue-500 hover:text-blue-800 dark:border-cyan-500 dark:text-cyan-400 dark:hover:bg-cyan-900/20 dark:hover:border-cyan-400"
+                      : "bg-white border-blue-300 text-blue-700 hover:bg-blue-50 hover:border-blue-500 hover:text-blue-800 dark:border-cyan-500 dark:text-brand dark:hover:bg-cyan-900/20 dark:hover:border-brand"
                     }`}
                 >
                   {page}
@@ -883,7 +832,7 @@ export function ReportsPage() {
             size="sm"
             onClick={() => onPageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
-            className="flex items-center gap-1 font-medium bg-white border-blue-300 text-blue-700 hover:bg-blue-50 hover:border-blue-500 hover:text-blue-800 disabled:bg-gray-100 disabled:border-gray-300 disabled:text-gray-500 disabled:hover:bg-gray-100 disabled:hover:text-gray-500 dark:border-cyan-500 dark:text-cyan-400 dark:hover:bg-cyan-900/20 dark:hover:border-cyan-400 dark:disabled:border-gray-600 dark:disabled:text-gray-500 dark:disabled:hover:bg-transparent"
+            className="flex items-center gap-1 font-medium bg-white border-blue-300 text-blue-700 hover:bg-blue-50 hover:border-blue-500 hover:text-blue-800 disabled:bg-gray-100 disabled:border-gray-300 disabled:text-gray-500 disabled:hover:bg-gray-100 disabled:hover:text-gray-500 dark:border-cyan-500 dark:text-brand dark:hover:bg-cyan-900/20 dark:hover:border-brand dark:disabled:border-gray-600 dark:disabled:text-gray-500 dark:disabled:hover:bg-transparent"
           >
             Next
             <ChevronRight className="w-4 h-4" />
@@ -905,10 +854,10 @@ export function ReportsPage() {
     <tr
       key={index}
       className={`
-      border-b border-slate-300 dark:border-slate-700/50
-      ${index % 2 === 0 ? "bg-slate-50 dark:bg-slate-900" : "bg-white dark:bg-slate-800"}
-      hover:bg-slate-200 dark:hover:bg-slate-800/60
-      text-sm text-slate-900 dark:text-slate-100
+      border-b border-border/50
+      ${index % 2 === 0 ? "bg-surface-sunken" : "bg-surface"}
+      hover:bg-surface-sunken/60
+      text-sm text-foreground dark:text-foreground
       py-2
     `}
     >
@@ -917,9 +866,9 @@ export function ReportsPage() {
         
         // Apply special formatting for date/time columns
         if (header === "Batch Act Start" || header === "Batch Act End") {
-          cellValue = formatToUTCCustom(item[header], true);
+          cellValue = formatToSaudiTime(item[header], true);
         } else if (header === "Batch Transfer Time") {
-          cellValue = formatToUTCCustom(item[header], true);
+          cellValue = formatToSaudiTime(item[header], true);
         } else if (typeof item[header] === "number") {
           cellValue = item[header].toFixed(2);
         }
@@ -945,8 +894,8 @@ export function ReportsPage() {
 
         {/* Header */}
         <div className="flex items-center gap-3">
-          <FileText className="text-cyan-400 dark:text-cyan-400 light:text-midnight-blue text-2xl" />
-          <h1 className="text-2xl font-bold text-cyan-300 dark:text-cyan-300 light:text-midnight-blue tracking-wide cursor-pointer hover:text-cyan-200 dark:hover:text-cyan-200 light:hover:text-blue-800 transition-colors"
+          <FileText className="text-brand dark:text-brand light:text-midnight-blue text-2xl" />
+          <h1 className="text-2xl font-bold text-brand dark:text-brand light:text-midnight-blue tracking-wide cursor-pointer hover:text-cyan-200 dark:hover:text-cyan-200 light:hover:text-blue-800 transition-colors"
             onClick={() => setCurrentTab("reports")}>
             Reports
           </h1>
@@ -957,7 +906,7 @@ export function ReportsPage() {
           <TabsList className="flex gap-3 justify-center p-2 bg-transparent">
             <TabsTrigger
               value="reports"
-              className="flex items-center gap-2 px-6 py-3 rounded-xl border-2 border-transparent transition-all duration-200 bg-[#0088a9] !text-white data-[state=active]:bg-[#007b98] data-[state=active]:!text-white data-[state=active]:shadow-lg data-[state=active]:border-[#007b98] data-[state=active]:scale-105 hover:bg-[#007b98] hover:!text-white"
+              className="flex items-center gap-2 px-6 py-3 rounded-xl border-2 border-transparent transition-all duration-200 bg-brand !text-white data-[state=active]:bg-brand-hover data-[state=active]:!text-white data-[state=active]:shadow-lg data-[state=active]:border-brand-hover data-[state=active]:scale-105 hover:bg-brand-hover hover:!text-white"
             >
               <FileText className="w-5 h-5" />
               Reports
@@ -965,7 +914,7 @@ export function ReportsPage() {
             {/* Data tab commented out - no longer needed
             <TabsTrigger
               value="plc"
-              className="flex items-center gap-2 px-6 py-3 rounded-xl border-2 border-transparent transition-all duration-200 bg-[#0088a9] !text-white data-[state=active]:bg-[#007b98] data-[state=active]:!text-white data-[state=active]:shadow-lg data-[state=active]:border-[#007b98] data-[state=active]:scale-105 hover:bg-[#007b98] hover:!text-white"
+              className="flex items-center gap-2 px-6 py-3 rounded-xl border-2 border-transparent transition-all duration-200 bg-brand !text-white data-[state=active]:bg-brand-hover data-[state=active]:!text-white data-[state=active]:shadow-lg data-[state=active]:border-brand-hover data-[state=active]:scale-105 hover:bg-brand-hover hover:!text-white"
             >
               <Database className="w-5 h-5" />
                Data
@@ -976,38 +925,38 @@ export function ReportsPage() {
           {/* Reports Tab Content */}
           <TabsContent value="reports" className="space-y-6">
             {/* Filters */}
-            <Card className="bg-white/95 dark:bg-slate-900/95 border border-slate-300 dark:border-slate-700">
+            <Card className="bg-surface/95 border border-border">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-slate-700 dark:text-cyan-300">
+                <CardTitle className="flex items-center gap-2 text-brand">
                   <Calendar className="h-5 w-5" /> Report Filters
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 items-end">
                   <div className="space-y-2">
-                    <Label className="text-slate-600 dark:text-slate-300 font-medium">Start Date:</Label>
+                    <Label className="text-[color:var(--text-muted)] font-medium">Start Date:</Label>
                     <Input
                       type="datetime-local"
                       value={startDate}
                       onChange={(e) => setStartDate(e.target.value)}
                       onClick={(e) => e.currentTarget.showPicker?.()}
-                      className="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white h-9 rounded-md px-2 cursor-pointer hover:border-cyan-400 focus:ring-2 focus:ring-cyan-400 transition-colors"
+                      className="w-full bg-surface border border-border text-foreground h-9 rounded-md px-2 cursor-pointer hover:border-brand focus:ring-2 focus:ring-brand transition-colors"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-slate-600 dark:text-slate-300 font-medium">End Date:</Label>
+                    <Label className="text-[color:var(--text-muted)] font-medium">End Date:</Label>
                     <Input
                       type="datetime-local"
                       value={endDate}
                       onChange={(e) => setEndDate(e.target.value)}
                       onClick={(e) => e.currentTarget.showPicker?.()}
-                      className="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white h-9 rounded-md px-2 cursor-pointer hover:border-cyan-400 focus:ring-2 focus:ring-cyan-400 transition-colors"
+                      className="w-full bg-surface border border-border text-foreground h-9 rounded-md px-2 cursor-pointer hover:border-brand focus:ring-2 focus:ring-brand transition-colors"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-slate-600 dark:text-slate-300 font-medium">Select Product:</Label>
+                    <Label className="text-[color:var(--text-muted)] font-medium">Select Product:</Label>
                     <MultiSelect
                       options={productOptions}
                       selectedValues={selectedProducts}
@@ -1017,7 +966,7 @@ export function ReportsPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-slate-600 dark:text-slate-300 font-medium">Select Batch:</Label>
+                    <Label className="text-[color:var(--text-muted)] font-medium">Select Batch:</Label>
                     <MultiSelect
                       options={batchOptions}
                       selectedValues={selectedBatches}
@@ -1027,7 +976,7 @@ export function ReportsPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-slate-600 dark:text-slate-300 font-medium">Select Material:</Label>
+                    <Label className="text-[color:var(--text-muted)] font-medium">Select Material:</Label>
                     <MultiSelect
                       options={materialOptions}
                       selectedValues={selectedMaterials}
@@ -1038,7 +987,7 @@ export function ReportsPage() {
                   </div>
                   <div className="space-y-2">
                     <Button
-                      className="flex items-center gap-2 !bg-[#0088a9] hover:!bg-[#007b98] !text-white font-medium py-2 px-5 rounded-lg shadow-md transition-all duration-200 border border-transparent"
+                      className="flex items-center gap-2 !bg-brand hover:!bg-brand-hover !text-white font-medium py-2 px-5 rounded-lg shadow-md transition-all duration-200 border border-transparent"
                       onClick={applyFilters}
                       disabled={loading}
                     >
@@ -1056,19 +1005,19 @@ export function ReportsPage() {
                 onClick={exportToCSV}
                 disabled={loading}
                 data-export-button
-                className="!bg-[#0088a9] hover:!bg-[#007b98] !text-white font-medium py-2 px-4 rounded-[8px] shadow-md transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="!bg-brand hover:!bg-brand-hover !text-white font-medium py-2 px-4 rounded-[8px] shadow-md transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Download className="h-4 w-4 mr-2" /> EXPORT TO CSV
               </Button>
             </div>
 
             {/* Data Table */}
-            <Card className="bg-white/95 dark:bg-slate-900/95 border border-slate-300 dark:border-slate-700">
+            <Card className="bg-surface/95 border border-border">
               <CardContent className="p-0">
                 {loading ? (
                   <div className="flex items-center justify-center py-8">
-                    <Loader2 className="h-8 w-8 animate-spin text-cyan-400" />
-                    <span className="ml-2 text-slate-500 dark:text-slate-300">Loading report data...</span>
+                    <Loader2 className="h-8 w-8 animate-spin text-brand" />
+                    <span className="ml-2 text-[color:var(--text-muted)]">Loading report data...</span>
                   </div>
                 ) : error ? (
                   <div className="flex items-center justify-center py-8">
@@ -1077,7 +1026,7 @@ export function ReportsPage() {
                 ) : (
                   <div className="max-w-full">
                     <table className="min-w-full table-fixed text-sm">
-                      <thead className="bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-cyan-400 uppercase tracking-wider text-sm">
+                      <thead className="bg-surface-sunken text-foreground dark:text-brand uppercase tracking-wider text-sm">
                         <tr>
                           {tableHeaders.map((header, i) => (
                             <th
@@ -1094,7 +1043,7 @@ export function ReportsPage() {
                       <tbody>
                         {rawData.length === 0 ? (
                           <tr>
-                            <td colSpan={tableHeaders.length} className="px-4 py-8 text-center text-slate-500">
+                            <td colSpan={tableHeaders.length} className="px-4 py-8 text-center text-[color:var(--text-faint)]">
                               No data found for the selected date range.
                             </td>
                           </tr>
@@ -1106,7 +1055,7 @@ export function ReportsPage() {
 
 
                     {/* Pagination */}
-                    <div className="flex flex-wrap justify-between items-center p-4 text-xs text-slate-900 dark:text-slate-100">
+                    <div className="flex flex-wrap justify-between items-center p-4 text-xs text-foreground dark:text-foreground">
                       <div className="flex items-center gap-2">
                         <span>Rows per page:</span>
                         <select
@@ -1115,7 +1064,7 @@ export function ReportsPage() {
                             setRowsPerPage(Number(e.target.value));
                             setCurrentPage(1);
                           }}
-                          className="bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded px-2 py-1 text-slate-900 dark:text-white"
+                          className="bg-surface border border-border rounded px-2 py-1 text-foreground"
                         >
                           {[5, 10, 20, 50].map(size => (
                             <option key={size} value={size}>{size}</option>
@@ -1126,7 +1075,7 @@ export function ReportsPage() {
                         <Button
                           onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
                           disabled={currentPage === 1}
-                          className="text-xs px-3 py-1 bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-900 dark:text-white"
+                          className="text-xs px-3 py-1 bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-foreground"
                         >
                           Prev
                         </Button>
@@ -1136,7 +1085,7 @@ export function ReportsPage() {
                         <Button
                           onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
                           disabled={currentPage === totalPages}
-                          className="text-xs px-3 py-1 bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-900 dark:text-white"
+                          className="text-xs px-3 py-1 bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-foreground"
                         >
                           Next
                         </Button>

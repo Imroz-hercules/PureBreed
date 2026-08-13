@@ -1,13 +1,13 @@
-import React, { useState, useEffect, useRef } from "react";
+﻿import React, { useState, useEffect, useRef } from "react";
 import { WaterSystemLayout } from '../../components/hercules-sfms/WaterSystemLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ChartComponent from "@/components/hercules-sfms/ChartComponent";
 import { FaSyncAlt } from "react-icons/fa";
 import { API_ENDPOINTS } from '@/lib/api';
+import { dateToApiIso, getSaudiNow } from '@/lib/saudiTime';
 import {
   Activity,
   Package,
@@ -70,15 +70,13 @@ function toDatetimeLocalString(date: Date): string {
 }
 
 const getDefaultDates = () => {
-  const today = new Date();
-  
-  // Set start date to 7 days ago at 7 AM (last week)
-  const startDate = new Date(today);
-  startDate.setDate(today.getDate() - 7);
+  const saudiNow = getSaudiNow();
+
+  const startDate = new Date(saudiNow);
+  startDate.setDate(saudiNow.getDate() - 7);
   startDate.setHours(7, 0, 0, 0);
 
-  // Set end date to today at 7 AM
-  const endDate = new Date(today);
+  const endDate = new Date(saudiNow);
   endDate.setHours(7, 0, 0, 0);
 
   return {
@@ -97,10 +95,10 @@ const LoadingOverlay: React.FC<{ isLoading: boolean; children: React.ReactNode }
     <div className="relative">
       {children}
       {isLoading && (
-        <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center rounded-lg z-10">
-          <div className="flex items-center space-x-2 text-cyan-400">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-cyan-400"></div>
-            <span className="text-sm font-medium">Loading...</span>
+        <div className="absolute inset-0 bg-background/70 backdrop-blur-[2px] flex items-center justify-center rounded-lg z-10">
+          <div className="flex items-center space-x-2 text-brand">
+            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-brand"></div>
+            <span className="text-[12px] font-medium">Updating…</span>
           </div>
         </div>
       )}
@@ -157,57 +155,59 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
   const getDisplayText = () => {
     if (selectedValues.length === 0) return placeholder;
     if (selectedValues.length === options.length) return allSelectedText;
-    return `${selectedValues.length} Selected`;
+    return `${selectedValues.length} selected`;
   };
 
+  const sortedOptions = [...options].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+
   return (
-    <div className="relative" ref={dropdownRef}>
-      <div
-        className="w-full min-h-[2.25rem] px-3 py-2 rounded-md bg-slate-800 border border-slate-600 text-white cursor-pointer hover:border-slate-500 focus-within:border-cyan-500 transition-colors"
+    <div className="relative z-20" ref={dropdownRef}>
+      <button
+        type="button"
+        className="w-full min-h-[2.25rem] px-3 py-2 rounded-md bg-surface border border-border text-foreground text-left cursor-pointer hover:border-brand focus:outline-none focus:ring-2 focus:ring-brand/40 transition-colors"
         onClick={() => setIsOpen(!isOpen)}
       >
-        <div className="flex items-center justify-between">
-          <span className="text-sm truncate">{getDisplayText()}</span>
-          <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-[13px] truncate">{getDisplayText()}</span>
+          <ChevronDown className={`h-4 w-4 text-[color:var(--text-muted)] shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
         </div>
-      </div>
+      </button>
 
       {isOpen && (
-        <div className="absolute z-50 w-full mt-1 bg-slate-800 border border-slate-600 rounded-md shadow-xl max-h-64 overflow-y-auto">
-          {/* Select All Option */}
+        <div className="absolute z-[80] w-full mt-1 bg-surface border border-border rounded-md shadow-[var(--shadow-lg)] max-h-56 overflow-y-auto">
           <div
-            className="px-3 py-2 hover:bg-slate-700 cursor-pointer border-b border-slate-600 text-cyan-400 font-medium"
+            className="px-3 py-2 hover:bg-surface-sunken cursor-pointer border-b border-border text-brand text-[12px] font-semibold sticky top-0 bg-surface"
             onClick={handleSelectAll}
           >
             <div className="flex items-center justify-between">
-              <span className="text-sm">
-                {selectedValues.length === options.length ? "Deselect All" : "Select All"}
+              <span>
+                {selectedValues.length === options.length ? 'Deselect all' : 'Select all'}
               </span>
               {selectedValues.length === options.length ? (
-                <X className="h-4 w-4" />
+                <X className="h-3.5 w-3.5" />
               ) : (
-                <Check className="h-4 w-4" />
+                <Check className="h-3.5 w-3.5" />
               )}
             </div>
           </div>
 
-          {/* Individual Options */}
-          {options.map((option) => (
+          {sortedOptions.map((option) => (
             <div
               key={option}
-              className={`px-3 py-2 hover:bg-slate-700 cursor-pointer text-sm flex items-center justify-between ${selectedValues.includes(option) ? 'bg-slate-700 text-cyan-300' : 'text-white'
-                }`}
+              className={`px-3 py-1.5 hover:bg-surface-sunken cursor-pointer text-[12px] flex items-center justify-between ${
+                selectedValues.includes(option) ? 'bg-brand-subtle text-brand' : 'text-foreground'
+              }`}
               onClick={() => handleOptionClick(option)}
             >
-              <span className="truncate flex-1">{option}</span>
+              <span className="truncate flex-1" title={option}>{option}</span>
               {selectedValues.includes(option) && (
-                <Check className="h-4 w-4 text-cyan-400 ml-2 flex-shrink-0" />
+                <Check className="h-3.5 w-3.5 text-brand ml-2 flex-shrink-0" />
               )}
             </div>
           ))}
 
           {options.length === 0 && (
-            <div className="px-3 py-2 text-slate-400 text-sm">
+            <div className="px-3 py-2 text-[color:var(--text-muted)] text-[12px]">
               No options available
             </div>
           )}
@@ -246,14 +246,6 @@ export function KPIDashboard() {
   const [productNames, setProductNames] = useState<string[]>([]);
   const [batchNames, setBatchNames] = useState<string[]>([]);
   const [materialNames, setMaterialNames] = useState<string[]>([]);
-
-  const getApiDateWithOffset = (displayDate: string): Date | null => {
-    if (!displayDate) return null;
-    const apiDate = new Date(displayDate);
-    // Subtract 4 hours from the display date for API calls (same as old NFM)
-    apiDate.setHours(apiDate.getHours() - 4);
-    return apiDate;
-  };
 
   // Helper function to check if value is finite number
   function isFiniteNumber(val: any): boolean {
@@ -478,13 +470,26 @@ export function KPIDashboard() {
     });
 
 
-    // Create error percentage data for pie chart - show individual material entries with >5% error
-    const errorPercentageChartData = materialErrorEntries
-      .filter(entry => entry.errorPercent > 5) // Only show entries with >5% error
-      .map(entry => ({ 
-        name: entry.material, // Use 'name' for ChartComponent compatibility
-        value: entry.errorPercent.toFixed(2) // Round to 2 decimal places and use 'value' key
-      }));
+    // Top errors only — a 185-slice pie is unreadable; keep top 12 + Other
+    const errorSorted = materialErrorEntries
+      .filter(entry => entry.errorPercent > 5)
+      .sort((a, b) => b.errorPercent - a.errorPercent);
+    const topErrors = errorSorted.slice(0, 12);
+    const otherErrors = errorSorted.slice(12);
+    const errorPercentageChartData = [
+      ...topErrors.map(entry => ({
+        name: entry.material,
+        value: entry.errorPercent.toFixed(2),
+      })),
+      ...(otherErrors.length
+        ? [{
+            name: `Other (${otherErrors.length})`,
+            value: (
+              otherErrors.reduce((s, e) => s + e.errorPercent, 0) / otherErrors.length
+            ).toFixed(2),
+          }]
+        : []),
+    ];
 
     // Set chart data with proper sorting and filtering
     setBarChartData({ labels: Object.keys(filteredHistoricalTimeline), values: Object.values(filteredHistoricalTimeline) });
@@ -521,12 +526,8 @@ export function KPIDashboard() {
       const params = new URLSearchParams();
 
       // Apply 4-hour offset to start date for API call (same as old NFM)
-      const apiStartDate = getApiDateWithOffset(filters.startDate);
-      const apiEndDate = getApiDateWithOffset(filters.endDate);
-      
-      
-      if (apiStartDate) params.append('startDate', apiStartDate.toISOString());
-      if (apiEndDate) params.append('endDate', apiEndDate.toISOString());
+      if (filters.startDate) params.append('startDate', dateToApiIso(filters.startDate));
+      if (filters.endDate) params.append('endDate', dateToApiIso(filters.endDate));
       params.append('strictDateFilter', 'true');
       params.append('page', 'all');
       params.append('limit', 'none');
@@ -632,185 +633,183 @@ export function KPIDashboard() {
     fetchGraphData();
   };
 
-  if (loading && !initialLoadComplete) return <div className="min-h-screen bg-[#0f172a] flex items-center justify-center text-cyan-400 text-xl">Loading...</div>;
-  if (error) return <div className="min-h-screen bg-[#0f172a] flex items-center justify-center text-red-400 text-xl">Error: {error.message}</div>;
+  if (loading && !initialLoadComplete) {
+    return (
+      <WaterSystemLayout>
+        <div className="min-h-[50vh] flex items-center justify-center text-brand text-sm font-medium">
+          Loading dashboard…
+        </div>
+      </WaterSystemLayout>
+    );
+  }
+  if (error) {
+    return (
+      <WaterSystemLayout>
+        <div className="min-h-[50vh] flex items-center justify-center text-danger text-sm font-medium">
+          Error: {error.message}
+        </div>
+      </WaterSystemLayout>
+    );
+  }
 
   return (
     <WaterSystemLayout>
-      <div className="space-y-6">
-        {/* <h1 className="text-3xl font-bold text-cyan-300 tracking-wide">
-          Dashboard
-        </h1> */}
-
-        <Tabs defaultValue="kpi" className="space-y-6">
-          <TabsList className="inline-flex bg-transparent border-none p-0 gap-3 mx-auto justify-center w-full">
-            <TabsTrigger 
-              value="kpi" 
-              className="custom-tab-button data-[state=active]:bg-[#007b98] data-[state=active]:text-white px-6 py-3 rounded-xl transition-all duration-200 bg-[#0088a9] text-white border border-[#0088a9] hover:bg-[#007b98] hover:text-white hover:scale-105"
-              style={{ color: 'white' }}
+      <div className="space-y-5">
+        {/* Filter toolbar */}
+        <section className="bg-surface border border-border rounded-lg overflow-visible relative z-30">
+          <div className="flex items-center justify-between gap-3 px-4 py-2.5 border-b border-border bg-surface-sunken/60">
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-brand" />
+              <h2 className="section-header !mb-0 text-[color:var(--text-muted)] dark:text-brand">Production filters</h2>
+            </div>
+            <Button
+              onClick={handleApplyFilters}
+              className="h-8 px-3 text-[12px] font-semibold bg-brand hover:bg-brand-hover text-primary-foreground rounded-md"
             >
-              KPI Dashboard
-            </TabsTrigger>
-            {/* PLC Live Data tab commented out - no longer needed
-            <TabsTrigger 
-              value="plc" 
-              className="custom-tab-button data-[state=active]:bg-[#007b98] data-[state=active]:text-white px-6 py-3 rounded-xl transition-all duration-200 bg-[#0088a9] text-white border border-[#0088a9] hover:bg-[#007b98] hover:text-white hover:scale-105"
-              style={{ color: 'white' }}
-            >
-              PLC Live Data
-            </TabsTrigger>
-            */}
-          </TabsList>
+              <FaSyncAlt className="text-[11px] mr-1.5" />
+              Apply
+            </Button>
+          </div>
+          <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+            <div className="space-y-1.5">
+              <Label className="text-[10px] font-semibold uppercase tracking-wider text-[color:var(--text-muted)]">Start</Label>
+              <Input
+                type="datetime-local"
+                value={filters.startDate}
+                onChange={(e) => setFilters({ ...filters, startDate: e.target.value })}
+                onClick={(e) => e.currentTarget.showPicker?.()}
+                className="w-full bg-surface border-border text-foreground h-9 rounded-md px-2 text-[13px] cursor-pointer hover:border-brand focus-visible:ring-brand"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-[10px] font-semibold uppercase tracking-wider text-[color:var(--text-muted)]">End</Label>
+              <Input
+                type="datetime-local"
+                value={filters.endDate}
+                onChange={(e) => setFilters({ ...filters, endDate: e.target.value })}
+                onClick={(e) => e.currentTarget.showPicker?.()}
+                className="w-full bg-surface border-border text-foreground h-9 rounded-md px-2 text-[13px] cursor-pointer hover:border-brand focus-visible:ring-brand"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-[10px] font-semibold uppercase tracking-wider text-[color:var(--text-muted)]">Product</Label>
+              <MultiSelect
+                options={productNames}
+                selectedValues={filters.product}
+                onChange={(values) => setFilters({ ...filters, product: values })}
+                placeholder="All products"
+                allSelectedText="All products"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-[10px] font-semibold uppercase tracking-wider text-[color:var(--text-muted)]">Batch</Label>
+              <MultiSelect
+                options={batchNames}
+                selectedValues={filters.batch}
+                onChange={(values) => setFilters({ ...filters, batch: values })}
+                placeholder="All batches"
+                allSelectedText="All batches"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-[10px] font-semibold uppercase tracking-wider text-[color:var(--text-muted)]">Material</Label>
+              <MultiSelect
+                options={materialNames}
+                selectedValues={filters.material}
+                onChange={(values) => setFilters({ ...filters, material: values })}
+                placeholder="All materials"
+                allSelectedText="All materials"
+              />
+            </div>
+          </div>
+        </section>
 
-          <TabsContent value="kpi" className="space-y-6">
-            <Card className="bg-white/95 dark:bg-slate-900/95 border-slate-300 dark:border-slate-700">
-              <CardHeader>
-                <CardTitle className="text-slate-700 dark:text-cyan-300 flex items-center gap-2">
-                  <Filter className="h-5 w-5" />
-                  Dashboard Filters
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
-                  <div className="space-y-2">
-                    <Label className="text-slate-600 dark:text-slate-300 text-sm">Start Date</Label>
-                    <Input
-                      type="datetime-local"
-                      value={filters.startDate}
-                      onChange={(e) => setFilters({ ...filters, startDate: e.target.value })}
-                      onClick={(e) => e.currentTarget.showPicker?.()}
-                      className="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white h-9 rounded-md px-2 cursor-pointer hover:border-cyan-400 focus:ring-2 focus:ring-cyan-400 transition-colors"
-                    />
-                  </div>
+        {/* KPI strip */}
+        <LoadingOverlay isLoading={dataLoading}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+            {kpiData.map((kpi) => {
+              const IconComponent = kpi.icon;
+              return (
+                <Card
+                  key={kpi.title}
+                  className="bg-surface border border-brand/35 rounded-lg overflow-hidden
+                    shadow-[0_0_22px_rgba(34,211,238,0.18)]
+                    hover:shadow-[0_0_28px_rgba(34,211,238,0.28)]
+                    hover:border-brand/50 transition-shadow duration-300"
+                >
+                  <CardContent className="p-0">
+                    <div className="flex min-h-[88px]">
+                      <div className="w-1.5 shrink-0 bg-brand shadow-[0_0_12px_rgba(34,211,238,0.7)]" />
+                      <div className="flex-1 p-3.5 flex items-center justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="text-[10px] font-semibold uppercase tracking-wider text-brand/80 mb-1 truncate">
+                            {kpi.title}
+                          </p>
+                          <div className="flex items-baseline gap-1.5">
+                            <p className="text-[22px] font-bold tabular-nums text-foreground leading-none truncate drop-shadow-[0_0_8px_rgba(34,211,238,0.25)]">
+                              {kpi.value}
+                            </p>
+                            {kpi.unit && (
+                              <span className="text-[11px] font-medium text-[color:var(--text-muted)] shrink-0">
+                                {kpi.unit}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="h-9 w-9 rounded-md bg-brand/15 border border-brand/40 flex items-center justify-center shrink-0 shadow-[0_0_14px_rgba(34,211,238,0.35)]">
+                          <IconComponent className="h-4 w-4 text-brand drop-shadow-[0_0_6px_rgba(34,211,238,0.8)]" />
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </LoadingOverlay>
 
-                  <div className="space-y-2">
-                    <Label className="text-slate-600 dark:text-slate-300 text-sm">End Date</Label>
-                    <Input
-                      type="datetime-local"
-                      value={filters.endDate}
-                      onChange={(e) => setFilters({ ...filters, endDate: e.target.value })}
-                      onClick={(e) => e.currentTarget.showPicker?.()}
-                      className="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white h-9 rounded-md px-2 cursor-pointer hover:border-cyan-400 focus:ring-2 focus:ring-cyan-400 transition-colors"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-slate-600 dark:text-slate-300 text-sm">Product</Label>
-                    <MultiSelect
-                      options={productNames}
-                      selectedValues={filters.product}
-                      onChange={(values) => setFilters({ ...filters, product: values })}
-                      placeholder="All Products"
-                      allSelectedText="All Products Selected"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-slate-600 dark:text-slate-300 text-sm">Batch</Label>
-                    <MultiSelect
-                      options={batchNames}
-                      selectedValues={filters.batch}
-                      onChange={(values) => setFilters({ ...filters, batch: values })}
-                      placeholder="All Batches"
-                      allSelectedText="All Batches Selected"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-slate-600 dark:text-slate-300 text-sm">Material</Label>
-                    <MultiSelect
-                      options={materialNames}
-                      selectedValues={filters.material}
-                      onChange={(values) => setFilters({ ...filters, material: values })}
-                      placeholder="All Materials"
-                      allSelectedText="All Materials Selected"
-                    />
-                  </div>
-                  <div className="flex items-end">
-                    <Button
-                      onClick={handleApplyFilters}
-                      className="custom-apply-button flex items-center gap-2 bg-[#0088a9] hover:bg-[#007b98] text-white font-medium py-2 px-4 rounded-[8px] shadow-md transition-all duration-200"
-                      style={{ color: 'white' }}
-                    >
-                      <FaSyncAlt className="text-sm" />
-                      Apply Filters
-                    </Button>
-                  </div>
+        {/* Charts */}
+        <LoadingOverlay isLoading={dataLoading}>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <Card className="bg-surface border border-brand/25 rounded-lg shadow-[0_0_28px_rgba(34,211,238,0.12)] overflow-hidden">
+              <CardContent className="pt-3 pb-3 px-3">
+                <ChartComponent type="bar" data={barChartData} title="Material weight per day (tons)" colors={['#22d3ee']} />
+              </CardContent>
+            </Card>
+            <Card className="bg-surface border border-brand/25 rounded-lg shadow-[0_0_28px_rgba(34,211,238,0.12)] overflow-hidden">
+              <CardContent className="pt-3 pb-3 px-3">
+                <ChartComponent
+                  type="pie"
+                  data={pieChartData}
+                  title="Products by count"
+                  colors={['#22d3ee', '#34d399', '#fbbf24', '#f87171', '#a78bfa', '#60a5fa']}
+                />
+              </CardContent>
+            </Card>
+            <Card className="bg-surface border border-brand/25 rounded-lg shadow-[0_0_28px_rgba(34,211,238,0.12)] overflow-hidden">
+              <CardContent className="pt-3 pb-3 px-3">
+                <ChartComponent
+                  type="bar"
+                  data={batchesByWeekdayData}
+                  title="Batches by weekday"
+                  colors={['#22d3ee', '#fbbf24', '#f87171', '#34d399', '#a78bfa', '#60a5fa', '#fb923c']}
+                />
+              </CardContent>
+            </Card>
+            <Card className="bg-surface border border-danger/30 rounded-lg shadow-[0_0_28px_rgba(248,113,113,0.14)] overflow-hidden">
+              <CardContent className="pt-3 pb-3 px-3">
+                <div className="h-[320px]">
+                  <ChartComponent
+                    type="pie"
+                    data={errorPercentageData}
+                    title="Material error analysis"
+                    colors={['#f87171', '#fb7185', '#f43f5e', '#ef4444', '#dc2626', '#e11d48', '#be123c']}
+                  />
                 </div>
               </CardContent>
             </Card>
-
-            <LoadingOverlay isLoading={dataLoading}>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                {kpiData.map((kpi) => {
-                  const IconComponent = kpi.icon;
-                  return (
-                    <Card key={kpi.title} className={`group relative bg-white/95 dark:bg-slate-900/95 border-slate-300 dark:border-slate-700 ${kpi.glow} hover:scale-[1.02] transition-all duration-300 overflow-hidden`}>
-                      <div className={`absolute inset-0 bg-gradient-to-br ${kpi.color} opacity-5 group-hover:opacity-10 transition-opacity`}></div>
-                      <CardContent className="p-4 relative">
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="flex-1">
-                            <p className="text-slate-600 dark:text-slate-400 text-xs font-medium uppercase tracking-wider mb-1">{kpi.title}</p>
-                            <div className="flex items-baseline gap-1">
-                              <p className="text-2xl font-bold text-slate-900 dark:text-white leading-none">{kpi.value}</p>
-                              {kpi.unit && <span className="text-slate-600 dark:text-slate-400 text-xs font-medium">{kpi.unit}</span>}
-                            </div>
-                          </div>
-                          <div className={`p-2 rounded-lg bg-gradient-to-br ${kpi.color} shadow-lg group-hover:shadow-xl transition-shadow`}>
-                            <IconComponent className="h-5 w-5 text-white" />
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-            </LoadingOverlay>
-
-            <LoadingOverlay isLoading={dataLoading}>
-              <div className="space-y-4">
-                {/* First Row - 2 Charts */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Card className="bg-slate-900/95 dark:bg-slate-900/95 light:bg-white/95 border-cyan-500/30 dark:border-cyan-500/30 light:border-slate-300 shadow-[0_0_20px_rgba(0,255,255,0.1)]">
-                    <CardContent className="pt-4 pb-4">
-                      <ChartComponent type="bar" data={barChartData} title="Material Weight per Day (tons)" colors={['#00bfff']} />
-                    </CardContent>
-                  </Card>
-                  <Card className="bg-slate-900/95 dark:bg-slate-900/95 light:bg-white/95 border-emerald-500/30 dark:border-emerald-500/30 light:border-slate-300 shadow-[0_0_20px_rgba(16,185,129,0.1)]">
-                    <CardContent className="pt-4 pb-4">
-                      <ChartComponent type="pie" data={pieChartData} title="Products by Count" colors={['#10b981', '#3b82f6', '#ec4899']} />
-                    </CardContent>
-                  </Card>
-                </div>
-                
-                {/* No. Batches by Weekday + Material Error Analysis */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                  <Card className="bg-slate-900/95 dark:bg-slate-900/95 light:bg-white/95 border-emerald-500/30 dark:border-emerald-500/30 light:border-slate-300 shadow-[0_0_20px_rgba(16,185,129,0.1)]">
-                    <CardContent className="pt-4 pb-4">
-                      <ChartComponent type="bar" data={batchesByWeekdayData} title="No. Batches by Weekday" colors={['#3b82f6', '#f97316', '#ef4444', '#06b6d4', '#10b981', '#f59e0b', '#8b5cf6']} />
-                    </CardContent>
-                  </Card>
-                  <Card className="bg-slate-900/95 dark:bg-slate-900/95 light:bg-white/95 border-red-500/30 dark:border-red-500/30 light:border-slate-300 shadow-[0_0_20px_rgba(239,68,68,0.1)]">
-                    <CardContent className="pt-4 pb-4">
-                      <div className="h-80">
-                        <ChartComponent 
-                          type="pie" 
-                          data={errorPercentageData} 
-                          title="Material Error Analysis" 
-                          colors={errorPercentageData.values.map(() => '#ef4444')} // All products shown have >5% error, so use red
-                        />
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
-            </LoadingOverlay>
-          </TabsContent>
-
-          {/* PLC Live Data tab content commented out - no longer needed
-          <TabsContent value="plc" className="space-y-4">
-            ... (Pellet Data / Mill Amps Data content)
-          </TabsContent>
-          */}
-        </Tabs>
+          </div>
+        </LoadingOverlay>
       </div>
     </WaterSystemLayout>
   );

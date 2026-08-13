@@ -1,4 +1,4 @@
-// import React, { useState, useEffect, useMemo } from 'react';
+﻿// import React, { useState, useEffect, useMemo } from 'react';
 // import { motion } from 'framer-motion';
 // import {
 //   ResponsiveContainer,
@@ -448,7 +448,7 @@
 //         <p className="text-3xl font-bold mb-1" style={{ color: '#06b6d4' }}>
 //           {value.toFixed(1)}{unit}
 //         </p>
-//         <p className="text-xs text-slate-400">{title}</p>
+//         <p className="text-xs text-[color:var(--text-muted)]">{title}</p>
 //       </div>
 //     </div>
 //   );
@@ -507,15 +507,15 @@
 //         </svg>
 //         {/* Center percentage */}
 //         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-//           <span className="text-2xl font-bold text-slate-900 dark:text-white">
+//           <span className="text-2xl font-bold text-foreground">
 //             {percentage.toFixed(0)}%
 //           </span>
 //         </div>
 //       </div>
 //       {/* Value label below */}
 //       <div className="text-center mt-2">
-//         <p className="text-sm font-semibold text-slate-900 dark:text-white">{valueLabel}</p>
-//         <p className="text-xs text-slate-600 dark:text-slate-400">{label}</p>
+//         <p className="text-sm font-semibold text-foreground">{valueLabel}</p>
+//         <p className="text-xs text-[color:var(--text-muted)]">{label}</p>
 //       </div>
 //     </div>
 //   );
@@ -873,7 +873,7 @@
 //       {/* Chart Title - Below the chart */}
 //       {chartTitle && (
 //         <div className="w-full text-center mt-4">
-//           <p className={`text-sm font-bold ${theme === 'dark' ? 'text-slate-300' : 'text-slate-700'}`}>
+//           <p className={`text-sm font-bold text-foreground`}>
 //             {chartTitle}
 //           </p>
 //         </div>
@@ -930,22 +930,22 @@
 //       whileHover={{ scale: 1.02, y: -4 }}
 //       className="group"
 //     >
-//       <Card className="relative overflow-hidden border-cyan-500/30 dark:border-cyan-500/30 bg-white dark:bg-slate-900/95 backdrop-blur-sm hover:border-cyan-500/50 dark:hover:border-cyan-500/50 transition-all duration-300 hover:shadow-[0_0_30px_rgba(6,182,212,0.3)] dark:hover:shadow-[0_0_30px_rgba(6,182,212,0.3)]">
+//       <Card className="relative overflow-hidden border-brand/30 bg-surface/95 backdrop-blur-sm hover:border-brand/50 transition-all duration-300 hover:shadow-[0_0_30px_rgba(6,182,212,0.3)] dark:hover:shadow-[0_0_30px_rgba(6,182,212,0.3)]">
 //         <div className={`absolute inset-0 bg-gradient-to-br ${kpi.color} opacity-5 dark:opacity-5 group-hover:opacity-10 dark:group-hover:opacity-10 transition-opacity`} />
 //         <CardContent className="p-3 relative">
 //           <div className="flex items-start justify-between mb-2">
 //             <div className="flex-1">
-//               <p className="text-sm font-semibold text-cyan-600 dark:text-cyan-400/80 uppercase tracking-wider mb-1">
+//               <p className="text-sm font-semibold text-brand/80 uppercase tracking-wider mb-1">
 //                 {kpi.title}
 //               </p>
 //               <div className="flex items-baseline gap-1">
 //                 <AnimatedNumber
 //                   value={kpi.value}
 //                   decimals={kpi.unit === '%' ? 1 : 0}
-//                   className="text-3xl font-bold text-slate-900 dark:text-white"
+//                   className="text-3xl font-bold text-foreground"
 //                 />
 //                 {kpi.unit && (
-//                   <span className="text-sm text-slate-600 dark:text-slate-400 font-medium">{kpi.unit}</span>
+//                   <span className="text-sm text-[color:var(--text-muted)] font-medium">{kpi.unit}</span>
 //                 )}
 //               </div>
 //             </div>
@@ -977,15 +977,15 @@
 //       className="flex-1 flex min-h-0"
 //     >
 //       <Card className={cn(
-//         "border-cyan-500/30 dark:border-cyan-500/30 bg-white dark:bg-slate-900/95 backdrop-blur-sm hover:border-cyan-500/50 dark:hover:border-cyan-500/50 transition-all duration-300 hover:shadow-[0_0_30px_rgba(6,182,212,0.2)] dark:hover:shadow-[0_0_30px_rgba(6,182,212,0.2)] h-full w-full flex flex-col",
+//         "border-brand/30 bg-surface/95 backdrop-blur-sm hover:border-brand/50 transition-all duration-300 hover:shadow-[0_0_30px_rgba(6,182,212,0.2)] dark:hover:shadow-[0_0_30px_rgba(6,182,212,0.2)] h-full w-full flex flex-col",
 //         className
 //       )}>
 //         <CardHeader className="pb-2 pt-3 px-4 flex-shrink-0">
 //           <div className="flex items-start justify-between">
 //             <div className="flex-1">
-//               <CardTitle className="text-base font-bold text-slate-900 dark:text-white mb-0.5">{title}</CardTitle>
+//               <CardTitle className="text-base font-bold text-foreground mb-0.5">{title}</CardTitle>
 //               {subtitle && (
-//                 <p className="text-xs text-slate-600 dark:text-slate-400">{subtitle}</p>
+//                 <p className="text-xs text-[color:var(--text-muted)]">{subtitle}</p>
 //               )}
 //             </div>
 //             <div className="flex items-center gap-1">
@@ -994,7 +994,7 @@
 //                   variant="ghost"
 //                   size="sm"
 //                   onClick={onExport}
-//                   className="h-6 w-6 p-0 text-slate-600 dark:text-slate-400 hover:text-cyan-600 dark:hover:text-cyan-400 hover:bg-slate-100 dark:hover:bg-slate-800/50"
+//                   className="h-6 w-6 p-0 text-[color:var(--text-muted)] hover:text-brand hover:bg-surface-sunken/50"
 //                 >
 //                   <FaDownload className="h-3 w-3" />
 //                 </Button>
@@ -1004,7 +1004,7 @@
 //                   variant="ghost"
 //                   size="sm"
 //                   onClick={onFullscreen}
-//                   className="h-6 w-6 p-0 text-slate-600 dark:text-slate-400 hover:text-cyan-600 dark:hover:text-cyan-400 hover:bg-slate-100 dark:hover:bg-slate-800/50"
+//                   className="h-6 w-6 p-0 text-[color:var(--text-muted)] hover:text-brand hover:bg-surface-sunken/50"
 //                 >
 //                   <FaExpand className="h-3 w-3" />
 //                 </Button>
@@ -1156,12 +1156,12 @@
 
 //   return (
 //     <WaterSystemLayout>
-//       <div className="space-y-3 p-4 bg-white dark:bg-[#0f172a] min-h-screen overflow-auto">
+//       <div className="space-y-3 p-4 bg-background min-h-screen overflow-auto">
 //         {/* Header Section */}
 //         <div className="flex items-center justify-between mb-2">
 //           <div>
-//             <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">KPI Overview Dashboard</h1>
-//             <p className="text-xs text-slate-600 dark:text-slate-400">Comprehensive performance metrics and analytics</p>
+//             <h1 className="text-2xl font-bold text-foreground mb-1">KPI Overview Dashboard</h1>
+//             <p className="text-xs text-[color:var(--text-muted)]">Comprehensive performance metrics and analytics</p>
 //           </div>
 //           <div className="flex items-center gap-3">
 //             {/* Real-time Indicator */}
@@ -1173,19 +1173,19 @@
 //             )}
 //             {/* Date Range Picker */}
 //             <div className="flex items-center gap-2">
-//               <FaCalendarAlt className="h-3 w-3 text-slate-600 dark:text-slate-400" />
+//               <FaCalendarAlt className="h-3 w-3 text-[color:var(--text-muted)]" />
 //               <input
 //                 type="date"
 //                 value={dateRange.start.toISOString().split('T')[0]}
 //                 onChange={(e) => setDateRange({ ...dateRange, start: new Date(e.target.value) })}
-//                 className="px-2 py-1 bg-white dark:bg-slate-800/50 border border-slate-300 dark:border-slate-700/50 rounded-lg text-slate-900 dark:text-white text-xs focus:outline-none focus:border-cyan-500 dark:focus:border-cyan-500"
+//                 className="px-2 py-1 bg-surface/50 border border-border/50 rounded-lg text-foreground text-xs focus:outline-none focus:border-brand dark:focus:border-brand"
 //               />
-//               <span className="text-xs text-slate-600 dark:text-slate-400">to</span>
+//               <span className="text-xs text-[color:var(--text-muted)]">to</span>
 //               <input
 //                 type="date"
 //                 value={dateRange.end.toISOString().split('T')[0]}
 //                 onChange={(e) => setDateRange({ ...dateRange, end: new Date(e.target.value) })}
-//                 className="px-2 py-1 bg-white dark:bg-slate-800/50 border border-slate-300 dark:border-slate-700/50 rounded-lg text-slate-900 dark:text-white text-xs focus:outline-none focus:border-cyan-500 dark:focus:border-cyan-500"
+//                 className="px-2 py-1 bg-surface/50 border border-border/50 rounded-lg text-foreground text-xs focus:outline-none focus:border-brand dark:focus:border-brand"
 //               />
 //             </div>
 //           </div>
@@ -1215,9 +1215,9 @@
 //                       <stop offset="95%" stopColor={chartColors.primary} stopOpacity={0.1} />
 //                     </linearGradient>
 //                   </defs>
-//                   <CartesianGrid strokeDasharray="3 3" className="stroke-slate-300 dark:stroke-slate-700" />
-//                   <XAxis dataKey="date" className="text-slate-600 dark:text-slate-400" tick={{ fill: 'currentColor' }} />
-//                   <YAxis className="text-slate-600 dark:text-slate-400" tick={{ fill: 'currentColor' }} />
+//                   <CartesianGrid strokeDasharray="3 3" className="stroke-[color:var(--border)]" />
+//                   <XAxis dataKey="date" className="text-[color:var(--text-muted)]" tick={{ fill: 'currentColor' }} />
+//                   <YAxis className="text-[color:var(--text-muted)]" tick={{ fill: 'currentColor' }} />
 //                   <Tooltip
 //                     contentStyle={tooltipStyle}
 //                     labelStyle={{ color: '#06b6d4' }}
@@ -1232,31 +1232,31 @@
 //                 </AreaChart>
 //               </ResponsiveContainer>
 //               <div className="grid grid-cols-5 gap-2 mt-2">
-//                 <div className="text-center p-2 bg-slate-100 dark:bg-slate-800/50 rounded-lg">
-//                   <p className="text-xs text-slate-600 dark:text-slate-400 mb-0.5">Total Production</p>
-//                   <p className="text-sm font-bold text-slate-900 dark:text-white">{productionData.totalProduction.toFixed(1)}</p>
-//                   <p className="text-xs text-slate-500 dark:text-slate-500">TON/Shift/Day</p>
+//                 <div className="text-center p-2 bg-surface-sunken/50 rounded-lg">
+//                   <p className="text-xs text-[color:var(--text-muted)] mb-0.5">Total Production</p>
+//                   <p className="text-sm font-bold text-foreground">{productionData.totalProduction.toFixed(1)}</p>
+//                   <p className="text-xs text-[color:var(--text-faint)]">TON/Shift/Day</p>
 //                 </div>
-//                 <div className="text-center p-2 bg-slate-100 dark:bg-slate-800/50 rounded-lg">
-//                   <p className="text-xs text-slate-600 dark:text-slate-400 mb-0.5">Actual vs Target</p>
-//                   <p className="text-sm font-bold text-slate-900 dark:text-white">
+//                 <div className="text-center p-2 bg-surface-sunken/50 rounded-lg">
+//                   <p className="text-xs text-[color:var(--text-muted)] mb-0.5">Actual vs Target</p>
+//                   <p className="text-sm font-bold text-foreground">
 //                     {((productionData.actualProduction / productionData.targetProduction) * 100).toFixed(1)}%
 //                   </p>
-//                   <p className="text-xs text-slate-500 dark:text-slate-500">Target: {productionData.targetProduction.toFixed(0)}</p>
+//                   <p className="text-xs text-[color:var(--text-faint)]">Target: {productionData.targetProduction.toFixed(0)}</p>
 //                 </div>
-//                 <div className="text-center p-2 bg-slate-100 dark:bg-slate-800/50 rounded-lg">
-//                   <p className="text-xs text-slate-600 dark:text-slate-400 mb-0.5">Yield</p>
-//                   <p className="text-sm font-bold text-slate-900 dark:text-white">{productionData.productionYield}%</p>
+//                 <div className="text-center p-2 bg-surface-sunken/50 rounded-lg">
+//                   <p className="text-xs text-[color:var(--text-muted)] mb-0.5">Yield</p>
+//                   <p className="text-sm font-bold text-foreground">{productionData.productionYield}%</p>
 //                 </div>
-//                 <div className="text-center p-2 bg-slate-100 dark:bg-slate-800/50 rounded-lg">
-//                   <p className="text-xs text-slate-600 dark:text-slate-400 mb-0.5">Throughput</p>
-//                   <p className="text-sm font-bold text-slate-900 dark:text-white">{productionData.overallThroughput}</p>
-//                   <p className="text-xs text-slate-500 dark:text-slate-500">units/hr</p>
+//                 <div className="text-center p-2 bg-surface-sunken/50 rounded-lg">
+//                   <p className="text-xs text-[color:var(--text-muted)] mb-0.5">Throughput</p>
+//                   <p className="text-sm font-bold text-foreground">{productionData.overallThroughput}</p>
+//                   <p className="text-xs text-[color:var(--text-faint)]">units/hr</p>
 //                 </div>
-//                 <div className="text-center p-2 bg-slate-100 dark:bg-slate-800/50 rounded-lg">
-//                   <p className="text-xs text-slate-600 dark:text-slate-400 mb-0.5">Downtime</p>
-//                   <p className="text-sm font-bold text-slate-900 dark:text-white">{productionData.downtimeDuration.toFixed(1)}</p>
-//                   <p className="text-xs text-slate-500 dark:text-slate-500">hours</p>
+//                 <div className="text-center p-2 bg-surface-sunken/50 rounded-lg">
+//                   <p className="text-xs text-[color:var(--text-muted)] mb-0.5">Downtime</p>
+//                   <p className="text-sm font-bold text-foreground">{productionData.downtimeDuration.toFixed(1)}</p>
+//                   <p className="text-xs text-[color:var(--text-faint)]">hours</p>
 //                 </div>
 //               </div>
 //             </ChartCard>
@@ -1271,9 +1271,9 @@
 //                       <stop offset="95%" stopColor={chartColors.primary} stopOpacity={0.1} />
 //                     </linearGradient>
 //                   </defs>
-//                   <CartesianGrid strokeDasharray="3 3" className="stroke-slate-300 dark:stroke-slate-700" />
-//                   <XAxis dataKey="date" className="text-slate-600 dark:text-slate-400" tick={{ fill: 'currentColor', fontSize: 10 }} />
-//                   <YAxis className="text-slate-600 dark:text-slate-400" tick={{ fill: 'currentColor' }} />
+//                   <CartesianGrid strokeDasharray="3 3" className="stroke-[color:var(--border)]" />
+//                   <XAxis dataKey="date" className="text-[color:var(--text-muted)]" tick={{ fill: 'currentColor', fontSize: 10 }} />
+//                   <YAxis className="text-[color:var(--text-muted)]" tick={{ fill: 'currentColor' }} />
 //                   <Tooltip
 //                     contentStyle={tooltipStyle}
 //                     formatter={(value: number) => [`${value.toFixed(2)} hrs`, 'Downtime']}
@@ -1341,12 +1341,12 @@
 //                   </ResponsiveContainer>
 //                   {/* Centered percentage text */}
 //                   <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-//                     <p className="text-2xl font-bold text-slate-900 dark:text-white">{maintenanceData.oee}%</p>
+//                     <p className="text-2xl font-bold text-foreground">{maintenanceData.oee}%</p>
 //                   </div>
 //                 </div>
 //                 {/* Label below the chart */}
 //                 <div className="text-center mt-2">
-//                   <p className="text-xs text-slate-600 dark:text-slate-400">Overall Equipment Effectiveness</p>
+//                   <p className="text-xs text-[color:var(--text-muted)]">Overall Equipment Effectiveness</p>
 //                 </div>
 //               </div>
 //             </ChartCard>
@@ -1378,19 +1378,19 @@
 //                 </PieChart>
 //               </ResponsiveContainer>
 //               <div className="grid grid-cols-3 gap-2 mt-2">
-//                 <div className="p-2 bg-slate-100 dark:bg-slate-800/50 rounded-lg text-center">
-//                   <p className="text-xs text-slate-600 dark:text-slate-400 mb-0.5">Cost Variance</p>
+//                 <div className="p-2 bg-surface-sunken/50 rounded-lg text-center">
+//                   <p className="text-xs text-[color:var(--text-muted)] mb-0.5">Cost Variance</p>
 //                   <p className={`text-sm font-bold ${costingData.costVariance >= 0 ? 'text-red-600 dark:text-red-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
 //                     {costingData.costVariance}%
 //                   </p>
 //                 </div>
-//                 <div className="p-2 bg-slate-100 dark:bg-slate-800/50 rounded-lg text-center">
-//                   <p className="text-xs text-slate-600 dark:text-slate-400 mb-0.5">ROI</p>
-//                   <p className="text-sm font-bold text-slate-900 dark:text-white">{costingData.roi}%</p>
+//                 <div className="p-2 bg-surface-sunken/50 rounded-lg text-center">
+//                   <p className="text-xs text-[color:var(--text-muted)] mb-0.5">ROI</p>
+//                   <p className="text-sm font-bold text-foreground">{costingData.roi}%</p>
 //                 </div>
-//                 <div className="p-2 bg-slate-100 dark:bg-slate-800/50 rounded-lg text-center">
-//                   <p className="text-xs text-slate-600 dark:text-slate-400 mb-0.5">Maint. Cost/Unit</p>
-//                   <p className="text-sm font-bold text-slate-900 dark:text-white">${costingData.maintenanceCostPerUnit}</p>
+//                 <div className="p-2 bg-surface-sunken/50 rounded-lg text-center">
+//                   <p className="text-xs text-[color:var(--text-muted)] mb-0.5">Maint. Cost/Unit</p>
+//                   <p className="text-sm font-bold text-foreground">${costingData.maintenanceCostPerUnit}</p>
 //                 </div>
 //               </div>
 //             </ChartCard>
@@ -1481,9 +1481,9 @@
 //                       </feMerge>
 //                     </filter>
 //                   </defs>
-//                   <CartesianGrid strokeDasharray="3 3" className="stroke-slate-300 dark:stroke-slate-700" />
-//                   <XAxis dataKey="name" className="text-slate-600 dark:text-slate-400" tick={{ fill: 'currentColor' }} />
-//                   <YAxis className="text-slate-600 dark:text-slate-400" tick={{ fill: 'currentColor' }} />
+//                   <CartesianGrid strokeDasharray="3 3" className="stroke-[color:var(--border)]" />
+//                   <XAxis dataKey="name" className="text-[color:var(--text-muted)]" tick={{ fill: 'currentColor' }} />
+//                   <YAxis className="text-[color:var(--text-muted)]" tick={{ fill: 'currentColor' }} />
 //                   <Tooltip
 //                     contentStyle={{
 //                       ...tooltipStyle,
@@ -1504,23 +1504,23 @@
 //                 </BarChart>
 //               </ResponsiveContainer>
 //               <div className="grid grid-cols-4 gap-2 mt-2">
-//                 <div className="p-2 bg-slate-100 dark:bg-slate-800/50 rounded-lg text-center">
-//                   <p className="text-xs text-slate-600 dark:text-slate-400 mb-0.5">Raw Material/TON</p>
-//                   <p className="text-sm font-bold text-slate-900 dark:text-white">${costingData.rawMaterialCostPerTon.toFixed(2)}</p>
-//                   <p className="text-xs text-slate-500 dark:text-slate-500">$/TON</p>
+//                 <div className="p-2 bg-surface-sunken/50 rounded-lg text-center">
+//                   <p className="text-xs text-[color:var(--text-muted)] mb-0.5">Raw Material/TON</p>
+//                   <p className="text-sm font-bold text-foreground">${costingData.rawMaterialCostPerTon.toFixed(2)}</p>
+//                   <p className="text-xs text-[color:var(--text-faint)]">$/TON</p>
 //                 </div>
-//                 <div className="p-2 bg-slate-100 dark:bg-slate-800/50 rounded-lg text-center">
-//                   <p className="text-xs text-slate-600 dark:text-slate-400 mb-0.5">Energy Cost/TON</p>
-//                   <p className="text-sm font-bold text-slate-900 dark:text-white">${costingData.energyCostPerTon.toFixed(2)}</p>
-//                   <p className="text-xs text-slate-500 dark:text-slate-500">$/TON</p>
+//                 <div className="p-2 bg-surface-sunken/50 rounded-lg text-center">
+//                   <p className="text-xs text-[color:var(--text-muted)] mb-0.5">Energy Cost/TON</p>
+//                   <p className="text-sm font-bold text-foreground">${costingData.energyCostPerTon.toFixed(2)}</p>
+//                   <p className="text-xs text-[color:var(--text-faint)]">$/TON</p>
 //                 </div>
-//                 <div className="p-2 bg-slate-100 dark:bg-slate-800/50 rounded-lg text-center">
-//                   <p className="text-xs text-slate-600 dark:text-slate-400 mb-0.5">Total Variable Cost</p>
-//                   <p className="text-sm font-bold text-slate-900 dark:text-white">${costingData.totalVariableCost.toLocaleString()}</p>
+//                 <div className="p-2 bg-surface-sunken/50 rounded-lg text-center">
+//                   <p className="text-xs text-[color:var(--text-muted)] mb-0.5">Total Variable Cost</p>
+//                   <p className="text-sm font-bold text-foreground">${costingData.totalVariableCost.toLocaleString()}</p>
 //                 </div>
-//                 <div className="p-2 bg-slate-100 dark:bg-slate-800/50 rounded-lg text-center">
-//                   <p className="text-xs text-slate-600 dark:text-slate-400 mb-0.5">Cost Per Unit</p>
-//                   <p className="text-sm font-bold text-slate-900 dark:text-white">${costingData.costPerUnit}</p>
+//                 <div className="p-2 bg-surface-sunken/50 rounded-lg text-center">
+//                   <p className="text-xs text-[color:var(--text-muted)] mb-0.5">Cost Per Unit</p>
+//                   <p className="text-sm font-bold text-foreground">${costingData.costPerUnit}</p>
 //                 </div>
 //               </div>
 //             </ChartCard>
@@ -1529,9 +1529,9 @@
 //             <ChartCard title="Energy Consumption" subtitle="24-Hour Trend">
 //               <ResponsiveContainer width="100%" height={320}>
 //                 <LineChart data={energyData.consumptionTrend}>
-//                   <CartesianGrid strokeDasharray="3 3" className="stroke-slate-300 dark:stroke-slate-700" />
-//                   <XAxis dataKey="hour" className="text-slate-600 dark:text-slate-400" tick={{ fill: 'currentColor' }} />
-//                   <YAxis className="text-slate-600 dark:text-slate-400" tick={{ fill: 'currentColor' }} />
+//                   <CartesianGrid strokeDasharray="3 3" className="stroke-[color:var(--border)]" />
+//                   <XAxis dataKey="hour" className="text-[color:var(--text-muted)]" tick={{ fill: 'currentColor' }} />
+//                   <YAxis className="text-[color:var(--text-muted)]" tick={{ fill: 'currentColor' }} />
 //                   <Tooltip
 //                     contentStyle={{
 //                       ...tooltipStyle,
@@ -1548,33 +1548,33 @@
 //                 </LineChart>
 //               </ResponsiveContainer>
 //               <div className="grid grid-cols-6 gap-2 mt-2">
-//                 <div className="p-2 bg-slate-100 dark:bg-slate-800/50 rounded-lg text-center">
-//                   <p className="text-xs text-slate-600 dark:text-slate-400 mb-0.5">Consumption/TON</p>
-//                   <p className="text-sm font-bold text-slate-900 dark:text-white">{energyData.energyConsumptionPerTon.toFixed(2)}</p>
-//                   <p className="text-xs text-slate-500 dark:text-slate-500">kWh/TON</p>
+//                 <div className="p-2 bg-surface-sunken/50 rounded-lg text-center">
+//                   <p className="text-xs text-[color:var(--text-muted)] mb-0.5">Consumption/TON</p>
+//                   <p className="text-sm font-bold text-foreground">{energyData.energyConsumptionPerTon.toFixed(2)}</p>
+//                   <p className="text-xs text-[color:var(--text-faint)]">kWh/TON</p>
 //                 </div>
-//                 <div className="p-2 bg-slate-100 dark:bg-slate-800/50 rounded-lg text-center">
-//                   <p className="text-xs text-slate-600 dark:text-slate-400 mb-0.5">Cost/TON</p>
-//                   <p className="text-sm font-bold text-slate-900 dark:text-white">${energyData.energyCostPerTon.toFixed(2)}</p>
-//                   <p className="text-xs text-slate-500 dark:text-slate-500">$/TON</p>
+//                 <div className="p-2 bg-surface-sunken/50 rounded-lg text-center">
+//                   <p className="text-xs text-[color:var(--text-muted)] mb-0.5">Cost/TON</p>
+//                   <p className="text-sm font-bold text-foreground">${energyData.energyCostPerTon.toFixed(2)}</p>
+//                   <p className="text-xs text-[color:var(--text-faint)]">$/TON</p>
 //                 </div>
-//                 <div className="p-2 bg-slate-100 dark:bg-slate-800/50 rounded-lg text-center">
-//                   <p className="text-xs text-slate-600 dark:text-slate-400 mb-0.5">Total Consumption</p>
-//                   <p className="text-sm font-bold text-slate-900 dark:text-white">{energyData.totalConsumption.toLocaleString()}</p>
-//                   <p className="text-xs text-slate-500 dark:text-slate-500">kWh</p>
+//                 <div className="p-2 bg-surface-sunken/50 rounded-lg text-center">
+//                   <p className="text-xs text-[color:var(--text-muted)] mb-0.5">Total Consumption</p>
+//                   <p className="text-sm font-bold text-foreground">{energyData.totalConsumption.toLocaleString()}</p>
+//                   <p className="text-xs text-[color:var(--text-faint)]">kWh</p>
 //                 </div>
-//                 <div className="p-2 bg-slate-100 dark:bg-slate-800/50 rounded-lg text-center">
-//                   <p className="text-xs text-slate-600 dark:text-slate-400 mb-0.5">Energy Cost</p>
-//                   <p className="text-sm font-bold text-slate-900 dark:text-white">${energyData.energyCost.toLocaleString()}</p>
+//                 <div className="p-2 bg-surface-sunken/50 rounded-lg text-center">
+//                   <p className="text-xs text-[color:var(--text-muted)] mb-0.5">Energy Cost</p>
+//                   <p className="text-sm font-bold text-foreground">${energyData.energyCost.toLocaleString()}</p>
 //                 </div>
-//                 <div className="p-2 bg-slate-100 dark:bg-slate-800/50 rounded-lg text-center">
-//                   <p className="text-xs text-slate-600 dark:text-slate-400 mb-0.5">Peak Demand</p>
-//                   <p className="text-sm font-bold text-slate-900 dark:text-white">{energyData.peakDemand}</p>
-//                   <p className="text-xs text-slate-500 dark:text-slate-500">kW</p>
+//                 <div className="p-2 bg-surface-sunken/50 rounded-lg text-center">
+//                   <p className="text-xs text-[color:var(--text-muted)] mb-0.5">Peak Demand</p>
+//                   <p className="text-sm font-bold text-foreground">{energyData.peakDemand}</p>
+//                   <p className="text-xs text-[color:var(--text-faint)]">kW</p>
 //                 </div>
-//                 <div className="p-2 bg-slate-100 dark:bg-slate-800/50 rounded-lg text-center">
-//                   <p className="text-xs text-slate-600 dark:text-slate-400 mb-0.5">Power Factor</p>
-//                   <p className="text-sm font-bold text-slate-900 dark:text-white">{energyData.powerFactor}</p>
+//                 <div className="p-2 bg-surface-sunken/50 rounded-lg text-center">
+//                   <p className="text-xs text-[color:var(--text-muted)] mb-0.5">Power Factor</p>
+//                   <p className="text-sm font-bold text-foreground">{energyData.powerFactor}</p>
 //                 </div>
 //               </div>
 //             </ChartCard>
@@ -1594,9 +1594,9 @@
 //                       <stop offset="100%" stopColor="#22d3ee" stopOpacity={0.05} />
 //                     </linearGradient>
 //                   </defs>
-//                   <CartesianGrid strokeDasharray="3 3" className="stroke-slate-300 dark:stroke-slate-700" />
-//                   <XAxis dataKey="date" className="text-slate-600 dark:text-slate-400" tick={{ fill: 'currentColor' }} />
-//                   <YAxis className="text-slate-600 dark:text-slate-400" tick={{ fill: 'currentColor' }} />
+//                   <CartesianGrid strokeDasharray="3 3" className="stroke-[color:var(--border)]" />
+//                   <XAxis dataKey="date" className="text-[color:var(--text-muted)]" tick={{ fill: 'currentColor' }} />
+//                   <YAxis className="text-[color:var(--text-muted)]" tick={{ fill: 'currentColor' }} />
 //                   <Tooltip
 //                     contentStyle={{
 //                       ...tooltipStyle,
@@ -1628,22 +1628,22 @@
 //                 </ComposedChart>
 //               </ResponsiveContainer>
 //               <div className="grid grid-cols-4 gap-2 mt-2">
-//                 <div className="p-2 bg-slate-100 dark:bg-slate-800/50 rounded-lg text-center">
-//                   <p className="text-xs text-slate-600 dark:text-slate-400 mb-0.5">Plan Adherence</p>
-//                   <p className="text-sm font-bold text-slate-900 dark:text-white">{managementData.planAdherence}%</p>
+//                 <div className="p-2 bg-surface-sunken/50 rounded-lg text-center">
+//                   <p className="text-xs text-[color:var(--text-muted)] mb-0.5">Plan Adherence</p>
+//                   <p className="text-sm font-bold text-foreground">{managementData.planAdherence}%</p>
 //                 </div>
-//                 <div className="p-2 bg-slate-100 dark:bg-slate-800/50 rounded-lg text-center">
-//                   <p className="text-xs text-slate-600 dark:text-slate-400 mb-0.5">Shift Efficiency</p>
-//                   <p className="text-sm font-bold text-slate-900 dark:text-white">{managementData.shiftEfficiency}%</p>
+//                 <div className="p-2 bg-surface-sunken/50 rounded-lg text-center">
+//                   <p className="text-xs text-[color:var(--text-muted)] mb-0.5">Shift Efficiency</p>
+//                   <p className="text-sm font-bold text-foreground">{managementData.shiftEfficiency}%</p>
 //                 </div>
-//                 <div className="p-2 bg-slate-100 dark:bg-slate-800/50 rounded-lg text-center">
-//                   <p className="text-xs text-slate-600 dark:text-slate-400 mb-0.5">Operator Productivity</p>
-//                   <p className="text-sm font-bold text-slate-900 dark:text-white">{managementData.operatorProductivity.toFixed(1)}</p>
-//                   <p className="text-xs text-slate-500 dark:text-slate-500">units/operator</p>
+//                 <div className="p-2 bg-surface-sunken/50 rounded-lg text-center">
+//                   <p className="text-xs text-[color:var(--text-muted)] mb-0.5">Operator Productivity</p>
+//                   <p className="text-sm font-bold text-foreground">{managementData.operatorProductivity.toFixed(1)}</p>
+//                   <p className="text-xs text-[color:var(--text-faint)]">units/operator</p>
 //                 </div>
-//                 <div className="p-2 bg-slate-100 dark:bg-slate-800/50 rounded-lg text-center">
-//                   <p className="text-xs text-slate-600 dark:text-slate-400 mb-0.5">Schedule Adherence</p>
-//                   <p className="text-sm font-bold text-slate-900 dark:text-white">{managementData.scheduleAdherence}%</p>
+//                 <div className="p-2 bg-surface-sunken/50 rounded-lg text-center">
+//                   <p className="text-xs text-[color:var(--text-muted)] mb-0.5">Schedule Adherence</p>
+//                   <p className="text-sm font-bold text-foreground">{managementData.scheduleAdherence}%</p>
 //                 </div>
 //               </div>
 //             </ChartCard>
@@ -1656,12 +1656,12 @@
 //               <div className="pt-14">
 //                 <ResponsiveContainer width="100%" height={250}>
 //                   <BarChart data={managementData.delayAnalysis} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-//                     <CartesianGrid strokeDasharray="3 3" className="stroke-slate-300 dark:stroke-slate-700" />
-//                     <XAxis type="number" className="text-slate-600 dark:text-slate-400" tick={{ fill: 'currentColor' }} />
+//                     <CartesianGrid strokeDasharray="3 3" className="stroke-[color:var(--border)]" />
+//                     <XAxis type="number" className="text-[color:var(--text-muted)]" tick={{ fill: 'currentColor' }} />
 //                     <YAxis 
 //                       dataKey="category" 
 //                       type="category" 
-//                       className="text-slate-600 dark:text-slate-400" 
+//                       className="text-[color:var(--text-muted)]" 
 //                       tick={{ fill: 'currentColor', fontSize: 12 }}
 //                       width={80}
 //                       interval={0}
@@ -1779,9 +1779,9 @@
 //                       <stop offset="95%" stopColor={chartColors.primary} stopOpacity={0.1} />
 //                     </linearGradient>
 //                   </defs>
-//                   <CartesianGrid strokeDasharray="3 3" className="stroke-slate-300 dark:stroke-slate-700" />
-//                   <XAxis dataKey="hour" className="text-slate-600 dark:text-slate-400" tick={{ fill: 'currentColor' }} />
-//                   <YAxis className="text-slate-600 dark:text-slate-400" tick={{ fill: 'currentColor' }} />
+//                   <CartesianGrid strokeDasharray="3 3" className="stroke-[color:var(--border)]" />
+//                   <XAxis dataKey="hour" className="text-[color:var(--text-muted)]" tick={{ fill: 'currentColor' }} />
+//                   <YAxis className="text-[color:var(--text-muted)]" tick={{ fill: 'currentColor' }} />
 //                   <Tooltip
 //                     contentStyle={{
 //                       ...tooltipStyle,
@@ -1806,9 +1806,9 @@
 //               <div className="pt-14">
 //                 <ResponsiveContainer width="100%" height={250}>
 //                 <LineChart data={energyData.efficiencyTrend.slice(-14)}>
-//                   <CartesianGrid strokeDasharray="3 3" className="stroke-slate-300 dark:stroke-slate-700" />
-//                   <XAxis dataKey="date" className="text-slate-600 dark:text-slate-400" tick={{ fill: 'currentColor', fontSize: 10 }} />
-//                   <YAxis className="text-slate-600 dark:text-slate-400" tick={{ fill: 'currentColor' }} />
+//                   <CartesianGrid strokeDasharray="3 3" className="stroke-[color:var(--border)]" />
+//                   <XAxis dataKey="date" className="text-[color:var(--text-muted)]" tick={{ fill: 'currentColor', fontSize: 10 }} />
+//                   <YAxis className="text-[color:var(--text-muted)]" tick={{ fill: 'currentColor' }} />
 //                   <Tooltip
 //                     contentStyle={{
 //                       ...tooltipStyle,
@@ -1840,9 +1840,9 @@
 //                       <stop offset="95%" stopColor="#67e8f9" stopOpacity={0.1} />
 //                     </linearGradient>
 //                   </defs>
-//                   <CartesianGrid strokeDasharray="3 3" className="stroke-slate-300 dark:stroke-slate-700" />
-//                   <XAxis dataKey="date" className="text-slate-600 dark:text-slate-400" tick={{ fill: 'currentColor', fontSize: 10 }} />
-//                   <YAxis className="text-slate-600 dark:text-slate-400" tick={{ fill: 'currentColor' }} />
+//                   <CartesianGrid strokeDasharray="3 3" className="stroke-[color:var(--border)]" />
+//                   <XAxis dataKey="date" className="text-[color:var(--text-muted)]" tick={{ fill: 'currentColor', fontSize: 10 }} />
+//                   <YAxis className="text-[color:var(--text-muted)]" tick={{ fill: 'currentColor' }} />
 //                   <Tooltip
 //                     contentStyle={{
 //                       ...tooltipStyle,
@@ -2463,17 +2463,17 @@ const KPISummaryCard: React.FC<{ kpi: KPISummary; index: number }> = ({ kpi, ind
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: index * 0.05 }}
     >
-      <Card className="group relative overflow-hidden border border-cyan-500/30 dark:border-cyan-500/30 bg-white dark:bg-slate-900/95 backdrop-blur-sm hover:shadow-lg dark:hover:shadow-cyan-500/20 hover:border-cyan-500/50 dark:hover:border-cyan-500/50 transition-all duration-300 h-full">
+      <Card className="group relative overflow-hidden border border-brand/30 bg-surface/95 backdrop-blur-sm hover:shadow-lg dark:hover:shadow-cyan-500/20 hover:border-brand/50 transition-all duration-300 h-full">
 
         <CardContent className="relative p-3">
           <div className="flex items-start justify-between gap-3">
             <div className="flex-1 space-y-1">
-            <p className="text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-wide">{kpi.title}</p>
+            <p className="text-xs font-medium text-[color:var(--text-muted)] uppercase tracking-wide">{kpi.title}</p>
             <div className="flex items-baseline gap-1">
-              <span className="text-2xl font-bold text-slate-900 dark:text-white">
+              <span className="text-2xl font-bold text-foreground">
                 <AnimatedNumber value={kpi.value} />
               </span>
-              <span className="text-xs text-slate-500 dark:text-slate-500">{kpi.unit}</span>
+              <span className="text-xs text-[color:var(--text-faint)]">{kpi.unit}</span>
             </div>
             </div>
             <div className="p-2.5 rounded-xl bg-gradient-to-br from-cyan-500 to-cyan-600 dark:from-cyan-500 dark:to-cyan-600 shadow-lg hover:shadow-cyan-500/50 transition-all duration-300 flex-shrink-0 group-hover:scale-110">
@@ -2508,16 +2508,16 @@ const ChartCard: React.FC<{
       className={cn("flex-1 flex min-h-0", gridClasses)}
     >
       <Card className={cn(
-        "border-cyan-500/30 dark:border-cyan-500/30 bg-white dark:bg-slate-900/95 backdrop-blur-sm hover:border-cyan-500/50 dark:hover:border-cyan-500/50 transition-all duration-300 hover:shadow-[0_0_30px_rgba(6,182,212,0.2)] dark:hover:shadow-[0_0_30px_rgba(6,182,212,0.2)] h-full w-full flex flex-col",
+        "border-brand/30 bg-surface/95 backdrop-blur-sm hover:border-brand/50 transition-all duration-300 hover:shadow-[0_0_30px_rgba(6,182,212,0.2)] dark:hover:shadow-[0_0_30px_rgba(6,182,212,0.2)] h-full w-full flex flex-col",
         otherClasses?.includes('overflow-visible') && "overflow-visible",
         otherClasses
       )} style={otherClasses?.includes('overflow-visible') ? { overflow: 'visible' } : undefined}>
         <CardHeader className="pb-2 pt-3 px-4 flex-shrink-0 relative" style={{ zIndex: 1 }}>
           <div className="flex items-start justify-between">
             <div className="flex-1">
-              <CardTitle className="text-base font-bold text-slate-900 dark:text-white mb-0.5">{title}</CardTitle>
+              <CardTitle className="text-base font-bold text-foreground mb-0.5">{title}</CardTitle>
               {subtitle && (
-                <p className="text-xs text-slate-600 dark:text-slate-400">{subtitle}</p>
+                <p className="text-xs text-[color:var(--text-muted)]">{subtitle}</p>
               )}
             </div>
             <div className="flex items-center gap-1 relative" style={{ zIndex: 100 }}>
@@ -2527,24 +2527,24 @@ const ChartCard: React.FC<{
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-6 w-6 p-0 text-slate-600 dark:text-slate-400 hover:text-cyan-600 dark:hover:text-cyan-400 hover:bg-slate-100 dark:hover:bg-slate-800/50 relative z-10"
+                      className="h-6 w-6 p-0 text-[color:var(--text-muted)] hover:text-brand hover:bg-surface-sunken/50 relative z-10"
                     >
                       <FaInfoCircle className="h-3 w-3" />
                     </Button>
                   </HoverCardTrigger>
                   <HoverCardContent 
-                    className="w-80 bg-white dark:bg-slate-800 border-cyan-500/30 shadow-xl" 
+                    className="w-80 bg-surface border-brand/30 shadow-xl" 
                     side="top" 
                     align="end"
                     sideOffset={8}
                   >
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
-                        <FaInfoCircle className="h-4 w-4 text-cyan-500" />
-                        <h4 className="font-semibold text-slate-900 dark:text-white">{title}</h4>
+                        <FaInfoCircle className="h-4 w-4 text-brand" />
+                        <h4 className="font-semibold text-foreground">{title}</h4>
                       </div>
                       {typeof info === 'string' ? (
-                        <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{info}</p>
+                        <p className="text-sm text-[color:var(--text-muted)] leading-relaxed">{info}</p>
                       ) : (
                         info
                       )}
@@ -2557,7 +2557,7 @@ const ChartCard: React.FC<{
                   variant="ghost"
                   size="sm"
                   onClick={onExport}
-                  className="h-6 w-6 p-0 text-slate-600 dark:text-slate-400 hover:text-cyan-600 dark:hover:text-cyan-400 hover:bg-slate-100 dark:hover:bg-slate-800/50"
+                  className="h-6 w-6 p-0 text-[color:var(--text-muted)] hover:text-brand hover:bg-surface-sunken/50"
                 >
                   <FaDownload className="h-3 w-3" />
                 </Button>
@@ -2567,7 +2567,7 @@ const ChartCard: React.FC<{
                   variant="ghost"
                   size="sm"
                   onClick={onFullscreen}
-                  className="h-6 w-6 p-0 text-slate-600 dark:text-slate-400 hover:text-cyan-600 dark:hover:text-cyan-400 hover:bg-slate-100 dark:hover:bg-slate-800/50"
+                  className="h-6 w-6 p-0 text-[color:var(--text-muted)] hover:text-brand hover:bg-surface-sunken/50"
                 >
                   <FaExpand className="h-3 w-3" />
                 </Button>
@@ -2748,7 +2748,7 @@ const ModernPowerGauge: React.FC<{
         <p className="text-4xl font-bold mb-1" style={{ color: '#06b6d4' }}>
           {value.toFixed(1)}{unit}
         </p>
-        <p className="text-base font-bold text-slate-400">{title}</p>
+        <p className="text-base font-bold text-[color:var(--text-muted)]">{title}</p>
       </div>
     </div>
   );
@@ -3079,7 +3079,7 @@ const PieChart3DInfographic: React.FC<PieChart3DProps> = ({
       {/* Chart Title - Below the chart */}
       {chartTitle && (
         <div className="w-full text-center mt-4">
-          <p className={`text-sm font-bold ${theme === 'dark' ? 'text-slate-300' : 'text-slate-700'}`}>
+          <p className={`text-sm font-bold text-foreground`}>
             {chartTitle}
           </p>
         </div>
@@ -3141,15 +3141,15 @@ const CircularProgressGauge: React.FC<{
         </svg>
         {/* Center percentage */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <span className="text-2xl font-bold text-slate-900 dark:text-white">
+          <span className="text-2xl font-bold text-foreground">
             {percentage.toFixed(0)}%
           </span>
         </div>
       </div>
       {/* Value label below */}
       <div className="text-center mt-2">
-        <p className="text-sm font-semibold text-slate-900 dark:text-white">{valueLabel}</p>
-        <p className="text-xs text-slate-600 dark:text-slate-400">{label}</p>
+        <p className="text-sm font-semibold text-foreground">{valueLabel}</p>
+        <p className="text-xs text-[color:var(--text-muted)]">{label}</p>
       </div>
     </div>
   );
@@ -3414,12 +3414,12 @@ export const KPIOverview: React.FC = () => {
               <CardTitle className="text-red-600 dark:text-red-400">Error Loading Dashboard</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-slate-600 dark:text-slate-400">
+              <p className="text-[color:var(--text-muted)]">
                 {error || 'Unable to load dashboard data. Please try again.'}
               </p>
               <Button 
                 onClick={() => window.location.reload()} 
-                className="mt-4 bg-cyan-500 hover:bg-cyan-600"
+                className="mt-4 bg-brand hover:bg-brand-hover"
               >
                 Retry
               </Button>
@@ -3434,28 +3434,28 @@ export const KPIOverview: React.FC = () => {
 
   return (
     <WaterSystemLayout>
-      <div className="space-y-3 p-4 bg-white dark:bg-[#0f172a] min-h-screen overflow-auto">
+      <div className="space-y-3 p-4 bg-background min-h-screen overflow-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-2">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">KPI Overview Dashboard</h1>
-            <p className="text-xs text-slate-600 dark:text-slate-400">Real-time performance metrics from database</p>
+            <h1 className="text-2xl font-bold text-foreground mb-1">KPI Overview Dashboard</h1>
+            <p className="text-xs text-[color:var(--text-muted)]">Real-time performance metrics from database</p>
           </div>
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
-              <FaCalendarAlt className="h-3 w-3 text-slate-600 dark:text-slate-400" />
+              <FaCalendarAlt className="h-3 w-3 text-[color:var(--text-muted)]" />
               <input
                 type="date"
                 value={dateRange.start.toISOString().split('T')[0]}
                 onChange={(e) => setDateRange({ ...dateRange, start: new Date(e.target.value) })}
-                className="px-2 py-1 bg-white dark:bg-slate-800/50 border border-slate-300 dark:border-slate-700/50 rounded-lg text-slate-900 dark:text-white text-xs focus:outline-none focus:border-cyan-500"
+                className="px-2 py-1 bg-surface/50 border border-border/50 rounded-lg text-foreground text-xs focus:outline-none focus:border-brand"
               />
-              <span className="text-xs text-slate-600 dark:text-slate-400">to</span>
+              <span className="text-xs text-[color:var(--text-muted)]">to</span>
               <input
                 type="date"
                 value={dateRange.end.toISOString().split('T')[0]}
                 onChange={(e) => setDateRange({ ...dateRange, end: new Date(e.target.value) })}
-                className="px-2 py-1 bg-white dark:bg-slate-800/50 border border-slate-300 dark:border-slate-700/50 rounded-lg text-slate-900 dark:text-white text-xs focus:outline-none focus:border-cyan-500"
+                className="px-2 py-1 bg-surface/50 border border-border/50 rounded-lg text-foreground text-xs focus:outline-none focus:border-brand"
               />
             </div>
           </div>
@@ -3493,9 +3493,9 @@ export const KPIOverview: React.FC = () => {
                       <stop offset="95%" stopColor={chartColors.primary} stopOpacity={0.1} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-slate-300 dark:stroke-slate-700" />
-                  <XAxis dataKey="date" className="text-slate-600 dark:text-slate-400" tick={{ fill: 'currentColor' }} />
-                  <YAxis className="text-slate-600 dark:text-slate-400" tick={{ fill: 'currentColor' }} />
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-[color:var(--border)]" />
+                  <XAxis dataKey="date" className="text-[color:var(--text-muted)]" tick={{ fill: 'currentColor' }} />
+                  <YAxis className="text-[color:var(--text-muted)]" tick={{ fill: 'currentColor' }} />
                   <Tooltip
                     contentStyle={tooltipStyle}
                     labelStyle={{ color: '#06b6d4' }}
@@ -3511,31 +3511,31 @@ export const KPIOverview: React.FC = () => {
               </ResponsiveContainer>
               </div>
               <div className="grid grid-cols-5 gap-2 mt-1">
-                <div className="text-center p-1.5 bg-slate-100 dark:bg-slate-800/50 rounded-lg">
-                  <p className="text-xs text-slate-600 dark:text-slate-400 mb-0.5">Total Production</p>
-                  <p className="text-sm font-bold text-slate-900 dark:text-white">{productionData.totalProduction.toFixed(1)}</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-500">TON/Shift/Day</p>
+                <div className="text-center p-1.5 bg-surface-sunken/50 rounded-lg">
+                  <p className="text-xs text-[color:var(--text-muted)] mb-0.5">Total Production</p>
+                  <p className="text-sm font-bold text-foreground">{productionData.totalProduction.toFixed(1)}</p>
+                  <p className="text-xs text-[color:var(--text-faint)]">TON/Shift/Day</p>
                 </div>
-                <div className="text-center p-1.5 bg-slate-100 dark:bg-slate-800/50 rounded-lg">
-                  <p className="text-xs text-slate-600 dark:text-slate-400 mb-0.5">Actual vs Target</p>
-                  <p className="text-sm font-bold text-slate-900 dark:text-white">
+                <div className="text-center p-1.5 bg-surface-sunken/50 rounded-lg">
+                  <p className="text-xs text-[color:var(--text-muted)] mb-0.5">Actual vs Target</p>
+                  <p className="text-sm font-bold text-foreground">
                     {((productionData.actualProduction / productionData.targetProduction) * 100).toFixed(1)}%
                   </p>
-                  <p className="text-xs text-slate-500 dark:text-slate-500">Target: {productionData.targetProduction.toFixed(0)}</p>
+                  <p className="text-xs text-[color:var(--text-faint)]">Target: {productionData.targetProduction.toFixed(0)}</p>
                 </div>
-                <div className="text-center p-1.5 bg-slate-100 dark:bg-slate-800/50 rounded-lg">
-                  <p className="text-xs text-slate-600 dark:text-slate-400 mb-0.5">Yield</p>
-                  <p className="text-sm font-bold text-slate-900 dark:text-white">{productionData.productionYield}%</p>
+                <div className="text-center p-1.5 bg-surface-sunken/50 rounded-lg">
+                  <p className="text-xs text-[color:var(--text-muted)] mb-0.5">Yield</p>
+                  <p className="text-sm font-bold text-foreground">{productionData.productionYield}%</p>
                 </div>
-                <div className="text-center p-1.5 bg-slate-100 dark:bg-slate-800/50 rounded-lg">
-                  <p className="text-xs text-slate-600 dark:text-slate-400 mb-0.5">Throughput</p>
-                  <p className="text-sm font-bold text-slate-900 dark:text-white">{productionData.overallThroughput.toFixed(1)}</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-500">units/hr</p>
+                <div className="text-center p-1.5 bg-surface-sunken/50 rounded-lg">
+                  <p className="text-xs text-[color:var(--text-muted)] mb-0.5">Throughput</p>
+                  <p className="text-sm font-bold text-foreground">{productionData.overallThroughput.toFixed(1)}</p>
+                  <p className="text-xs text-[color:var(--text-faint)]">units/hr</p>
                 </div>
-                <div className="text-center p-1.5 bg-slate-100 dark:bg-slate-800/50 rounded-lg">
-                  <p className="text-xs text-slate-600 dark:text-slate-400 mb-0.5">Downtime</p>
-                  <p className="text-sm font-bold text-slate-900 dark:text-white">{productionData.downtimeDuration.toFixed(1)}</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-500">hours</p>
+                <div className="text-center p-1.5 bg-surface-sunken/50 rounded-lg">
+                  <p className="text-xs text-[color:var(--text-muted)] mb-0.5">Downtime</p>
+                  <p className="text-sm font-bold text-foreground">{productionData.downtimeDuration.toFixed(1)}</p>
+                  <p className="text-xs text-[color:var(--text-faint)]">hours</p>
                 </div>
               </div>
             </ChartCard>
@@ -3588,29 +3588,29 @@ export const KPIOverview: React.FC = () => {
                 {/* Center text showing material count */}
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                   <div className="text-center">
-                    <p className="text-4xl font-bold text-slate-900 dark:text-white mb-1">
+                    <p className="text-4xl font-bold text-foreground mb-1">
                       {costingData.costDistribution.length}
                     </p>
-                    <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">
+                    <p className="text-sm font-semibold text-[color:var(--text-muted)]">
                       Materials
                     </p>
                   </div>
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-2 mt-2">
-                <div className="p-2 bg-slate-100 dark:bg-slate-800/50 rounded-lg text-center">
-                  <p className="text-xs text-slate-600 dark:text-slate-400 mb-0.5">Cost Variance</p>
+                <div className="p-2 bg-surface-sunken/50 rounded-lg text-center">
+                  <p className="text-xs text-[color:var(--text-muted)] mb-0.5">Cost Variance</p>
                   <p className={`text-sm font-bold ${costingData.costVariance >= 0 ? 'text-red-600 dark:text-red-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
                     {costingData.costVariance.toFixed(1)}%
                   </p>
                 </div>
-                <div className="p-2 bg-slate-100 dark:bg-slate-800/50 rounded-lg text-center">
-                  <p className="text-xs text-slate-600 dark:text-slate-400 mb-0.5">ROI</p>
-                  <p className="text-sm font-bold text-slate-900 dark:text-white">{costingData.roi}%</p>
+                <div className="p-2 bg-surface-sunken/50 rounded-lg text-center">
+                  <p className="text-xs text-[color:var(--text-muted)] mb-0.5">ROI</p>
+                  <p className="text-sm font-bold text-foreground">{costingData.roi}%</p>
                 </div>
-                <div className="p-2 bg-slate-100 dark:bg-slate-800/50 rounded-lg text-center">
-                  <p className="text-xs text-slate-600 dark:text-slate-400 mb-0.5">Maint. Cost/Unit</p>
-                  <p className="text-sm font-bold text-slate-900 dark:text-white">${costingData.maintenanceCostPerUnit}</p>
+                <div className="p-2 bg-surface-sunken/50 rounded-lg text-center">
+                  <p className="text-xs text-[color:var(--text-muted)] mb-0.5">Maint. Cost/Unit</p>
+                  <p className="text-sm font-bold text-foreground">${costingData.maintenanceCostPerUnit}</p>
                 </div>
               </div>
             </ChartCard>
@@ -3654,12 +3654,12 @@ export const KPIOverview: React.FC = () => {
                   </ResponsiveContainer>
                   {/* Centered percentage text */}
                   <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <p className="text-2xl font-bold text-slate-900 dark:text-white">{maintenanceData.oee.toFixed(1)}%</p>
+                    <p className="text-2xl font-bold text-foreground">{maintenanceData.oee.toFixed(1)}%</p>
                   </div>
                 </div>
                 {/* Label below the chart */}
                 <div className="text-center mt-2">
-                  <p className="text-base font-bold text-slate-600 dark:text-slate-400">Overall Equipment Effectiveness</p>
+                  <p className="text-base font-bold text-[color:var(--text-muted)]">Overall Equipment Effectiveness</p>
                 </div>
               </div>
             </ChartCard>
@@ -3674,9 +3674,9 @@ export const KPIOverview: React.FC = () => {
                       <stop offset="95%" stopColor={chartColors.primary} stopOpacity={0.1} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-slate-300 dark:stroke-slate-700" />
-                  <XAxis dataKey="date" className="text-slate-600 dark:text-slate-400" tick={{ fill: 'currentColor', fontSize: 10 }} />
-                  <YAxis className="text-slate-600 dark:text-slate-400" tick={{ fill: 'currentColor' }} />
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-[color:var(--border)]" />
+                  <XAxis dataKey="date" className="text-[color:var(--text-muted)]" tick={{ fill: 'currentColor', fontSize: 10 }} />
+                  <YAxis className="text-[color:var(--text-muted)]" tick={{ fill: 'currentColor' }} />
                   <Tooltip
                     contentStyle={tooltipStyle}
                     formatter={(value: number) => [`${value.toFixed(2)} hrs`, 'Downtime']}
@@ -3765,9 +3765,9 @@ export const KPIOverview: React.FC = () => {
                   <ChartCard title="Energy Consumption" subtitle="24-Hour Trend" info={getChartInfo('Energy Consumption')}>
               <ResponsiveContainer width="100%" height={320}>
                       <LineChart data={energyData.consumptionTrend}>
-                        <CartesianGrid strokeDasharray="3 3" className="stroke-slate-300 dark:stroke-slate-700" />
-                        <XAxis dataKey="hour" className="text-slate-600 dark:text-slate-400" tick={{ fill: 'currentColor' }} />
-                        <YAxis className="text-slate-600 dark:text-slate-400" tick={{ fill: 'currentColor' }} />
+                        <CartesianGrid strokeDasharray="3 3" className="stroke-[color:var(--border)]" />
+                        <XAxis dataKey="hour" className="text-[color:var(--text-muted)]" tick={{ fill: 'currentColor' }} />
+                        <YAxis className="text-[color:var(--text-muted)]" tick={{ fill: 'currentColor' }} />
                         <Tooltip
                           contentStyle={{
                             ...tooltipStyle,
@@ -3784,33 +3784,33 @@ export const KPIOverview: React.FC = () => {
                       </LineChart>
                     </ResponsiveContainer>
                     <div className="grid grid-cols-6 gap-2 mt-2">
-                      <div className="p-2 bg-slate-100 dark:bg-slate-800/50 rounded-lg text-center">
-                        <p className="text-xs text-slate-600 dark:text-slate-400 mb-0.5">Consumption/TON</p>
-                        <p className="text-sm font-bold text-slate-900 dark:text-white">{energyData.energyConsumptionPerTon.toFixed(2)}</p>
-                        <p className="text-xs text-slate-500 dark:text-slate-500">kWh/TON</p>
+                      <div className="p-2 bg-surface-sunken/50 rounded-lg text-center">
+                        <p className="text-xs text-[color:var(--text-muted)] mb-0.5">Consumption/TON</p>
+                        <p className="text-sm font-bold text-foreground">{energyData.energyConsumptionPerTon.toFixed(2)}</p>
+                        <p className="text-xs text-[color:var(--text-faint)]">kWh/TON</p>
                       </div>
-                      <div className="p-2 bg-slate-100 dark:bg-slate-800/50 rounded-lg text-center">
-                        <p className="text-xs text-slate-600 dark:text-slate-400 mb-0.5">Cost/TON</p>
-                        <p className="text-sm font-bold text-slate-900 dark:text-white">${energyData.energyCostPerTon.toFixed(2)}</p>
-                        <p className="text-xs text-slate-500 dark:text-slate-500">$/TON</p>
+                      <div className="p-2 bg-surface-sunken/50 rounded-lg text-center">
+                        <p className="text-xs text-[color:var(--text-muted)] mb-0.5">Cost/TON</p>
+                        <p className="text-sm font-bold text-foreground">${energyData.energyCostPerTon.toFixed(2)}</p>
+                        <p className="text-xs text-[color:var(--text-faint)]">$/TON</p>
                       </div>
-                      <div className="p-2 bg-slate-100 dark:bg-slate-800/50 rounded-lg text-center">
-                        <p className="text-xs text-slate-600 dark:text-slate-400 mb-0.5">Total Consumption</p>
-                        <p className="text-sm font-bold text-slate-900 dark:text-white">{energyData.totalConsumption.toLocaleString()}</p>
-                        <p className="text-xs text-slate-500 dark:text-slate-500">kWh</p>
+                      <div className="p-2 bg-surface-sunken/50 rounded-lg text-center">
+                        <p className="text-xs text-[color:var(--text-muted)] mb-0.5">Total Consumption</p>
+                        <p className="text-sm font-bold text-foreground">{energyData.totalConsumption.toLocaleString()}</p>
+                        <p className="text-xs text-[color:var(--text-faint)]">kWh</p>
                       </div>
-                      <div className="p-2 bg-slate-100 dark:bg-slate-800/50 rounded-lg text-center">
-                        <p className="text-xs text-slate-600 dark:text-slate-400 mb-0.5">Energy Cost</p>
-                        <p className="text-sm font-bold text-slate-900 dark:text-white">${energyData.energyCost.toLocaleString()}</p>
+                      <div className="p-2 bg-surface-sunken/50 rounded-lg text-center">
+                        <p className="text-xs text-[color:var(--text-muted)] mb-0.5">Energy Cost</p>
+                        <p className="text-sm font-bold text-foreground">${energyData.energyCost.toLocaleString()}</p>
                       </div>
-                      <div className="p-2 bg-slate-100 dark:bg-slate-800/50 rounded-lg text-center">
-                        <p className="text-xs text-slate-600 dark:text-slate-400 mb-0.5">Peak Demand</p>
-                        <p className="text-sm font-bold text-slate-900 dark:text-white">{energyData.peakDemand}</p>
-                        <p className="text-xs text-slate-500 dark:text-slate-500">kW</p>
+                      <div className="p-2 bg-surface-sunken/50 rounded-lg text-center">
+                        <p className="text-xs text-[color:var(--text-muted)] mb-0.5">Peak Demand</p>
+                        <p className="text-sm font-bold text-foreground">{energyData.peakDemand}</p>
+                        <p className="text-xs text-[color:var(--text-faint)]">kW</p>
                       </div>
-                      <div className="p-2 bg-slate-100 dark:bg-slate-800/50 rounded-lg text-center">
-                        <p className="text-xs text-slate-600 dark:text-slate-400 mb-0.5">Power Factor</p>
-                        <p className="text-sm font-bold text-slate-900 dark:text-white">{energyData.powerFactor.toFixed(2)}</p>
+                      <div className="p-2 bg-surface-sunken/50 rounded-lg text-center">
+                        <p className="text-xs text-[color:var(--text-muted)] mb-0.5">Power Factor</p>
+                        <p className="text-sm font-bold text-foreground">{energyData.powerFactor.toFixed(2)}</p>
                       </div>
                     </div>
             </ChartCard>
@@ -3855,17 +3855,17 @@ export const KPIOverview: React.FC = () => {
                       </feMerge>
                     </filter>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-slate-300 dark:stroke-slate-700" />
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-[color:var(--border)]" />
                         <XAxis 
                           dataKey="name" 
-                          className="text-slate-600 dark:text-slate-400" 
+                          className="text-[color:var(--text-muted)]" 
                           tick={{ fill: 'currentColor', fontSize: 10 }}
                           angle={-45}
                           textAnchor="end"
                           height={90}
                           interval={0}
                         />
-                  <YAxis className="text-slate-600 dark:text-slate-400" tick={{ fill: 'currentColor' }} />
+                  <YAxis className="text-[color:var(--text-muted)]" tick={{ fill: 'currentColor' }} />
                   <Tooltip
                     contentStyle={{
                       ...tooltipStyle,
@@ -3886,23 +3886,23 @@ export const KPIOverview: React.FC = () => {
                 </BarChart>
               </ResponsiveContainer>
                     <div className="grid grid-cols-4 gap-2 mt-0">
-                <div className="p-2 bg-slate-100 dark:bg-slate-800/50 rounded-lg text-center">
-                  <p className="text-xs text-slate-600 dark:text-slate-400 mb-0.5">Raw Material/TON</p>
-                  <p className="text-sm font-bold text-slate-900 dark:text-white">${costingData.rawMaterialCostPerTon.toFixed(2)}</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-500">$/TON</p>
+                <div className="p-2 bg-surface-sunken/50 rounded-lg text-center">
+                  <p className="text-xs text-[color:var(--text-muted)] mb-0.5">Raw Material/TON</p>
+                  <p className="text-sm font-bold text-foreground">${costingData.rawMaterialCostPerTon.toFixed(2)}</p>
+                  <p className="text-xs text-[color:var(--text-faint)]">$/TON</p>
                 </div>
-                <div className="p-2 bg-slate-100 dark:bg-slate-800/50 rounded-lg text-center">
-                  <p className="text-xs text-slate-600 dark:text-slate-400 mb-0.5">Energy Cost/TON</p>
-                  <p className="text-sm font-bold text-slate-900 dark:text-white">${costingData.energyCostPerTon.toFixed(2)}</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-500">$/TON</p>
+                <div className="p-2 bg-surface-sunken/50 rounded-lg text-center">
+                  <p className="text-xs text-[color:var(--text-muted)] mb-0.5">Energy Cost/TON</p>
+                  <p className="text-sm font-bold text-foreground">${costingData.energyCostPerTon.toFixed(2)}</p>
+                  <p className="text-xs text-[color:var(--text-faint)]">$/TON</p>
                 </div>
-                <div className="p-2 bg-slate-100 dark:bg-slate-800/50 rounded-lg text-center">
-                  <p className="text-xs text-slate-600 dark:text-slate-400 mb-0.5">Total Variable Cost</p>
-                  <p className="text-sm font-bold text-slate-900 dark:text-white">${costingData.totalVariableCost.toLocaleString()}</p>
+                <div className="p-2 bg-surface-sunken/50 rounded-lg text-center">
+                  <p className="text-xs text-[color:var(--text-muted)] mb-0.5">Total Variable Cost</p>
+                  <p className="text-sm font-bold text-foreground">${costingData.totalVariableCost.toLocaleString()}</p>
                 </div>
-                <div className="p-2 bg-slate-100 dark:bg-slate-800/50 rounded-lg text-center">
-                  <p className="text-xs text-slate-600 dark:text-slate-400 mb-0.5">Cost Per Unit</p>
-                  <p className="text-sm font-bold text-slate-900 dark:text-white">${costingData.costPerUnit}</p>
+                <div className="p-2 bg-surface-sunken/50 rounded-lg text-center">
+                  <p className="text-xs text-[color:var(--text-muted)] mb-0.5">Cost Per Unit</p>
+                  <p className="text-sm font-bold text-foreground">${costingData.costPerUnit}</p>
                 </div>
               </div>
             </ChartCard>
@@ -3922,9 +3922,9 @@ export const KPIOverview: React.FC = () => {
                       <stop offset="100%" stopColor="#22d3ee" stopOpacity={0.05} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-slate-300 dark:stroke-slate-700" />
-                  <XAxis dataKey="date" className="text-slate-600 dark:text-slate-400" tick={{ fill: 'currentColor' }} />
-                  <YAxis className="text-slate-600 dark:text-slate-400" tick={{ fill: 'currentColor' }} />
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-[color:var(--border)]" />
+                  <XAxis dataKey="date" className="text-[color:var(--text-muted)]" tick={{ fill: 'currentColor' }} />
+                  <YAxis className="text-[color:var(--text-muted)]" tick={{ fill: 'currentColor' }} />
                   <Tooltip
                     contentStyle={{
                       ...tooltipStyle,
@@ -3956,22 +3956,22 @@ export const KPIOverview: React.FC = () => {
                 </ComposedChart>
               </ResponsiveContainer>
               <div className="grid grid-cols-4 gap-2 mt-2">
-                <div className="p-2 bg-slate-100 dark:bg-slate-800/50 rounded-lg text-center">
-                  <p className="text-xs text-slate-600 dark:text-slate-400 mb-0.5">Plan Adherence</p>
-                  <p className="text-sm font-bold text-slate-900 dark:text-white">{managementData.planAdherence.toFixed(1)}%</p>
+                <div className="p-2 bg-surface-sunken/50 rounded-lg text-center">
+                  <p className="text-xs text-[color:var(--text-muted)] mb-0.5">Plan Adherence</p>
+                  <p className="text-sm font-bold text-foreground">{managementData.planAdherence.toFixed(1)}%</p>
                 </div>
-                <div className="p-2 bg-slate-100 dark:bg-slate-800/50 rounded-lg text-center">
-                  <p className="text-xs text-slate-600 dark:text-slate-400 mb-0.5">Shift Efficiency</p>
-                  <p className="text-sm font-bold text-slate-900 dark:text-white">{managementData.shiftEfficiency.toFixed(1)}%</p>
+                <div className="p-2 bg-surface-sunken/50 rounded-lg text-center">
+                  <p className="text-xs text-[color:var(--text-muted)] mb-0.5">Shift Efficiency</p>
+                  <p className="text-sm font-bold text-foreground">{managementData.shiftEfficiency.toFixed(1)}%</p>
                 </div>
-                <div className="p-2 bg-slate-100 dark:bg-slate-800/50 rounded-lg text-center">
-                  <p className="text-xs text-slate-600 dark:text-slate-400 mb-0.5">Operator Productivity</p>
-                  <p className="text-sm font-bold text-slate-900 dark:text-white">{managementData.operatorProductivity.toFixed(1)}</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-500">units/operator</p>
+                <div className="p-2 bg-surface-sunken/50 rounded-lg text-center">
+                  <p className="text-xs text-[color:var(--text-muted)] mb-0.5">Operator Productivity</p>
+                  <p className="text-sm font-bold text-foreground">{managementData.operatorProductivity.toFixed(1)}</p>
+                  <p className="text-xs text-[color:var(--text-faint)]">units/operator</p>
                 </div>
-                <div className="p-2 bg-slate-100 dark:bg-slate-800/50 rounded-lg text-center">
-                  <p className="text-xs text-slate-600 dark:text-slate-400 mb-0.5">Schedule Adherence</p>
-                  <p className="text-sm font-bold text-slate-900 dark:text-white">{managementData.scheduleAdherence.toFixed(1)}%</p>
+                <div className="p-2 bg-surface-sunken/50 rounded-lg text-center">
+                  <p className="text-xs text-[color:var(--text-muted)] mb-0.5">Schedule Adherence</p>
+                  <p className="text-sm font-bold text-foreground">{managementData.scheduleAdherence.toFixed(1)}%</p>
                 </div>
               </div>
             </ChartCard>
@@ -3986,9 +3986,9 @@ export const KPIOverview: React.FC = () => {
                             <stop offset="95%" stopColor={chartColors.primary} stopOpacity={0.1} />
                           </linearGradient>
                         </defs>
-                        <CartesianGrid strokeDasharray="3 3" className="stroke-slate-300 dark:stroke-slate-700" />
-                        <XAxis dataKey="hour" className="text-slate-600 dark:text-slate-400" tick={{ fill: 'currentColor' }} />
-                        <YAxis className="text-slate-600 dark:text-slate-400" tick={{ fill: 'currentColor' }} />
+                        <CartesianGrid strokeDasharray="3 3" className="stroke-[color:var(--border)]" />
+                        <XAxis dataKey="hour" className="text-[color:var(--text-muted)]" tick={{ fill: 'currentColor' }} />
+                        <YAxis className="text-[color:var(--text-muted)]" tick={{ fill: 'currentColor' }} />
                         <Tooltip
                           contentStyle={{
                             ...tooltipStyle,
@@ -4040,16 +4040,16 @@ export const KPIOverview: React.FC = () => {
                       </feMerge>
                     </filter>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-slate-300 dark:stroke-slate-700" vertical={false} />
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-[color:var(--border)]" vertical={false} />
                   <XAxis 
                     dataKey="category" 
-                    className="text-slate-600 dark:text-slate-400" 
+                    className="text-[color:var(--text-muted)]" 
                     tick={{ fill: 'currentColor', fontSize: 11 }}
                     angle={-45}
                     textAnchor="end"
                     height={60}
                   />
-                  <YAxis className="text-slate-600 dark:text-slate-400" tick={{ fill: 'currentColor' }} />
+                  <YAxis className="text-[color:var(--text-muted)]" tick={{ fill: 'currentColor' }} />
                   <Tooltip
                     contentStyle={{
                       ...tooltipStyle,
@@ -4194,9 +4194,9 @@ export const KPIOverview: React.FC = () => {
             <ChartCard title="Efficiency Trend" subtitle="Energy Efficiency Over Time" info={getChartInfo('Efficiency Trend')}>
               <ResponsiveContainer width="100%" height={320}>
                 <LineChart data={energyData.efficiencyTrend.slice(-14)}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-slate-300 dark:stroke-slate-700" />
-                  <XAxis dataKey="date" className="text-slate-600 dark:text-slate-400" tick={{ fill: 'currentColor', fontSize: 10 }} />
-                  <YAxis className="text-slate-600 dark:text-slate-400" tick={{ fill: 'currentColor' }} />
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-[color:var(--border)]" />
+                  <XAxis dataKey="date" className="text-[color:var(--text-muted)]" tick={{ fill: 'currentColor', fontSize: 10 }} />
+                  <YAxis className="text-[color:var(--text-muted)]" tick={{ fill: 'currentColor' }} />
                   <Tooltip
                     contentStyle={{
                       ...tooltipStyle,
@@ -4226,9 +4226,9 @@ export const KPIOverview: React.FC = () => {
                       <stop offset="95%" stopColor="#67e8f9" stopOpacity={0.1} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-slate-300 dark:stroke-slate-700" />
-                  <XAxis dataKey="date" className="text-slate-600 dark:text-slate-400" tick={{ fill: 'currentColor', fontSize: 10 }} />
-                  <YAxis className="text-slate-600 dark:text-slate-400" tick={{ fill: 'currentColor' }} />
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-[color:var(--border)]" />
+                  <XAxis dataKey="date" className="text-[color:var(--text-muted)]" tick={{ fill: 'currentColor', fontSize: 10 }} />
+                  <YAxis className="text-[color:var(--text-muted)]" tick={{ fill: 'currentColor' }} />
                   <Tooltip
                     contentStyle={{
                       ...tooltipStyle,
@@ -4259,7 +4259,7 @@ export const KPIOverview: React.FC = () => {
         {/* Modern Pagination Dots - Fixed at bottom for visibility */}
         {count > 0 && (
           <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center justify-center">
-            <div className="flex items-center justify-center gap-2 px-4 py-2 rounded-full bg-slate-900/90 dark:bg-slate-800/90 backdrop-blur-md border border-cyan-500/40 shadow-xl shadow-cyan-500/20">
+            <div className="flex items-center justify-center gap-2 px-4 py-2 rounded-full bg-surface/90 backdrop-blur-md border border-brand/40 shadow-xl shadow-brand/20">
               {Array.from({ length: count }).map((_, index) => (
                 <button
                   key={index}
@@ -4267,15 +4267,15 @@ export const KPIOverview: React.FC = () => {
                   className={cn(
                     "relative h-2 rounded-full transition-all duration-300",
                     current === index + 1
-                      ? "w-8 bg-cyan-500 shadow-lg shadow-cyan-500/50"
-                      : "w-2 bg-slate-400 dark:bg-slate-600 hover:bg-slate-500 dark:hover:bg-slate-500"
+                      ? "w-8 bg-brand shadow-lg shadow-brand/50"
+                      : "w-2 bg-[color:var(--text-muted)] hover:bg-[color:var(--text-faint)]"
                   )}
                   aria-label={`Go to slide ${index + 1}`}
                 >
                   {current === index + 1 && (
                     <motion.div
                       layoutId="pagination"
-                      className="absolute inset-0 bg-cyan-500 rounded-full"
+                      className="absolute inset-0 bg-brand rounded-full"
                       transition={{
                         type: "spring",
                         stiffness: 500,

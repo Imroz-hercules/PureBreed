@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { WaterSystemLayout } from '../../components/hercules-sfms/WaterSystemLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -192,7 +192,7 @@ export function Admin() {
           <div className="bg-gradient-to-r from-cyan-500 to-blue-500 p-2 rounded-lg">
             <Settings className="h-6 w-6 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-cyan-400">Admin Panel</h1>
+          <h1 className="text-2xl font-bold text-brand">Admin Panel</h1>
         </div>
 
         {/* Error/Success Messages */}
@@ -211,9 +211,9 @@ export function Admin() {
         )}
 
         {/* Logo Upload Section */}
-        <Card className="bg-slate-900/95 dark:bg-slate-900/95 bg-white/95 border-slate-700 dark:border-slate-700 border-slate-300 max-w-xl mx-auto">
+        <Card className="bg-surface/95 border-border max-w-xl mx-auto">
           <CardHeader>
-            <CardTitle className="text-cyan-300 dark:text-cyan-300 text-slate-700 flex items-center gap-2">
+            <CardTitle className="text-brand flex items-center gap-2">
               <Upload className="h-5 w-5" />
               Upload Logo
             </CardTitle>
@@ -224,16 +224,16 @@ export function Admin() {
                 type="file"
                 accept="image/*"
                 onChange={handleFileChange}
-                className="bg-slate-800 dark:bg-slate-800 bg-white border-slate-600 dark:border-slate-600 border-slate-300 text-white dark:text-white text-slate-900"
+                className="bg-surface border-border text-foreground"
               />
-              <p className="text-sm mt-2 text-slate-400 dark:text-slate-400 text-slate-600">
+              <p className="text-sm mt-2 text-[color:var(--text-muted)] text-[color:var(--text-muted)]">
                 {logo ? logo.name : 'No file chosen'}
               </p>
             </div>
 
             {preview && (
               <div className="space-y-2">
-                <Label className="text-cyan-300 dark:text-cyan-300 text-slate-700">Preview:</Label>
+                <Label className="text-brand">Preview:</Label>
                 <img src={preview} alt="Preview" className="w-32 rounded shadow" />
               </div>
             )}
@@ -244,7 +244,7 @@ export function Admin() {
               className={`w-full ${
                 logo && !loading
                   ? 'bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-500 hover:to-blue-600'
-                  : 'bg-slate-600 cursor-not-allowed'
+                  : 'bg-surface-sunken cursor-not-allowed'
               }`}
             >
               {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
@@ -253,7 +253,7 @@ export function Admin() {
 
             {uploadedLogo && (
               <div className="space-y-2">
-                <Label className="text-cyan-300 dark:text-cyan-300 text-slate-700">Current Logo:</Label>
+                <Label className="text-brand">Current Logo:</Label>
                 <img src={uploadedLogo} alt="Current Logo" className="w-32 rounded shadow" />
               </div>
             )}
@@ -263,27 +263,27 @@ export function Admin() {
         {/* Settings Sections */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* SMTP Settings */}
-          <Card className="bg-slate-900/95 dark:bg-slate-900/95 bg-white/95 border-slate-700 dark:border-slate-700 border-slate-300">
+          <Card className="bg-surface/95 border-border">
             <CardHeader>
-              <CardTitle className="text-cyan-300 dark:text-cyan-300 text-slate-700 flex items-center gap-2">
+              <CardTitle className="text-brand flex items-center gap-2">
                 <Mail className="h-5 w-5" />
                 SMTP Settings
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label className="text-slate-300 dark:text-slate-300 text-slate-600">SMTP Server</Label>
+                <Label className="text-[color:var(--text-muted)]">SMTP Server</Label>
                 <Input 
-                  className="bg-slate-800 dark:bg-slate-800 bg-white border-slate-600 dark:border-slate-600 border-slate-300 text-white dark:text-white text-slate-900" 
+                  className="bg-surface border-border text-foreground" 
                   placeholder="smtp.example.com"
                   value={smtpSettings.host}
                   onChange={(e) => setSmtpSettings({...smtpSettings, host: e.target.value})}
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-slate-300 dark:text-slate-300 text-slate-600">Port</Label>
+                <Label className="text-[color:var(--text-muted)]">Port</Label>
                 <Input 
-                  className="bg-slate-800 dark:bg-slate-800 bg-white border-slate-600 dark:border-slate-600 border-slate-300 text-white dark:text-white text-slate-900" 
+                  className="bg-surface border-border text-foreground" 
                   placeholder="587"
                   type="number"
                   value={smtpSettings.port}
@@ -291,34 +291,34 @@ export function Admin() {
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-slate-300 dark:text-slate-300 text-slate-600">Username</Label>
+                <Label className="text-[color:var(--text-muted)]">Username</Label>
                 <Input 
-                  className="bg-slate-800 dark:bg-slate-800 bg-white border-slate-600 dark:border-slate-600 border-slate-300 text-white dark:text-white text-slate-900" 
+                  className="bg-surface border-border text-foreground" 
                   placeholder="user@example.com"
                   value={smtpSettings.username}
                   onChange={(e) => setSmtpSettings({...smtpSettings, username: e.target.value})}
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-slate-300 dark:text-slate-300 text-slate-600">Password</Label>
+                <Label className="text-[color:var(--text-muted)]">Password</Label>
                 <Input 
                   type="password" 
-                  className="bg-slate-800 dark:bg-slate-800 bg-white border-slate-600 dark:border-slate-600 border-slate-300 text-white dark:text-white text-slate-900"
+                  className="bg-surface border-border text-foreground"
                   value={smtpSettings.password}
                   onChange={(e) => setSmtpSettings({...smtpSettings, password: e.target.value})}
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-slate-300 dark:text-slate-300 text-slate-600">Sender Email</Label>
+                <Label className="text-[color:var(--text-muted)]">Sender Email</Label>
                 <Input 
-                  className="bg-slate-800 dark:bg-slate-800 bg-white border-slate-600 dark:border-slate-600 border-slate-300 text-white dark:text-white text-slate-900" 
+                  className="bg-surface border-border text-foreground" 
                   placeholder="noreply@company.com"
                   value={smtpSettings.sender}
                   onChange={(e) => setSmtpSettings({...smtpSettings, sender: e.target.value})}
                 />
               </div>
               <Button 
-                className="w-full bg-[#0088a9] hover:bg-[#007b98] text-white font-medium py-2 px-4 rounded-[8px] shadow-md transition-all duration-200"
+                className="w-full bg-brand hover:bg-brand-hover text-white font-medium py-2 px-4 rounded-[8px] shadow-md transition-all duration-200"
                 onClick={handleSaveSMTPSettings}
                 disabled={loading}
               >
@@ -329,9 +329,9 @@ export function Admin() {
           </Card>
 
           {/* SMTP Profiles */}
-          <Card className="bg-slate-900/95 dark:bg-slate-900/95 bg-white/95 border-slate-700 dark:border-slate-700 border-slate-300">
+          <Card className="bg-surface/95 border-border">
             <CardHeader>
-              <CardTitle className="text-cyan-300 dark:text-cyan-300 text-slate-700 flex items-center gap-2">
+              <CardTitle className="text-brand flex items-center gap-2">
                 <Mail className="h-5 w-5" />
                 SMTP Profiles
               </CardTitle>
@@ -339,27 +339,27 @@ export function Admin() {
             <CardContent className="space-y-4">
               {/* Add New Profile */}
               <div className="space-y-2">
-                <Label className="text-slate-300 dark:text-slate-300 text-slate-600">Profile Name</Label>
+                <Label className="text-[color:var(--text-muted)]">Profile Name</Label>
                 <Input 
-                  className="bg-slate-800 dark:bg-slate-800 bg-white border-slate-600 dark:border-slate-600 border-slate-300 text-white dark:text-white text-slate-900" 
+                  className="bg-surface border-border text-foreground" 
                   placeholder="Profile Name"
                   value={newProfile.name}
                   onChange={(e) => setNewProfile({...newProfile, name: e.target.value})}
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-slate-300 dark:text-slate-300 text-slate-600">Host</Label>
+                <Label className="text-[color:var(--text-muted)]">Host</Label>
                 <Input 
-                  className="bg-slate-800 dark:bg-slate-800 bg-white border-slate-600 dark:border-slate-600 border-slate-300 text-white dark:text-white text-slate-900" 
+                  className="bg-surface border-border text-foreground" 
                   placeholder="smtp.example.com"
                   value={newProfile.host}
                   onChange={(e) => setNewProfile({...newProfile, host: e.target.value})}
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-slate-300 dark:text-slate-300 text-slate-600">Port</Label>
+                <Label className="text-[color:var(--text-muted)]">Port</Label>
                 <Input 
-                  className="bg-slate-800 dark:bg-slate-800 bg-white border-slate-600 dark:border-slate-600 border-slate-300 text-white dark:text-white text-slate-900" 
+                  className="bg-surface border-border text-foreground" 
                   placeholder="587"
                   type="number"
                   value={newProfile.port}
@@ -367,34 +367,34 @@ export function Admin() {
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-slate-300 dark:text-slate-300 text-slate-600">Username</Label>
+                <Label className="text-[color:var(--text-muted)]">Username</Label>
                 <Input 
-                  className="bg-slate-800 dark:bg-slate-800 bg-white border-slate-600 dark:border-slate-600 border-slate-300 text-white dark:text-white text-slate-900" 
+                  className="bg-surface border-border text-foreground" 
                   placeholder="user@example.com"
                   value={newProfile.username}
                   onChange={(e) => setNewProfile({...newProfile, username: e.target.value})}
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-slate-300 dark:text-slate-300 text-slate-600">Password</Label>
+                <Label className="text-[color:var(--text-muted)]">Password</Label>
                 <Input 
                   type="password" 
-                  className="bg-slate-800 dark:bg-slate-800 bg-white border-slate-600 dark:border-slate-600 border-slate-300 text-white dark:text-white text-slate-900"
+                  className="bg-surface border-border text-foreground"
                   value={newProfile.password}
                   onChange={(e) => setNewProfile({...newProfile, password: e.target.value})}
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-slate-300 dark:text-slate-300 text-slate-600">Sender Email</Label>
+                <Label className="text-[color:var(--text-muted)]">Sender Email</Label>
                 <Input 
-                  className="bg-slate-800 dark:bg-slate-800 bg-white border-slate-600 dark:border-slate-600 border-slate-300 text-white dark:text-white text-slate-900" 
+                  className="bg-surface border-border text-foreground" 
                   placeholder="noreply@company.com"
                   value={newProfile.sender}
                   onChange={(e) => setNewProfile({...newProfile, sender: e.target.value})}
                 />
               </div>
               <Button 
-                className="w-full bg-[#0088a9] hover:bg-[#007b98] text-white font-medium py-2 px-4 rounded-[8px] shadow-md transition-all duration-200"
+                className="w-full bg-brand hover:bg-brand-hover text-white font-medium py-2 px-4 rounded-[8px] shadow-md transition-all duration-200"
                 onClick={handleAddSMTPProfile}
                 disabled={loading || !newProfile.name}
               >
@@ -405,10 +405,10 @@ export function Admin() {
               {/* Existing Profiles */}
               {smtpProfiles.length > 0 && (
                 <div className="space-y-2">
-                  <Label className="text-slate-300 dark:text-slate-300 text-slate-600">Existing Profiles</Label>
+                  <Label className="text-[color:var(--text-muted)]">Existing Profiles</Label>
                   <div className="space-y-2 max-h-32 overflow-y-auto">
                     {smtpProfiles.map((profile, index) => (
-                      <div key={index} className="flex items-center justify-between p-2 bg-slate-800 rounded">
+                      <div key={index} className="flex items-center justify-between p-2 bg-surface-sunken rounded">
                         <span className="text-white text-sm">{profile.name}</span>
                         <Button
                           size="sm"
@@ -428,18 +428,18 @@ export function Admin() {
         </div>
 
         {/* Report Scheduler */}
-        <Card className="bg-slate-900/95 dark:bg-slate-900/95 bg-white/95 border-slate-700 dark:border-slate-700 border-slate-300">
+        <Card className="bg-surface/95 border-border">
           <CardHeader>
-            <CardTitle className="text-cyan-300 dark:text-cyan-300 text-slate-700 flex items-center gap-2">
+            <CardTitle className="text-brand flex items-center gap-2">
               <Clock className="h-5 w-5" />
               Report Scheduler
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label className="text-slate-300 dark:text-slate-300 text-slate-600">Report Type</Label>
+              <Label className="text-[color:var(--text-muted)]">Report Type</Label>
               <select 
-                className="w-full bg-slate-800 dark:bg-slate-800 bg-white border border-slate-600 dark:border-slate-600 border-slate-300 text-white dark:text-white text-slate-900 rounded-md px-3 py-2"
+                className="w-full bg-surface border border-border text-foreground rounded-md px-3 py-2"
                 value={reportScheduler.reportType}
                 onChange={(e) => setReportScheduler({...reportScheduler, reportType: e.target.value})}
               >
@@ -449,9 +449,9 @@ export function Admin() {
               </select>
             </div>
             <div className="space-y-2">
-              <Label className="text-slate-300 dark:text-slate-300 text-slate-600">Schedule</Label>
+              <Label className="text-[color:var(--text-muted)]">Schedule</Label>
               <select 
-                className="w-full bg-slate-800 dark:bg-slate-800 bg-white border border-slate-600 dark:border-slate-600 border-slate-300 text-white dark:text-white text-slate-900 rounded-md px-3 py-2"
+                className="w-full bg-surface border border-border text-foreground rounded-md px-3 py-2"
                 value={reportScheduler.schedule}
                 onChange={(e) => setReportScheduler({...reportScheduler, schedule: e.target.value})}
               >
@@ -461,9 +461,9 @@ export function Admin() {
               </select>
             </div>
             <div className="space-y-2">
-              <Label className="text-slate-300 dark:text-slate-300 text-slate-600">Recipients</Label>
+              <Label className="text-[color:var(--text-muted)]">Recipients</Label>
               <Input 
-                className="bg-slate-800 dark:bg-slate-800 bg-white border-slate-600 dark:border-slate-600 border-slate-300 text-white dark:text-white text-slate-900" 
+                className="bg-surface border-border text-foreground" 
                 placeholder="admin@company.com"
                 value={reportScheduler.recipients}
                 onChange={(e) => setReportScheduler({...reportScheduler, recipients: e.target.value})}
@@ -471,7 +471,7 @@ export function Admin() {
             </div>
             <div className="flex gap-2">
               <Button 
-                className="bg-[#0088a9] hover:bg-[#007b98] text-white font-medium py-2 px-4 rounded-[8px] shadow-md transition-all duration-200"
+                className="bg-brand hover:bg-brand-hover text-white font-medium py-2 px-4 rounded-[8px] shadow-md transition-all duration-200"
                 disabled={loading}
               >
                 {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
@@ -490,9 +490,9 @@ export function Admin() {
         </Card>
 
         {/* Security Settings */}
-        <Card className="bg-slate-900/95 dark:bg-slate-900/95 bg-white/95 border-slate-700 dark:border-slate-700 border-slate-300">
+        <Card className="bg-surface/95 border-border">
           <CardHeader>
-            <CardTitle className="text-cyan-300 dark:text-cyan-300 text-slate-700 flex items-center gap-2">
+            <CardTitle className="text-brand flex items-center gap-2">
               <Shield className="h-5 w-5" />
               Security & Access Control
             </CardTitle>
@@ -500,9 +500,9 @@ export function Admin() {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-slate-300 dark:text-slate-300 text-slate-600">Session Timeout (minutes)</Label>
+                <Label className="text-[color:var(--text-muted)]">Session Timeout (minutes)</Label>
                 <Input 
-                  className="bg-slate-800 dark:bg-slate-800 bg-white border-slate-600 dark:border-slate-600 border-slate-300 text-white dark:text-white text-slate-900" 
+                  className="bg-surface border-border text-foreground" 
                   defaultValue="30"
                   type="number"
                   value={securitySettings.sessionTimeout}
@@ -510,9 +510,9 @@ export function Admin() {
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-slate-300 dark:text-slate-300 text-slate-600">Password Policy</Label>
+                <Label className="text-[color:var(--text-muted)]">Password Policy</Label>
                 <select 
-                  className="w-full bg-slate-800 dark:bg-slate-800 bg-white border border-slate-600 dark:border-slate-600 border-slate-300 text-white dark:text-white text-slate-900 rounded-md px-3 py-2"
+                  className="w-full bg-surface border border-border text-foreground rounded-md px-3 py-2"
                   value={securitySettings.passwordPolicy}
                   onChange={(e) => setSecuritySettings({...securitySettings, passwordPolicy: e.target.value})}
                 >
@@ -523,7 +523,7 @@ export function Admin() {
               </div>
             </div>
             <Button 
-              className="bg-[#0088a9] hover:bg-[#007b98] text-white font-medium py-2 px-4 rounded-[8px] shadow-md transition-all duration-200"
+              className="bg-brand hover:bg-brand-hover text-white font-medium py-2 px-4 rounded-[8px] shadow-md transition-all duration-200"
               disabled={loading}
             >
               {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}

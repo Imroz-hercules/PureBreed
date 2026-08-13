@@ -82,7 +82,7 @@ export function MaterialForm({ material, onSubmit, onCancel, isLoading }: Materi
                   <Input 
                     placeholder="Enter material name" 
                     {...field}
-                    className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400"
+                    className="bg-surface border-border text-foreground placeholder:text-[color:var(--text-muted)]"
                   />
                 </FormControl>
                 <FormMessage />
@@ -100,7 +100,7 @@ export function MaterialForm({ material, onSubmit, onCancel, isLoading }: Materi
                   <Input 
                     placeholder="Enter material code" 
                     {...field}
-                    className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400"
+                    className="bg-surface border-border text-foreground placeholder:text-[color:var(--text-muted)]"
                   />
                 </FormControl>
                 <FormMessage />
@@ -118,7 +118,7 @@ export function MaterialForm({ material, onSubmit, onCancel, isLoading }: Materi
                 <FormLabel>Material Type</FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
-                    <SelectTrigger className="bg-slate-800/50 border-slate-600 text-white">
+                    <SelectTrigger className="bg-surface border-border text-foreground">
                       <SelectValue placeholder="Select material type" />
                     </SelectTrigger>
                   </FormControl>
@@ -143,7 +143,7 @@ export function MaterialForm({ material, onSubmit, onCancel, isLoading }: Materi
                 <FormLabel>Unit</FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
-                    <SelectTrigger className="bg-slate-800/50 border-slate-600 text-white">
+                    <SelectTrigger className="bg-surface border-border text-foreground">
                       <SelectValue placeholder="Select unit" />
                     </SelectTrigger>
                   </FormControl>
@@ -175,7 +175,7 @@ export function MaterialForm({ material, onSubmit, onCancel, isLoading }: Materi
                     placeholder="0"
                     {...field}
                     onChange={e => field.onChange(parseFloat(e.target.value) || 0)}
-                    className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400"
+                    className="bg-surface border-border text-foreground placeholder:text-[color:var(--text-muted)]"
                   />
                 </FormControl>
                 <FormMessage />
@@ -196,7 +196,7 @@ export function MaterialForm({ material, onSubmit, onCancel, isLoading }: Materi
                     placeholder="0.00"
                     {...field}
                     onChange={e => field.onChange(parseFloat(e.target.value) || 0)}
-                    className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400"
+                    className="bg-surface border-border text-foreground placeholder:text-[color:var(--text-muted)]"
                   />
                 </FormControl>
                 <FormMessage />
@@ -217,7 +217,7 @@ export function MaterialForm({ material, onSubmit, onCancel, isLoading }: Materi
                     placeholder="0"
                     {...field}
                     onChange={e => field.onChange(parseFloat(e.target.value) || 0)}
-                    className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400"
+                    className="bg-surface border-border text-foreground placeholder:text-[color:var(--text-muted)]"
                   />
                 </FormControl>
                 <FormMessage />
@@ -236,7 +236,7 @@ export function MaterialForm({ material, onSubmit, onCancel, isLoading }: Materi
                 <Input 
                   placeholder="Enter supplier name" 
                   {...field}
-                  className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400"
+                  className="bg-surface border-border text-foreground placeholder:text-[color:var(--text-muted)]"
                 />
               </FormControl>
               <FormMessage />
@@ -254,7 +254,7 @@ export function MaterialForm({ material, onSubmit, onCancel, isLoading }: Materi
                 <Textarea 
                   placeholder="Enter material description" 
                   {...field}
-                  className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-400 min-h-[80px]"
+                  className="bg-surface border-border text-foreground placeholder:text-[color:var(--text-muted)] min-h-[80px]"
                 />
               </FormControl>
               <FormMessage />
@@ -268,14 +268,14 @@ export function MaterialForm({ material, onSubmit, onCancel, isLoading }: Materi
             variant="outline" 
             onClick={onCancel}
             disabled={isLoading}
-            className="border-slate-600 text-slate-300 hover:bg-slate-800"
+            className="border-border text-[color:var(--text-secondary)] hover:bg-surface-sunken"
           >
             Cancel
           </Button>
           <Button 
             type="submit" 
             disabled={isLoading}
-            className="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700"
+            className="bg-brand hover:bg-brand-hover text-primary-foreground"
           >
             {isLoading ? 'Saving...' : material ? 'Update Material' : 'Create Material'}
           </Button>

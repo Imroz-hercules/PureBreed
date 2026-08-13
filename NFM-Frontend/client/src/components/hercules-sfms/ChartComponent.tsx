@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   ResponsiveContainer,
   BarChart,
@@ -12,7 +12,6 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ReferenceLine,
 } from 'recharts';
 import { Info } from 'lucide-react';
@@ -61,8 +60,8 @@ const CustomTooltip = ({ active, payload, label, title }: any) => {
     };
 
     return (
-      <div className="bg-slate-800/95 border border-cyan-500/50 rounded-lg shadow-xl p-3 backdrop-blur-sm">
-        <p className="text-cyan-400 font-bold mb-2">
+      <div className="bg-slate-800/95 border border-brand/50 rounded-lg shadow-xl p-3 backdrop-blur-sm">
+        <p className="text-brand font-bold mb-2">
           {typeof label === 'string' && label.includes(':') ? `Time: ${label}` : label}
         </p>
         {payload.map((entry: any, index: number) => (
@@ -97,77 +96,16 @@ interface ChartComponentProps {
 
 // High contrast colors using rgba functions optimized for both light and dark modes
 const defaultColors = [
-  // Primary vibrant colors - high contrast and distinct
-  'rgba(239, 68, 68, 1)',     // Red 500
-  'rgba(16, 185, 129, 1)',    // Emerald 500
-  'rgba(59, 130, 246, 1)',    // Blue 500
-  'rgba(139, 92, 246, 1)',    // Violet 500
-  'rgba(249, 115, 22, 1)',    // Orange 500
-  'rgba(6, 182, 212, 1)',     // Cyan 500
-  'rgba(236, 72, 153, 1)',    // Pink 500
-  'rgba(132, 204, 22, 1)',    // Lime 500
-  'rgba(168, 85, 247, 1)',    // Purple 500
-  'rgba(234, 179, 8, 1)',     // Yellow 500
-  
-  // Secondary distinct colors
-  'rgba(220, 38, 127, 1)',    // Rose 600
-  'rgba(34, 197, 94, 1)',     // Green 500
-  'rgba(14, 165, 233, 1)',    // Sky 500
-  'rgba(99, 102, 241, 1)',    // Indigo 500
-  'rgba(245, 101, 101, 1)',   // Red 400
-  'rgba(52, 211, 153, 1)',    // Emerald 400
-  'rgba(96, 165, 250, 1)',    // Blue 400
-  'rgba(167, 139, 250, 1)',   // Violet 400
-  'rgba(251, 146, 60, 1)',    // Orange 400
-  'rgba(34, 211, 238, 1)',    // Cyan 400
-  
-  // Tertiary colors for more products
-  'rgba(251, 113, 133, 1)',   // Rose 400
-  'rgba(74, 222, 128, 1)',    // Green 400
-  'rgba(56, 189, 248, 1)',    // Sky 400
-  'rgba(129, 140, 248, 1)',   // Indigo 400
-  'rgba(248, 113, 113, 1)',   // Red 400
-  'rgba(110, 231, 183, 1)',   // Emerald 300
-  'rgba(147, 197, 253, 1)',   // Blue 300
-  'rgba(196, 181, 253, 1)',   // Violet 300
-  'rgba(252, 165, 165, 1)',   // Red 300
-  'rgba(134, 239, 172, 1)',   // Green 300
-  
-  // Additional unique colors
-  'rgba(191, 219, 254, 1)',   // Blue 200
-  'rgba(221, 214, 254, 1)',   // Violet 200
-  'rgba(254, 202, 202, 1)',   // Red 200
-  'rgba(187, 247, 208, 1)',   // Green 200
-  'rgba(165, 243, 252, 1)',   // Cyan 200
-  'rgba(253, 230, 138, 1)',   // Yellow 200
-  'rgba(252, 165, 165, 1)',   // Rose 200
-  'rgba(196, 181, 253, 1)',   // Indigo 200
-  'rgba(254, 215, 170, 1)',   // Orange 200
-  'rgba(190, 242, 100, 1)',   // Lime 200
-  
-  // Extended palette for many products
-  'rgba(185, 28, 28, 1)',     // Red 700
-  'rgba(4, 120, 87, 1)',      // Emerald 700
-  'rgba(29, 78, 216, 1)',     // Blue 700
-  'rgba(109, 40, 217, 1)',    // Violet 700
-  'rgba(194, 65, 12, 1)',     // Orange 700
-  'rgba(14, 116, 144, 1)',    // Cyan 700
-  'rgba(157, 23, 77, 1)',     // Rose 700
-  'rgba(77, 124, 15, 1)',     // Lime 700
-  'rgba(124, 45, 18, 1)',     // Red 800
-  'rgba(6, 95, 70, 1)',       // Emerald 800
-  
-  // Darker variants for contrast
-  'rgba(30, 64, 175, 1)',     // Blue 800
-  'rgba(91, 33, 182, 1)',     // Violet 800
-  'rgba(154, 52, 18, 1)',     // Orange 800
-  'rgba(21, 94, 117, 1)',     // Cyan 800
-  'rgba(131, 24, 67, 1)',     // Rose 800
-  'rgba(54, 83, 20, 1)',      // Lime 800
-  'rgba(107, 33, 168, 1)',    // Purple 800
-  'rgba(161, 98, 7, 1)',      // Yellow 700
-  'rgba(153, 27, 27, 1)',     // Red 900
-  'rgba(6, 78, 59, 1)',       // Emerald 900
+  '#22d3ee', // cyan neon
+  '#34d399', // emerald neon
+  '#fbbf24', // amber neon
+  '#f87171', // red neon
+  '#a78bfa', // violet neon
+  '#60a5fa', // blue neon
+  '#fb923c', // orange neon
+  '#2dd4bf', // teal neon
+  '#e879f9', // fuchsia neon
+  '#4ade80', // green neon
 ];
 
 // Chart descriptions in factory language
@@ -197,34 +135,6 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
 }) => {
   const [showInfo, setShowInfo] = useState(false);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
-  const [isDarkMode, setIsDarkMode] = useState(false);
-
-  // Detect dark mode
-  useEffect(() => {
-    const checkDarkMode = () => {
-      const isDark = document.documentElement.classList.contains('dark') || 
-                    window.matchMedia('(prefers-color-scheme: dark)').matches;
-      setIsDarkMode(isDark);
-    };
-
-    checkDarkMode();
-    
-    // Listen for theme changes
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    mediaQuery.addEventListener('change', checkDarkMode);
-    
-    // Listen for class changes on document element
-    const observer = new MutationObserver(checkDarkMode);
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['class']
-    });
-
-    return () => {
-      mediaQuery.removeEventListener('change', checkDarkMode);
-      observer.disconnect();
-    };
-  }, []);
 
   // Get chart description
   const getChartDescription = () => {
@@ -266,200 +176,112 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
 
   const finalChartData = applyZoom(chartData);
 
-  // Custom scrollable legend for side placement
-  const renderScrollableLegend = (props: any) => {
-    const { payload } = props;
-    return (
-      <div
-        style={{
-          maxHeight: 300,
-          overflowY: 'auto',
-          padding: '20px',
-          fontSize: '0.9rem',
-          backgroundColor: 'var(--chart-legend-bg)',
-          borderRadius: '16px',
-          border: 'var(--chart-legend-border)',
-          minWidth: '350px',
-          maxWidth: '400px',
-          boxShadow: 'var(--chart-legend-shadow)',
-          backdropFilter: 'blur(10px)',
-          position: 'relative'
-        }}
-        className="chart-legend modern-legend"
-      >
-        {/* Futuristic header */}
-        <div className="mb-4 pb-3 border-b border-slate-200/30 dark:border-slate-600/30">
-          <h4 className="text-sm font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider">
-            Product Breakdown
-          </h4>
-          <div className="w-12 h-1 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full mt-2"></div>
-        </div>
-        
-        {payload.map((entry: any, index: number) => (
-          <div
-            key={`item-${index}`}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              marginBottom: 12,
-              whiteSpace: 'nowrap',
-              padding: '8px 12px',
-              borderRadius: '10px',
-              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-              position: 'relative',
-              overflow: 'hidden',
-              transform: hoveredIndex === index ? 'scale(1.02)' : 'scale(1)',
-              backgroundColor: hoveredIndex === index ? 'rgba(6, 182, 212, 0.1)' : 'transparent',
-              border: hoveredIndex === index ? '1px solid rgba(6, 182, 212, 0.3)' : '1px solid transparent'
-            }}
-            className="legend-item modern-legend-item cursor-pointer"
+  // Compact side legend — sits beside the pie, does not overlay it
+  const renderCompactLegend = () => (
+    <div className="w-[168px] shrink-0 max-h-[280px] overflow-y-auto border-l border-brand/20 pl-2.5 pr-1">
+      <p className="text-[10px] font-bold uppercase tracking-wider text-brand mb-2 sticky top-0 bg-surface/95 backdrop-blur-sm pb-1">
+        Legend · {finalChartData.length}
+      </p>
+      <ul className="space-y-1">
+        {finalChartData.map((entry: any, index: number) => {
+          const color = colors[index % colors.length] || defaultColors[index % defaultColors.length];
+          return (
+          <li
+            key={`legend-${index}`}
+            className={`flex items-center gap-2 rounded px-1.5 py-1 text-[11px] cursor-pointer transition-colors ${
+              hoveredIndex === index ? 'bg-brand-subtle text-brand' : 'text-[color:var(--text-secondary)] hover:bg-surface-sunken'
+            }`}
             onMouseEnter={() => setHoveredIndex(index)}
             onMouseLeave={() => setHoveredIndex(null)}
+            title={String(entry.name)}
           >
-            {/* Hover effect background */}
-            <div 
-              className="absolute inset-0 bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-700/50 dark:to-slate-600/50 opacity-0 hover:opacity-100 transition-opacity duration-300 rounded-lg"
-              style={{ zIndex: 0 }}
-            />
-            
-            {/* Color indicator with enhanced glow effect for dark mode */}
-            <div
+            <span
+              className="h-2.5 w-2.5 rounded-sm shrink-0"
               style={{
-                width: 18,
-                height: 18,
-                backgroundColor: defaultColors[index % defaultColors.length],
-                marginRight: 16,
-                borderRadius: '6px',
-                boxShadow: `0 0 16px ${defaultColors[index % defaultColors.length]}CC, 0 0 8px ${defaultColors[index % defaultColors.length]}80`,
-                border: '2px solid rgba(255, 255, 255, 0.3)',
-                position: 'relative',
-                zIndex: 1,
-                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                transform: hoveredIndex === index ? 'scale(1.2)' : 'scale(1)',
-                filter: hoveredIndex === index 
-                  ? 'brightness(1.3) saturate(1.2) drop-shadow(0 6px 12px rgba(0,0,0,0.4))' 
-                  : 'brightness(1.1) drop-shadow(0 2px 4px rgba(0,0,0,0.2))'
+                backgroundColor: color,
+                boxShadow: `0 0 8px ${color}`,
               }}
-              className="color-indicator"
-              onMouseEnter={() => setHoveredIndex(index)}
-              onMouseLeave={() => setHoveredIndex(null)}
             />
-            
-            {/* Product name with modern typography */}
-            <span 
-              title={entry.value} 
-              style={{ 
-                fontSize: '13px', 
-                fontWeight: '600', 
-                lineHeight: '1.4',
-                position: 'relative',
-                zIndex: 1,
-                flex: 1,
-                minWidth: 0
-              }}
-              className="product-name"
-            >
-              {entry.value.length > 35
-                ? entry.value.substring(0, 35) + '…'
-                : entry.value}
+            <span className="truncate leading-tight">
+              {String(entry.name).length > 22 ? String(entry.name).substring(0, 22) + '…' : entry.name}
             </span>
-            
-            {/* Hover indicator */}
-            <div className="ml-2 opacity-0 hover:opacity-100 transition-opacity duration-300" style={{ zIndex: 1 }}>
-              <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></div>
-            </div>
-          </div>
-        ))}
-        
-        {/* Futuristic footer */}
-        <div className="mt-4 pt-3 border-t border-slate-200/30 dark:border-slate-600/30">
-          <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-            <span>Total Products: {payload.length}</span>
-            <div className="flex items-center gap-1">
-              <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></div>
-              <span>Live Data</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
+          </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
 
   const renderChart = () => {
     switch (type) {
-      case 'bar':
+      case 'bar': {
+        const barColors = finalChartData.map((_, index) =>
+          colors[index % colors.length] || defaultColors[index % defaultColors.length]
+        );
         return (
-          <BarChart data={finalChartData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
-            <CartesianGrid strokeDasharray="3 3" className="stroke-slate-300 dark:stroke-slate-600" />
-            <XAxis 
-              dataKey="name" 
-              tick={{ 
-                fill: 'var(--chart-text-color, #374151)', 
-                fontSize: 12,
-                fontWeight: '500'
-              }}
-              axisLine={{ stroke: 'var(--chart-axis-color, #d1d5db)' }}
-              tickLine={{ stroke: 'var(--chart-axis-color, #d1d5db)' }}
-              className="text-slate-700 dark:text-slate-300"
-              style={{
-                color: 'var(--chart-text-color, #374151)',
-                fill: 'var(--chart-text-color, #374151)'
-              }}
-              label={{ 
-                value: "Date", 
-                position: "bottom", 
-                offset: 0,
-                style: { 
-                  textAnchor: 'middle',
-                  fill: 'var(--chart-text-color, #374151)',
-                  fontSize: 14,
-                  fontWeight: '600'
-                }
-              }}
+          <BarChart data={finalChartData} margin={{ top: 20, right: 24, left: 8, bottom: 16 }}>
+            <defs>
+              <filter id="neonBarGlow" x="-40%" y="-40%" width="180%" height="180%">
+                <feGaussianBlur stdDeviation="3.5" result="blur" />
+                <feMerge>
+                  <feMergeNode in="blur" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+              {barColors.map((color, index) => (
+                <linearGradient key={`grad-${index}`} id={`neonBarGrad-${index}`} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={color} stopOpacity={1} />
+                  <stop offset="55%" stopColor={color} stopOpacity={0.85} />
+                  <stop offset="100%" stopColor={color} stopOpacity={0.2} />
+                </linearGradient>
+              ))}
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.18)" vertical={false} />
+            <XAxis
+              dataKey="name"
+              tick={{ fill: 'var(--chart-text-color, #94a3b8)', fontSize: 11, fontWeight: 500 }}
+              axisLine={{ stroke: 'rgba(34,211,238,0.25)' }}
+              tickLine={{ stroke: 'rgba(34,211,238,0.2)' }}
+              interval={0}
+              angle={finalChartData.length > 6 ? -28 : 0}
+              textAnchor={finalChartData.length > 6 ? 'end' : 'middle'}
+              height={finalChartData.length > 6 ? 50 : 30}
             />
-            <YAxis 
-              tick={{ 
-                fill: 'var(--chart-text-color, #374151)', 
-                fontSize: 12,
-                fontWeight: '500'
-              }}
-              axisLine={{ stroke: 'var(--chart-axis-color, #d1d5db)' }}
-              tickLine={{ stroke: 'var(--chart-axis-color, #d1d5db)' }}
-              className="text-slate-700 dark:text-slate-300"
-              style={{
-                color: 'var(--chart-text-color, #374151)',
-                fill: 'var(--chart-text-color, #374151)'
-              }}
+            <YAxis
+              tick={{ fill: 'var(--chart-text-color, #94a3b8)', fontSize: 11, fontWeight: 500 }}
+              axisLine={{ stroke: 'rgba(34,211,238,0.25)' }}
+              tickLine={{ stroke: 'rgba(34,211,238,0.2)' }}
             />
             <Tooltip
               contentStyle={{
-                backgroundColor: 'rgba(15, 23, 42, 0.95)',
-                borderColor: 'rgba(6, 182, 212, 0.5)',
+                backgroundColor: 'rgba(17, 24, 39, 0.95)',
+                borderColor: 'rgba(34, 211, 238, 0.45)',
                 borderRadius: '8px',
-                boxShadow: '0 10px 25px rgba(0, 0, 0, 0.5)',
-                color: '#ffffff'
+                boxShadow: '0 0 20px rgba(34, 211, 238, 0.25)',
+                color: '#f0f4f8',
+                fontSize: 12,
               }}
-              labelStyle={{ color: '#06b6d4', fontWeight: 'bold' }}
-              cursor={{ fill: 'rgba(6, 182, 212, 0.1)' }}
+              labelStyle={{ color: '#22d3ee', fontWeight: 700 }}
+              cursor={{ fill: 'rgba(34, 211, 238, 0.08)' }}
               formatter={(value: any) => {
                 const formattedValue = typeof value === 'number' ? value.toFixed(1) : value;
-                return [`${formattedValue} tons`, 'Value'];
+                return [formattedValue, 'Value'];
               }}
             />
-            <Bar 
-              dataKey="value" 
-              fill={colors[0] || defaultColors[0]}
-              radius={[4, 4, 0, 0]}
-            >
+            <Bar dataKey="value" radius={[6, 6, 0, 0]} filter="url(#neonBarGlow)" maxBarSize={48}>
               {finalChartData.map((_entry, index) => (
-                <Cell 
-                  key={`cell-${index}`} 
-                  fill={colors[index % colors.length] || defaultColors[index % defaultColors.length]} 
+                <Cell
+                  key={`cell-${index}`}
+                  fill={`url(#neonBarGrad-${index})`}
+                  stroke={barColors[index]}
+                  strokeWidth={1}
+                  style={{ filter: `drop-shadow(0 0 8px ${barColors[index]}99)` }}
                 />
               ))}
             </Bar>
           </BarChart>
         );
+      }
 
       case 'line':
         return (
@@ -558,170 +380,85 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
           </LineChart>
         );
 
-      case 'pie':
-        return (
-          <PieChart width={600} height={400}>
-            <Pie
-              data={finalChartData}
-              dataKey="value"
-              nameKey="name"
-              cx="45%" // Adjusted to prevent left cutting
-              cy="50%"
-              outerRadius={hoveredIndex !== null ? 120 : 110}
-              innerRadius={0}
-              paddingAngle={4}
-              label={({ name, value, index, midAngle, innerRadius, outerRadius, cx, cy }) => {
-                // Only show label for hovered section
-                if (hoveredIndex === index) {
-                  // Get the color of the hovered section
-                  const sectionColor = defaultColors[index % defaultColors.length];
-                  
-                  return (
-                    <g>
-                      {/* Background circle with section color */}
-                      <circle
-                        cx={cx}
-                        cy={cy}
-                        r="45"
-                        fill={sectionColor}
-                        stroke="rgba(255, 255, 255, 0.4)"
-                        strokeWidth="2"
-                        style={{
-                          pointerEvents: 'none',
-                          filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.6))'
-                        }}
-                      />
-                      {/* Label text */}
-                      <text
-                        x={cx}
-                        y={cy}
-                        textAnchor="middle"
-                        dominantBaseline="middle"
-                        style={{
-                          fontSize: '14px',
-                          fontWeight: 'bold',
-                          fill: '#ffffff',
-                          textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
-                          pointerEvents: 'none'
-                        }}
-                      >
-                        <tspan x={cx} dy="-8" style={{ fontSize: '13px' }}>
-                          {name.length > 25 ? name.substring(0, 25) + '...' : name}
-                        </tspan>
-                        <tspan x={cx} dy="16" style={{ fontSize: '12px', opacity: 0.9 }}>
-                          {(title === 'Material Error Analysis' || (typeof name === 'string' && (name.includes('EMULSFIER') || name.includes('FEED') || name.includes('ACIDS') || name.includes('Recycle')))) ? `Error: ${value}%` : `Count: ${value} materials`}
-                        </tspan>
-                      </text>
-                    </g>
-                  );
-                }
-                return null;
-              }}
-              labelLine={false}
-            >
-              {finalChartData.map((_entry, index) => {
-                const isHovered = hoveredIndex === index;
-                const baseColor = defaultColors[index % defaultColors.length];
-                const hoverColor = baseColor; // Already full opacity
-                
-                return (
-                <Cell
-                  key={`cell-${index}`}
-                    fill={isHovered ? hoverColor : baseColor}
-                    stroke="none"
-                    strokeWidth={0}
-                    className="pie-segment cursor-pointer"
-                  style={{
-                      filter: isHovered 
-                        ? (isDarkMode 
-                          ? 'drop-shadow(0 8px 16px rgba(0,0,0,0.6)) brightness(1.3) saturate(1.2)' 
-                          : 'drop-shadow(0 8px 16px rgba(0,0,0,0.4)) brightness(1.2) saturate(1.1)')
-                        : (isDarkMode 
-                          ? 'drop-shadow(0 4px 8px rgba(0,0,0,0.4)) brightness(1.1)' 
-                          : 'drop-shadow(0 4px 8px rgba(0,0,0,0.3))'),
-                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                      transform: isHovered ? 'scale(1.05)' : 'scale(1)',
-                      transformOrigin: 'center',
-                    }}
-                    onMouseEnter={() => setHoveredIndex(index)}
-                    onMouseLeave={() => setHoveredIndex(null)}
-                  />
-                );
-              })}
-            </Pie>
-            
-            {/* Custom hover label that appears outside the pie chart */}
-            {hoveredIndex !== null && finalChartData[hoveredIndex] && (
-              <g>
-                {/* Get the color of the hovered section */}
-                {(() => {
-                  const sectionColor = defaultColors[hoveredIndex % defaultColors.length];
-                  return (
-                    <>
-                      {/* Background rectangle with section color */}
-                      <rect
-                        x="50"
-                        y="20"
-                        width="200"
-                        height="60"
-                        rx="8"
-                        fill={sectionColor}
-                        stroke="rgba(255, 255, 255, 0.4)"
-                        strokeWidth="2"
-                        style={{
-                          filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.4))'
-                        }}
-                      />
-                      {/* Label text */}
-                      <text
-                        x="150"
-                        y="40"
-                        textAnchor="middle"
-                        dominantBaseline="middle"
-                        style={{
-                          fontSize: '14px',
-                          fontWeight: 'bold',
-                          fill: '#ffffff',
-                          textShadow: '1px 1px 2px rgba(0,0,0,0.8)'
-                        }}
-                      >
-                        {finalChartData[hoveredIndex].name.length > 30 
-                          ? finalChartData[hoveredIndex].name.substring(0, 30) + '...' 
-                          : finalChartData[hoveredIndex].name}
-                      </text>
-                      <text
-                        x="150"
-                        y="60"
-                        textAnchor="middle"
-                        dominantBaseline="middle"
-                        style={{
-                          fontSize: '12px',
-                          fill: '#ffffff',
-                          opacity: 0.9
-                        }}
-                      >
-                        {(title === 'Material Error Analysis' || (typeof finalChartData[hoveredIndex]?.name === 'string' && (finalChartData[hoveredIndex].name.includes('EMULSFIER') || finalChartData[hoveredIndex].name.includes('FEED') || finalChartData[hoveredIndex].name.includes('ACIDS') || finalChartData[hoveredIndex].name.includes('Recycle')))) ? `Error: ${finalChartData[hoveredIndex].value}%` : `Count: ${finalChartData[hoveredIndex].value} materials`}
-                      </text>
-                    </>
-                  );
-                })()}
-              </g>
-            )}
-            
-            <Tooltip
-              content={() => null}
-              cursor={{ fill: 'rgba(6, 182, 212, 0.1)' }}
-            />
-            <Legend
-              layout="vertical"
-              verticalAlign="middle"
-              align="right"
-              content={renderScrollableLegend}
-              wrapperStyle={{ color: 'var(--chart-text-color)', width: '420px' }}
-              className="chart-legend-wrapper"
-            />
-          </PieChart>
+      case 'pie': {
+        const pieColors = finalChartData.map((_, index) =>
+          colors[index % colors.length] || defaultColors[index % defaultColors.length]
         );
+        return (
+          <div className="flex w-full h-full min-h-[260px] items-stretch gap-0">
+            <div className="flex-1 min-w-0 h-full relative">
+              <div className="pointer-events-none absolute inset-[18%] rounded-full bg-[radial-gradient(circle,rgba(34,211,238,0.14)_0%,transparent_70%)] blur-md" />
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <defs>
+                    <filter id="neonPieGlow" x="-50%" y="-50%" width="200%" height="200%">
+                      <feGaussianBlur stdDeviation="4" result="blur" />
+                      <feMerge>
+                        <feMergeNode in="blur" />
+                        <feMergeNode in="SourceGraphic" />
+                      </feMerge>
+                    </filter>
+                  </defs>
+                  <Pie
+                    data={finalChartData}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={hoveredIndex !== null ? 102 : 94}
+                    innerRadius={42}
+                    paddingAngle={3}
+                    label={false}
+                    labelLine={false}
+                    stroke="rgba(10,15,26,0.9)"
+                    strokeWidth={2}
+                    filter="url(#neonPieGlow)"
+                  >
+                    {finalChartData.map((_entry, index) => {
+                      const isHovered = hoveredIndex === index;
+                      const baseColor = pieColors[index];
+                      return (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={baseColor}
+                          stroke={baseColor}
+                          strokeWidth={isHovered ? 2 : 1}
+                          className="pie-segment neon-pie-slice"
+                          style={{
+                            cursor: 'pointer',
+                            opacity: hoveredIndex === null || isHovered ? 1 : 0.35,
+                            filter: `drop-shadow(0 0 ${isHovered ? 12 : 6}px ${baseColor})`,
+                            transition: 'all 0.25s ease',
+                          }}
+                          onMouseEnter={() => setHoveredIndex(index)}
+                          onMouseLeave={() => setHoveredIndex(null)}
+                        />
+                      );
+                    })}
+                  </Pie>
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: 'rgba(17, 24, 39, 0.96)',
+                      borderColor: 'rgba(34, 211, 238, 0.45)',
+                      borderRadius: '8px',
+                      boxShadow: '0 0 18px rgba(34, 211, 238, 0.3)',
+                      color: '#f0f4f8',
+                      fontSize: 12,
+                    }}
+                    itemStyle={{ color: '#22d3ee' }}
+                    formatter={(value: any, name: any) => {
+                      const formattedValue = typeof value === 'number' ? value.toFixed(1) : value;
+                      const isError = typeof title === 'string' && title.toLowerCase().includes('error');
+                      return [isError ? `${formattedValue}%` : formattedValue, name];
+                    }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+            {renderCompactLegend()}
+          </div>
+        );
+      }
 
       default:
         return null;
@@ -729,7 +466,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
   };
 
   return (
-    <div style={{ width: '100%', height: 300 }}>
+    <div style={{ width: '100%', height: type === 'pie' ? 320 : 300 }}>
       {/* Custom styles for better visibility */}
       <style>{`
         :root {
@@ -741,60 +478,21 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
           --chart-axis-color: #6b7280;
         }
         .pie-segment {
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+          transition: all 0.25s ease !important;
         }
-        .pie-segment:hover {
-          filter: brightness(1.2) saturate(1.1) drop-shadow(0 8px 16px rgba(0,0,0,0.6)) !important;
+        .neon-pie-slice:hover {
+          filter: brightness(1.25) saturate(1.2) !important;
         }
-        .color-indicator {
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        .recharts-bar-rectangle {
+          transition: filter 0.2s ease;
         }
-        .legend-item {
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-        }
-        .legend-item:hover {
-          background-color: rgba(6, 182, 212, 0.1) !important;
-          border: 1px solid rgba(6, 182, 212, 0.3) !important;
-        }
-        /* Dark mode adjustments - Enhanced visibility */
-        .dark .pie-segment {
-          stroke: rgba(255, 255, 255, 0.4) !important;
-          filter: brightness(1.1) drop-shadow(0 4px 8px rgba(0,0,0,0.4)) !important;
-        }
-        .dark .pie-segment:hover {
-          stroke: rgba(255, 255, 255, 0.8) !important;
-          filter: brightness(1.3) saturate(1.2) drop-shadow(0 8px 16px rgba(0,0,0,0.6)) !important;
-        }
-        /* Light mode adjustments */
-        .light .pie-segment {
-          stroke: rgba(0, 0, 0, 0.3) !important;
-        }
-        .light .pie-segment:hover {
-          stroke: rgba(0, 0, 0, 0.6) !important;
-        }
-        /* Fallback for systems without dark/light class */
-        @media (prefers-color-scheme: dark) {
-          .pie-segment {
-            stroke: rgba(255, 255, 255, 0.4) !important;
-            filter: brightness(1.1) drop-shadow(0 4px 8px rgba(0,0,0,0.4)) !important;
-          }
-          .pie-segment:hover {
-            stroke: rgba(255, 255, 255, 0.8) !important;
-            filter: brightness(1.3) saturate(1.2) drop-shadow(0 8px 16px rgba(0,0,0,0.6)) !important;
-          }
-        }
-        @media (prefers-color-scheme: light) {
-          .pie-segment {
-            stroke: rgba(0, 0, 0, 0.3) !important;
-          }
-          .pie-segment:hover {
-            stroke: rgba(0, 0, 0, 0.6) !important;
-          }
+        .recharts-bar-rectangle:hover {
+          filter: brightness(1.15) drop-shadow(0 0 10px rgba(34, 211, 238, 0.8)) !important;
         }
       `}</style>
       {title && (
         <div className="flex items-center justify-between mb-3 px-2">
-          <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
+          <h3 className="text-[13px] font-semibold uppercase tracking-wide text-[color:var(--text-secondary)]">
             {title}
           </h3>
           
@@ -803,7 +501,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
             <button
               onMouseEnter={() => setShowInfo(true)}
               onMouseLeave={() => setShowInfo(false)}
-              className="p-1.5 rounded-full bg-cyan-500 hover:bg-cyan-600 border border-cyan-400 transition-all duration-200 hover:scale-110 group"
+              className="p-1.5 rounded-full bg-brand/90 hover:bg-brand border border-brand/60 shadow-[0_0_12px_rgba(34,211,238,0.55)] transition-all duration-200 hover:scale-110 group"
               aria-label="Chart information"
             >
               <Info className="h-4 w-4 text-white group-hover:text-white transition-colors" />
@@ -811,9 +509,9 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
             
             {/* Info Tooltip */}
             {showInfo && (
-              <div className="absolute right-0 top-full mt-2 w-80 p-4 bg-slate-800/95 dark:bg-slate-800/95 border border-cyan-500/50 dark:border-cyan-500/50 rounded-lg shadow-xl z-50 backdrop-blur-sm chart-info-tooltip">
+              <div className="absolute right-0 top-full mt-2 w-80 p-4 bg-slate-800/95 dark:bg-slate-800/95 border border-brand/50 dark:border-brand/50 rounded-lg shadow-xl z-50 backdrop-blur-sm chart-info-tooltip">
                 <div className="text-sm text-slate-200 dark:text-slate-200 leading-relaxed">
-                  <div className="font-semibold text-cyan-400 dark:text-cyan-400 mb-2 flex items-center gap-2">
+                  <div className="font-semibold text-brand dark:text-brand mb-2 flex items-center gap-2">
                     <Info className="h-4 w-4" />
                     Chart Information
                   </div>
@@ -823,7 +521,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
                 </div>
                 
                 {/* Tooltip Arrow */}
-                <div className="absolute -top-2 right-4 w-4 h-4 bg-slate-800/95 dark:bg-slate-800/95 border-l border-t border-cyan-500/50 dark:border-cyan-500/50 transform rotate-45 tooltip-arrow"></div>
+                <div className="absolute -top-2 right-4 w-4 h-4 bg-slate-800/95 dark:bg-slate-800/95 border-l border-t border-brand/50 dark:border-brand/50 transform rotate-45 tooltip-arrow"></div>
               </div>
             )}
           </div>
@@ -837,9 +535,11 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
         </div>
       )}
       
-      <ResponsiveContainer width="100%" height={title ? "90%" : "100%"}>
-        {renderChart() || <div>Chart not available</div>}
-      </ResponsiveContainer>
+      {type === 'pie' ? (renderChart() || <div>Chart not available</div>) : (
+        <ResponsiveContainer width="100%" height={title ? "90%" : "100%"}>
+          {renderChart() || <div>Chart not available</div>}
+        </ResponsiveContainer>
+      )}
     </div>
   );
 };

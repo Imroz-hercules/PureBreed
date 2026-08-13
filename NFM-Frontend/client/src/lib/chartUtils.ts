@@ -1,12 +1,20 @@
 import { ChartDataPoint } from "@shared/schema";
+import { chartPalette } from './themeTokens'
+
+export { chartPalette }
 
 export const chartColors = {
-  cyberBlue: "hsl(180, 100%, 50%)",
-  electricBlue: "hsl(212, 100%, 50%)",
-  neonGreen: "hsl(158, 100%, 50%)",
-  neonAmber: "hsl(45, 100%, 50%)",
-  neonOrange: "hsl(20, 100%, 50%)",
-  cyberPurple: "hsl(270, 100%, 50%)",
+  brand: 'var(--brand)',
+  success: 'var(--success)',
+  warning: 'var(--warning)',
+  danger: 'var(--danger)',
+  info: 'var(--info)',
+  cyberBlue: 'var(--brand)',
+  electricBlue: 'var(--info)',
+  neonGreen: 'var(--success)',
+  neonAmber: 'var(--warning)',
+  neonOrange: 'var(--warning)',
+  cyberPurple: 'var(--chart-5)',
 };
 
 export const createGradient = (ctx: CanvasRenderingContext2D, color: string, alpha: number = 0.1) => {

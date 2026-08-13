@@ -23,6 +23,22 @@ export const API_ENDPOINTS = {
   FILTER_OPTIONS: `${API_BASE_URL}/api/filter-options`,
   KPI_CALENDAR: `${API_BASE_URL}/api/kpi_calendar`,
   KPI_CALENDAR_DETAILS: `${API_BASE_URL}/api/kpi_calendar/details`,
+
+  // Batch report DB (MaterialInfo / ConsumptionInfo / PM1Data via SSRS_DATABASE_URI bind)
+  BATCH_REPORT_HEALTH: `${API_BASE_URL}/api/ssrs/health`,
+  BATCH_DATE_BOUNDS: `${API_BASE_URL}/api/ssrs/meta/date-bounds`,
+  BATCH_FEED_PRODUCTION: `${API_BASE_URL}/api/ssrs/feed-production`,
+  BATCH_RAW_MATERIAL: `${API_BASE_URL}/api/ssrs/raw-material-consumption`,
+  BATCH_RAW_MATERIAL_PRODUCTS: `${API_BASE_URL}/api/ssrs/raw-material-consumption/products`,
+  BATCH_RAW_MATERIAL_QUANTITY: `${API_BASE_URL}/api/ssrs/raw-material-consumption/quantity`,
+  BATCH_RAW_CUMULATIVE: `${API_BASE_URL}/api/ssrs/raw-material-cumulative`,
+  BATCH_RAW_CUMULATIVE_MATERIALS: `${API_BASE_URL}/api/ssrs/raw-material-cumulative/materials`,
+  BATCH_RAW_CUMULATIVE_QUANTITY: `${API_BASE_URL}/api/ssrs/raw-material-cumulative/quantity`,
+  BATCH_REPORT_CLIENTS: `${API_BASE_URL}/api/ssrs/batch-report/clients`,
+  BATCH_REPORT_RECIPES: `${API_BASE_URL}/api/ssrs/batch-report/recipes`,
+  BATCH_REPORT_BATCHES: `${API_BASE_URL}/api/ssrs/batch-report/batches`,
+  BATCH_REPORT: `${API_BASE_URL}/api/ssrs/batch-report`,
+  BATCH_PM1_DATA: `${API_BASE_URL}/api/ssrs/pm1-data`,
   
   // Live Data
   DB4_LIVE: `${API_BASE_URL}/api/db4/live/read`,
