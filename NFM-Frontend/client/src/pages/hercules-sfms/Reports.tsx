@@ -37,8 +37,8 @@ const SSRS_TABS = [
   "Batch Report",
 ] as const;
 
-/** Visible tabs only — legacy BatchMaterials reports stay in code but hidden from UI */
-const tabs = [...SSRS_TABS] as const;
+/** Visible tabs: SSRS reports plus Detailed Report (other legacy tabs stay in code but hidden) */
+const tabs = [...SSRS_TABS, "Detailed Report"] as const;
 type TabName = (typeof LEGACY_TABS)[number] | (typeof SSRS_TABS)[number];
 
 const isSsrsTab = (tab: string) => (SSRS_TABS as readonly string[]).includes(tab);
