@@ -15,6 +15,8 @@ import {
   X,
   ChevronDown,
   Check,
+  Plus,
+  Minus,
 } from "lucide-react";
 import axios from "axios";
 import { API_ENDPOINTS, buildApiUrl } from "@/lib/api";
@@ -40,6 +42,23 @@ const SSRS_TABS = [
 /** Visible tabs: SSRS reports plus Detailed Report (other legacy tabs stay in code but hidden) */
 const tabs = [...SSRS_TABS, "Detailed Report"] as const;
 type TabName = (typeof LEGACY_TABS)[number] | (typeof SSRS_TABS)[number];
+
+const CLIENT_OPTIONS = [
+  "Clean",
+  "Farm1",
+  "Farm10",
+  "Farm11",
+  "Farm2",
+  "Farm3",
+  "Farm4",
+  "Farm5",
+  "Farm6",
+  "Farm7",
+  "Farm8",
+  "Farm9",
+  "Flush",
+  "flush3",
+];
 
 const isSsrsTab = (tab: string) => (SSRS_TABS as readonly string[]).includes(tab);
 
@@ -198,6 +217,7 @@ type LegacyRow = {
   actualValueFloat: number;
   orderId: string | number;
   batchGuid: string;
+  formulaCategoryName: string;
   isTotal?: boolean;
   errKg?: number;
   errPercent?: number;
@@ -230,6 +250,7 @@ function mapLegacyRow(item: Record<string, any>): LegacyRow {
     actualValueFloat: Number(item["Actual Value Float"] ?? item.actualValueFloat ?? 0),
     orderId: item.OrderId ?? item.orderId ?? "",
     batchGuid: String(item["Batch GUID"] ?? item.batchGuid ?? ""),
+    formulaCategoryName: item["FormulaCategoryName"] || item.formulaCategoryName || "",
   };
 }
 
@@ -249,7 +270,7 @@ function getTableHeaders(tab: TabName): string[] {
         "Order ID",
       ];
     case "Detailed Report":
-      return ["Batch", "Material Name", "Code", "Set Point", "Actual", "Err Kg", "Err %"];
+      return ["Client", "Batch Name", "Material Name", "Material Code", "Set Point", "Actual", "Difference"];
     case "Weekly":
     case "Monthly":
     case "Daily Report":
@@ -290,36 +311,128 @@ function getTableHeaders(tab: TabName): string[] {
   }
 }
 
-function buildDetailedGroups(data: LegacyRow[]): LegacyRow[][] {
-  const groups: Record<string, LegacyRow[]> = {};
-  data.forEach((item) => {
-    const key = item.batchGuid || `${item.batchName}__${item.productName}`;
-    if (!groups[key]) groups[key] = [];
-    groups[key].push(item);
-  });
-  return Object.values(groups).map((group) => {
-    const totalSetPoint = group.reduce((s, i) => s + (i.setPointFloat || 0), 0);
-    const totalActual = group.reduce((s, i) => s + (i.actualValueFloat || 0), 0);
-    const errKg = Math.abs(totalActual - totalSetPoint);
-    const errPercent = totalSetPoint !== 0 ? (errKg / totalSetPoint) * 100 : 0;
-    const materials = group.map((item) => {
-      const rowErr = Math.abs((item.actualValueFloat || 0) - (item.setPointFloat || 0));
-      const rowPct =
-        item.setPointFloat !== 0 ? (rowErr / Math.abs(item.setPointFloat)) * 100 : 0;
-      return { ...item, errKg: rowErr, errPercent: rowPct };
+function clientTokenMatch(text: string, client: string): boolean {
+  const n = client.trim();
+  const t = String(text || "").trim();
+  if (!n || !t) return false;
+  if (t.toLowerCase() === n.toLowerCase()) return true;
+  const escaped = n.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp(`^${escaped}(?=$|[\\s\\-_./])`, "i").test(t);
+}
+
+function matchesClientName(
+  row: Pick<LegacyRow, "formulaCategoryName" | "productName" | "batchName">,
+  client: string
+): boolean {
+  return (
+    clientTokenMatch(row.formulaCategoryName, client) ||
+    clientTokenMatch(row.productName, client) ||
+    clientTokenMatch(row.batchName, client)
+  );
+}
+
+function resolveClientName(row: LegacyRow): string {
+  for (const c of CLIENT_OPTIONS) {
+    if (matchesClientName(row, c)) return c;
+  }
+  return (row.formulaCategoryName || row.productName || "Unknown").trim() || "Unknown";
+}
+
+function batchNameMatchesClients(batchName: string, clients: string[]): boolean {
+  if (!clients.length || clients.length === CLIENT_OPTIONS.length) return true;
+  return clients.some((c) => clientTokenMatch(batchName, c));
+}
+
+type DetailedMaterial = {
+  materialName: string;
+  materialCode: string;
+  setPoint: number;
+  actual: number;
+  difference: number;
+};
+
+type DetailedBatch = {
+  key: string;
+  batchName: string;
+  batchTime: string;
+  materials: DetailedMaterial[];
+  totalSetPoint: number;
+  totalActual: number;
+  totalDifference: number;
+};
+
+type DetailedClient = {
+  client: string;
+  batches: DetailedBatch[];
+};
+
+function buildDetailedTree(data: LegacyRow[]): DetailedClient[] {
+  const clientMap = new Map<string, Map<string, LegacyRow[]>>();
+  for (const item of data) {
+    const client = resolveClientName(item);
+    const batchKey = item.batchGuid || `${item.batchName}__${item.batchStart}`;
+    if (!clientMap.has(client)) clientMap.set(client, new Map());
+    const batches = clientMap.get(client)!;
+    if (!batches.has(batchKey)) batches.set(batchKey, []);
+    batches.get(batchKey)!.push(item);
+  }
+  const extra = [...clientMap.keys()].filter((k) => !CLIENT_OPTIONS.includes(k));
+  return [...CLIENT_OPTIONS, ...extra]
+    .filter((c) => clientMap.has(c))
+    .map((client) => {
+      const batches = [...clientMap.get(client)!.entries()].map(([key, rows]) => {
+        const first = rows[0];
+        const materials = rows.map((r) => ({
+          materialName: r.materialName,
+          materialCode: r.materialCode,
+          setPoint: r.setPointFloat || 0,
+          actual: r.actualValueFloat || 0,
+          difference: (r.actualValueFloat || 0) - (r.setPointFloat || 0),
+        }));
+        const totalSetPoint = materials.reduce((s, m) => s + m.setPoint, 0);
+        const totalActual = materials.reduce((s, m) => s + m.actual, 0);
+        return {
+          key,
+          batchName: first.batchName,
+          batchTime: formatDisplayDate(first.batchStart || first.batchEnd),
+          materials,
+          totalSetPoint,
+          totalActual,
+          totalDifference: totalActual - totalSetPoint,
+        };
+      });
+      return { client, batches };
     });
-    const totalRow: LegacyRow = {
-      ...group[0],
-      materialName: "Total",
-      materialCode: "",
-      setPointFloat: totalSetPoint,
-      actualValueFloat: totalActual,
-      errKg,
-      errPercent,
-      isTotal: true,
-    };
-    return [...materials, totalRow];
-  });
+}
+
+function flattenDetailedTree(tree: DetailedClient[]) {
+  const rows: Array<Record<string, unknown>> = [];
+  for (const c of tree) {
+    for (const b of c.batches) {
+      for (const m of b.materials) {
+        rows.push({
+          client: c.client,
+          batchName: `${b.batchName} ${b.batchTime}`.trim(),
+          materialName: m.materialName,
+          materialCode: m.materialCode,
+          setPoint: m.setPoint,
+          actual: m.actual,
+          difference: m.difference,
+        });
+      }
+      rows.push({
+        client: c.client,
+        batchName: `${b.batchName} ${b.batchTime}`.trim(),
+        materialName: "Total",
+        materialCode: "",
+        setPoint: b.totalSetPoint,
+        actual: b.totalActual,
+        difference: b.totalDifference,
+        isTotal: true,
+      });
+    }
+  }
+  return rows;
 }
 
 function aggregateByProduct(data: LegacyRow[]) {
@@ -410,6 +523,9 @@ export function Reports() {
   const [pendingProduct, setPendingProduct] = useState<string[]>([]);
   const [pendingBatch, setPendingBatch] = useState<string[]>([]);
   const [pendingMaterial, setPendingMaterial] = useState<string[]>([]);
+  const [pendingClient, setPendingClient] = useState<string[]>([...CLIENT_OPTIONS]);
+  const [expandedClients, setExpandedClients] = useState<Set<string>>(new Set());
+  const [expandedBatches, setExpandedBatches] = useState<Set<string>>(new Set());
 
   const [ssrsFilter1Options, setSsrsFilter1Options] = useState<string[]>([]);
   const [ssrsFilter2Options, setSsrsFilter2Options] = useState<string[]>([]);
@@ -675,6 +791,9 @@ export function Reports() {
       if (pendingMaterial.length) {
         rows = rows.filter((r) => pendingMaterial.includes(r.materialName));
       }
+      if (pendingClient.length && pendingClient.length < CLIENT_OPTIONS.length) {
+        rows = rows.filter((r) => pendingClient.some((c) => matchesClientName(r, c)));
+      }
       setLegacyRows(rows);
       setSsrsRows([]);
       showToast(`Loaded ${rows.length} rows`, "success");
@@ -772,15 +891,58 @@ export function Reports() {
     else fetchLegacyReport();
   };
 
-  const detailedGroups = useMemo(() => {
-    if (activeTab !== "Detailed Report") return [] as LegacyRow[][];
-    return buildDetailedGroups(legacyRows);
+  const toggleClient = (client: string) => {
+    setExpandedClients((prev) => {
+      const next = new Set(prev);
+      if (next.has(client)) next.delete(client);
+      else next.add(client);
+      return next;
+    });
+  };
+
+  const toggleBatch = (key: string) => {
+    setExpandedBatches((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
+
+  const detailedTree = useMemo(() => {
+    if (activeTab !== "Detailed Report") return [] as DetailedClient[];
+    return buildDetailedTree(legacyRows);
   }, [activeTab, legacyRows]);
+
+  const visibleBatchOptions = useMemo(() => {
+    if (activeTab !== "Detailed Report") return batchOptions;
+    return batchOptions.filter((b) => batchNameMatchesClients(b, pendingClient));
+  }, [activeTab, batchOptions, pendingClient]);
+
+  useEffect(() => {
+    if (activeTab !== "Detailed Report") return;
+    setPendingBatch((prev) => {
+      let next: string[];
+      if (prev.length === 0 || prev.length === batchOptions.length) {
+        next = visibleBatchOptions;
+      } else {
+        next = prev.filter((b) => visibleBatchOptions.includes(b));
+        if (next.length === 0) next = visibleBatchOptions;
+      }
+      if (next.length === prev.length && next.every((b, i) => b === prev[i])) return prev;
+      return next;
+    });
+  }, [activeTab, visibleBatchOptions, batchOptions.length]);
+
+  useEffect(() => {
+    setExpandedClients(new Set());
+    setExpandedBatches(new Set());
+  }, [legacyRows]);
 
   const displayRows = useMemo(() => {
     if (isSsrsTab(activeTab)) return ssrsRows;
     if (activeTab === "Detailed Report") {
-      return detailedGroups.flat();
+      return flattenDetailedTree(detailedTree);
     }
     if (
       activeTab === "Weekly" ||
@@ -796,29 +958,29 @@ export function Reports() {
       return aggregateByMaterial(legacyRows);
     }
     return legacyRows;
-  }, [activeTab, legacyRows, ssrsRows, detailedGroups]);
+  }, [activeTab, legacyRows, ssrsRows, detailedTree]);
 
   const headers = getTableHeaders(activeTab);
 
-  const paginatedDetailedGroups = useMemo(() => {
-    if (activeTab !== "Detailed Report") return [] as LegacyRow[][];
-    if (rowsPerPage === -1) return detailedGroups;
+  const paginatedDetailedClients = useMemo(() => {
+    if (activeTab !== "Detailed Report") return [] as DetailedClient[];
+    if (rowsPerPage === -1) return detailedTree;
     const start = (currentPage - 1) * rowsPerPage;
-    return detailedGroups.slice(start, start + rowsPerPage);
-  }, [activeTab, detailedGroups, currentPage, rowsPerPage]);
+    return detailedTree.slice(start, start + rowsPerPage);
+  }, [activeTab, detailedTree, currentPage, rowsPerPage]);
 
   const paginatedRows = useMemo(() => {
-    if (activeTab === "Detailed Report") return paginatedDetailedGroups.flat();
+    if (activeTab === "Detailed Report") return flattenDetailedTree(paginatedDetailedClients);
     if (rowsPerPage === -1) return displayRows;
     const start = (currentPage - 1) * rowsPerPage;
     return displayRows.slice(start, start + rowsPerPage);
-  }, [activeTab, displayRows, currentPage, rowsPerPage, paginatedDetailedGroups]);
+  }, [activeTab, displayRows, currentPage, rowsPerPage, paginatedDetailedClients]);
 
   const totalPages =
     activeTab === "Detailed Report"
       ? rowsPerPage === -1
         ? 1
-        : Math.max(1, Math.ceil(detailedGroups.length / Math.max(rowsPerPage, 1)))
+        : Math.max(1, Math.ceil(detailedTree.length / Math.max(rowsPerPage, 1)))
       : rowsPerPage === -1
         ? 1
         : Math.max(1, Math.ceil(displayRows.length / Math.max(rowsPerPage, 1)));
@@ -889,22 +1051,17 @@ export function Reports() {
       ];
     }
     if (activeTab === "Detailed Report") {
-      const errKg =
-        item.errKg ??
-        Math.abs((item.actualValueFloat || 0) - (item.setPointFloat || 0));
-      const errPercent =
-        item.errPercent ??
-        (item.setPointFloat
-          ? (errKg / Math.abs(item.setPointFloat)) * 100
-          : 0);
       return [
-        item.isTotal ? "" : item.batchName,
+        String(item.client ?? item.formulaCategoryName ?? ""),
+        item.isTotal ? "" : String(item.batchName ?? ""),
         item.materialName,
-        item.materialCode,
-        fmtNum(item.setPointFloat),
-        fmtNum(item.actualValueFloat),
-        fmtNum(errKg),
-        fmtNum(errPercent),
+        item.materialCode ?? "",
+        fmtNum(item.setPoint ?? item.setPointFloat),
+        fmtNum(item.actual ?? item.actualValueFloat),
+        fmtNum(
+          item.difference ??
+            (item.actualValueFloat || 0) - (item.setPointFloat || 0)
+        ),
       ];
     }
     // Product Batch Summary
@@ -1022,7 +1179,9 @@ export function Reports() {
               className={`grid grid-cols-1 gap-2 items-end ${
                 isSsrsTab(activeTab) && ssrsFilterSlots.length === 0
                   ? "md:grid-cols-3"
-                  : "md:grid-cols-6"
+                  : activeTab === "Detailed Report"
+                    ? "md:grid-cols-4 xl:grid-cols-7"
+                    : "md:grid-cols-6"
               }`}
             >
               <div className="space-y-1">
@@ -1048,6 +1207,18 @@ export function Reports() {
 
               {!isSsrsTab(activeTab) && (
                 <>
+                  {activeTab === "Detailed Report" && (
+                    <div className="space-y-1">
+                      <Label className="text-xs font-medium">Select Client:</Label>
+                      <MultiSelect
+                        options={CLIENT_OPTIONS}
+                        selectedValues={pendingClient}
+                        onChange={setPendingClient}
+                        placeholder="Select Client"
+                        allSelectedText="All Clients"
+                      />
+                    </div>
+                  )}
                   <div className="space-y-1">
                     <Label className="text-xs font-medium">Select Product:</Label>
                     <MultiSelect
@@ -1061,8 +1232,8 @@ export function Reports() {
                   <div className="space-y-1">
                     <Label className="text-xs font-medium">Select Batch:</Label>
                     <MultiSelect
-                      options={batchOptions}
-                      selectedValues={pendingBatch}
+                      options={visibleBatchOptions}
+                      selectedValues={pendingBatch.filter((b) => visibleBatchOptions.includes(b))}
                       onChange={setPendingBatch}
                       placeholder="Select Batch"
                       allSelectedText="All Batches"
@@ -1198,82 +1369,88 @@ export function Reports() {
                         </td>
                       </tr>
                     ) : activeTab === "Detailed Report" ? (
-                      paginatedDetailedGroups.flatMap((group, groupIdx) => {
-                        const materialRows = group.filter((r) => !r.isTotal);
-                        const totalRow = group.find((r) => r.isTotal);
-                        const rowSpan = Math.max(1, materialRows.length);
-                        return [
-                          ...materialRows.map((item, i) => (
-                            <tr
-                              key={`${groupIdx}-${i}`}
-                              className={`border-b border-slate-200 dark:border-slate-700 ${
-                                i % 2 === 0 ? "bg-slate-50 dark:bg-slate-900/80" : "bg-white dark:bg-slate-900"
-                              }`}
-                            >
-                              {i === 0 && (
-                                <td
-                                  rowSpan={rowSpan}
-                                  className="px-4 py-2 align-top bg-slate-100 dark:bg-slate-800 text-sm border-r border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100"
-                                >
-                                  <div className="space-y-1.5 min-w-[160px]">
-                                    <div>
-                                      <div className="text-cyan-700 dark:text-cyan-400 font-bold text-[10px] uppercase">Batch</div>
-                                      <div className="font-medium">{item.batchName}</div>
-                                    </div>
-                                    <div>
-                                      <div className="text-cyan-700 dark:text-cyan-400 font-bold text-[10px] uppercase">Product</div>
-                                      <div>{item.productName}</div>
-                                    </div>
-                                    <div>
-                                      <div className="text-cyan-700 dark:text-cyan-400 font-bold text-[10px] uppercase">Started</div>
-                                      <div>{formatDisplayDate(item.batchStart)}</div>
-                                    </div>
-                                    <div>
-                                      <div className="text-cyan-700 dark:text-cyan-400 font-bold text-[10px] uppercase">Ended</div>
-                                      <div>{formatDisplayDate(item.batchEnd)}</div>
-                                    </div>
-                                    <div>
-                                      <div className="text-cyan-700 dark:text-cyan-400 font-bold text-[10px] uppercase">Quantity</div>
-                                      <div>{fmtNum(item.batchQuantity)}</div>
-                                    </div>
-                                  </div>
-                                </td>
-                              )}
-                              <td className="px-4 py-2 text-slate-800 dark:text-slate-100">{item.materialName}</td>
-                              <td className="px-4 py-2 font-mono text-xs text-slate-800 dark:text-slate-100">{item.materialCode}</td>
-                              <td className="px-4 py-2 text-slate-800 dark:text-slate-100">{fmtNum(item.setPointFloat)}</td>
-                              <td className="px-4 py-2 text-slate-800 dark:text-slate-100">{fmtNum(item.actualValueFloat)}</td>
-                              <td className="px-4 py-2 text-slate-800 dark:text-slate-100">{fmtNum(item.errKg)}</td>
-                              <td
-                                className={`px-4 py-2 font-medium ${
-                                  (item.errPercent ?? 0) < 5 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
-                                }`}
+                      paginatedDetailedClients.flatMap((clientNode) => {
+                        const clientOpen = expandedClients.has(clientNode.client);
+                        const rows: React.ReactNode[] = [
+                          <tr
+                            key={`client-${clientNode.client}`}
+                            className="bg-cyan-700 dark:bg-cyan-800 text-white border-b border-cyan-600"
+                          >
+                            <td className="px-3 py-2 font-semibold whitespace-nowrap">
+                              <button
+                                type="button"
+                                onClick={() => toggleClient(clientNode.client)}
+                                className="inline-flex items-center justify-center w-5 h-5 mr-2 rounded-sm border border-white/70 bg-white/15"
+                                aria-label={clientOpen ? "Collapse client" : "Expand client"}
                               >
-                                {fmtNum(item.errPercent)}
-                              </td>
-                            </tr>
-                          )),
-                          totalRow ? (
-                            <tr
-                              key={`${groupIdx}-total`}
-                              className="bg-slate-200 dark:bg-slate-700 font-semibold border-b border-slate-300 dark:border-slate-600 text-slate-800 dark:text-slate-100"
-                            >
-                              <td className="px-4 py-2" />
-                              <td className="px-4 py-2">Total</td>
-                              <td className="px-4 py-2" />
-                              <td className="px-4 py-2">{fmtNum(totalRow.setPointFloat)}</td>
-                              <td className="px-4 py-2">{fmtNum(totalRow.actualValueFloat)}</td>
-                              <td className="px-4 py-2">{fmtNum(totalRow.errKg)}</td>
-                              <td
-                                className={`px-4 py-2 ${
-                                  (totalRow.errPercent ?? 0) < 5 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
-                                }`}
-                              >
-                                {fmtNum(totalRow.errPercent)}
-                              </td>
-                            </tr>
-                          ) : null,
+                                {clientOpen ? <Minus className="w-3 h-3" /> : <Plus className="w-3 h-3" />}
+                              </button>
+                              {clientNode.client}
+                            </td>
+                            <td colSpan={6} className="px-3 py-2 text-xs text-white/80">
+                              {clientNode.batches.length} batch{clientNode.batches.length === 1 ? "" : "es"}
+                            </td>
+                          </tr>,
                         ];
+                        if (!clientOpen) return rows;
+                        clientNode.batches.forEach((batch) => {
+                          const batchOpen = expandedBatches.has(batch.key);
+                          rows.push(
+                            <tr
+                              key={`batch-${batch.key}`}
+                              className="bg-cyan-50 dark:bg-slate-700 text-slate-800 dark:text-slate-100 border-b border-slate-200 dark:border-slate-600"
+                            >
+                              <td className="px-3 py-2" />
+                              <td className="px-3 py-2 whitespace-nowrap">
+                                <button
+                                  type="button"
+                                  onClick={() => toggleBatch(batch.key)}
+                                  className="inline-flex items-center justify-center w-5 h-5 mr-2 rounded-sm border border-slate-400 bg-white dark:bg-slate-800"
+                                  aria-label={batchOpen ? "Collapse batch" : "Expand batch"}
+                                >
+                                  {batchOpen ? <Minus className="w-3 h-3" /> : <Plus className="w-3 h-3" />}
+                                </button>
+                                <span className="font-medium">{batch.batchName}</span>
+                                <span className="ml-2 text-xs text-slate-500 dark:text-slate-300">{batch.batchTime}</span>
+                              </td>
+                              <td colSpan={5} className="px-3 py-2" />
+                            </tr>
+                          );
+                          if (!batchOpen) return;
+                          batch.materials.forEach((m, mi) => {
+                            rows.push(
+                              <tr
+                                key={`${batch.key}-m-${mi}`}
+                                className={`border-b border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 ${
+                                  mi % 2 === 0 ? "bg-white dark:bg-slate-900" : "bg-slate-50 dark:bg-slate-900/80"
+                                }`}
+                              >
+                                <td className="px-3 py-2" />
+                                <td className="px-3 py-2" />
+                                <td className="px-3 py-2">{m.materialName}</td>
+                                <td className="px-3 py-2 font-mono text-xs">{m.materialCode}</td>
+                                <td className="px-3 py-2">{fmtNum(m.setPoint)}</td>
+                                <td className="px-3 py-2">{fmtNum(m.actual)}</td>
+                                <td className="px-3 py-2">{fmtNum(m.difference)}</td>
+                              </tr>
+                            );
+                          });
+                          rows.push(
+                            <tr
+                              key={`${batch.key}-total`}
+                              className="bg-slate-200 dark:bg-slate-600 font-semibold text-slate-800 dark:text-slate-100 border-b border-slate-300 dark:border-slate-500"
+                            >
+                              <td className="px-3 py-2" />
+                              <td className="px-3 py-2" />
+                              <td className="px-3 py-2">Total</td>
+                              <td className="px-3 py-2" />
+                              <td className="px-3 py-2">{fmtNum(batch.totalSetPoint)}</td>
+                              <td className="px-3 py-2">{fmtNum(batch.totalActual)}</td>
+                              <td className="px-3 py-2">{fmtNum(batch.totalDifference)}</td>
+                            </tr>
+                          );
+                        });
+                        return rows;
                       })
                     ) : (
                       paginatedRows.map((item, i) => (
@@ -1296,7 +1473,7 @@ export function Reports() {
                 <div className="flex justify-between items-center p-4 bg-slate-50 dark:bg-slate-800/80 border-t border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200">
                   <div className="flex items-center gap-2 text-sm">
                     <span>
-                      {activeTab === "Detailed Report" ? "Batches per page:" : "Rows per page:"}
+                      {activeTab === "Detailed Report" ? "Clients per page:" : "Rows per page:"}
                     </span>
                     <select
                       value={rowsPerPage}
@@ -1323,7 +1500,7 @@ export function Reports() {
                     </Button>
                     <span className="text-sm text-slate-600 dark:text-slate-300">
                       {activeTab === "Detailed Report"
-                        ? `Page ${currentPage} of ${totalPages} (${detailedGroups.length} batches)`
+                        ? `Page ${currentPage} of ${totalPages} (${detailedTree.length} clients)`
                         : `Page ${currentPage} of ${totalPages} (${displayRows.length} total items)`}
                     </span>
                     <Button
