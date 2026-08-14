@@ -1,7 +1,7 @@
 """
-Compatibility views for Historical Reports on HerculesBatchDB.
+Compatibility views for Historical Reports on Hercules.
 
-Maps dbo.BatchMaterials_Shadow → dbo.MaterialInfo / dbo.ConsumptionInfo
+Maps dbo.BatchMaterials → dbo.MaterialInfo / dbo.ConsumptionInfo
 so /api/ssrs/* RDL-style SQL keeps working.
 
 PM1Data is intentionally not created (CL Temp ignored).
@@ -12,13 +12,13 @@ from sqlalchemy import create_engine, text
 import os
 
 DEFAULT_URI = (
-    r"mssql+pyodbc://localhost\MSSQLSERVER01/HerculesBatchDB"
+    r"mssql+pyodbc://SERVER1\BREED_REPORTING/Hercules"
     "?driver=ODBC+Driver+17+for+SQL+Server&trusted_connection=yes&TrustServerCertificate=yes"
 )
 
 URI = os.getenv("SSRS_DATABASE_URI", DEFAULT_URI)
 
-SOURCE = "dbo.BatchMaterials_Shadow"
+SOURCE = "dbo.BatchMaterials"
 
 MATERIALINFO_VIEW = f"""
 CREATE VIEW dbo.MaterialInfo AS
@@ -88,8 +88,8 @@ def main():
     print("Source table:", SOURCE)
     engine = create_engine(URI)
     with engine.begin() as conn:
-        if not table_or_view_exists(conn, "BatchMaterials_Shadow"):
-            raise SystemExit("dbo.BatchMaterials_Shadow not found — aborting")
+        if not table_or_view_exists(conn, "BatchMaterials"):
+            raise SystemExit("dbo.BatchMaterials not found — aborting")
         print(ensure_view(conn, "MaterialInfo", MATERIALINFO_VIEW))
         print(ensure_view(conn, "ConsumptionInfo", CONSUMPTIONINFO_VIEW))
         n = conn.execute(text("SELECT COUNT(*) FROM dbo.MaterialInfo")).scalar()

@@ -6,7 +6,7 @@ from utils.timezone_utils import parse_filter_date, parse_filter_end_date
 
 kpi_calendar_bp = Blueprint("kpi_calendar", __name__)
 
-SAUDI_DATE_EXPR = "CAST(DATEADD(HOUR, 3, dbo.[BatchMaterials_Shadow].[Batch Act Start]) AS DATE)"
+SAUDI_DATE_EXPR = "CAST(DATEADD(HOUR, 3, dbo.[BatchMaterials].[Batch Act Start]) AS DATE)"
 
 
 @kpi_calendar_bp.route("/kpi_calendar", methods=["GET"])
@@ -22,13 +22,13 @@ def get_kpi_calendar():
 
         sql_query = f"""
         SELECT {SAUDI_DATE_EXPR} AS date,
-               sum(dbo.[BatchMaterials_Shadow].[Actual Value Float]) AS total_actual,
-               count(distinct(dbo.[BatchMaterials_Shadow].[Batch GUID])) AS batch_count,
-               count(distinct(dbo.[BatchMaterials_Shadow].[Product Name])) AS product_count
-        FROM dbo.[BatchMaterials_Shadow]
-        WHERE dbo.[BatchMaterials_Shadow].[Batch Act Start] >= :start_date
-          AND dbo.[BatchMaterials_Shadow].[Batch Act Start] <= :end_date
-          AND lower(dbo.[BatchMaterials_Shadow].[Product Name]) != 'not selected'
+               sum(dbo.[BatchMaterials].[Actual Value Float]) AS total_actual,
+               count(distinct(dbo.[BatchMaterials].[Batch GUID])) AS batch_count,
+               count(distinct(dbo.[BatchMaterials].[Product Name])) AS product_count
+        FROM dbo.[BatchMaterials]
+        WHERE dbo.[BatchMaterials].[Batch Act Start] >= :start_date
+          AND dbo.[BatchMaterials].[Batch Act Start] <= :end_date
+          AND lower(dbo.[BatchMaterials].[Product Name]) != 'not selected'
         GROUP BY {SAUDI_DATE_EXPR}
         ORDER BY {SAUDI_DATE_EXPR}
         """
@@ -69,12 +69,12 @@ def get_kpi_calendar_details():
             target_date = datetime.strptime(date_str, "%Y-%m-%d").date()
 
         sql_query = f"""
-        SELECT dbo.[BatchMaterials_Shadow].[Product Name] as product_name,
-               SUM(dbo.[BatchMaterials_Shadow].[Actual Value Float]) as quantity_kg
-        FROM dbo.[BatchMaterials_Shadow]
+        SELECT dbo.[BatchMaterials].[Product Name] as product_name,
+               SUM(dbo.[BatchMaterials].[Actual Value Float]) as quantity_kg
+        FROM dbo.[BatchMaterials]
         WHERE {SAUDI_DATE_EXPR} = :target_date
-          AND lower(dbo.[BatchMaterials_Shadow].[Product Name]) != 'not selected'
-        GROUP BY dbo.[BatchMaterials_Shadow].[Product Name]
+          AND lower(dbo.[BatchMaterials].[Product Name]) != 'not selected'
+        GROUP BY dbo.[BatchMaterials].[Product Name]
         ORDER BY quantity_kg DESC
         """
 

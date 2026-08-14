@@ -42,9 +42,9 @@ import os
 from sqlalchemy import create_engine
 
 class Config:
-    # Shared default: localhost HerculesBatchDB (BatchMaterials_Shadow)
+    # SERVER1\BREED_REPORTING — Hercules.dbo.BatchMaterials (Windows Authentication)
     _HERCULES_BATCH = (
-        r"mssql+pyodbc://localhost\MSSQLSERVER01/HerculesBatchDB"
+        r"mssql+pyodbc://SERVER1\BREED_REPORTING/Hercules"
         "?driver=ODBC+Driver+17+for+SQL+Server&trusted_connection=yes&TrustServerCertificate=yes"
     )
 
@@ -65,7 +65,7 @@ if __name__ == "__main__":
         sqlserver_engine = create_engine(Config.SQLALCHEMY_DATABASE_URI)
         with sqlserver_engine.connect() as conn:
             print("✅ Connected to SQL Server")
-            result = conn.execute("SELECT TOP 1 * FROM dbo.BatchMaterials_Shadow")
+            result = conn.execute("SELECT TOP 1 * FROM dbo.BatchMaterials")
             for row in result:
                 print("Sample SQL Server Row:", row)
     except Exception as e:

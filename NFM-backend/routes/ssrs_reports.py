@@ -459,7 +459,7 @@ def batch_report():
 
 
 # ---------------------------------------------------------------------------
-# PM1 / CL Temp — ignored (no PM1Data in HerculesBatchDB)
+# PM1 / CL Temp — ignored (no PM1Data in Hercules)
 # ---------------------------------------------------------------------------
 @ssrs_bp.route("/ssrs/pm1-data", methods=["GET"])
 def pm1_data():
@@ -467,5 +467,5 @@ def pm1_data():
     return jsonify({
         "data": [],
         "mode": mode,
-        "note": "CL Temp / PM1Data is not used. Historical reports read BatchMaterials_Shadow only.",
+        "note": "CL Temp / PM1Data is not used. Historical reports read BatchMaterials only.",
     }), 200
