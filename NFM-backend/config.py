@@ -52,7 +52,7 @@ class Config:
     SQLALCHEMY_DATABASE_URI = os.getenv("SQLALCHEMY_DATABASE_URI", _HERCULES_BATCH)
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    # Same DB for MaterialInfo-view / SSRS-style report routes (/api/ssrs/*)
+    # Same DB for SSRS-style report routes (/api/ssrs/*) — also dbo.BatchMaterials
     SSRS_DATABASE_URI = os.getenv("SSRS_DATABASE_URI", _HERCULES_BATCH)
     SQLALCHEMY_BINDS = {"ssrs": SSRS_DATABASE_URI}
 

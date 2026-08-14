@@ -1,5 +1,9 @@
 """
-Compatibility views for Historical Reports on Hercules.
+OPTIONAL / unused by the live app.
+
+Historical reports now query dbo.BatchMaterials directly
+(see routes/ssrs_reports.py). This script only exists if you still want
+MaterialInfo / ConsumptionInfo views for old RDL files.
 
 Maps dbo.BatchMaterials → dbo.MaterialInfo / dbo.ConsumptionInfo
 so /api/ssrs/* RDL-style SQL keeps working.

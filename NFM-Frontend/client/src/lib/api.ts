@@ -24,7 +24,7 @@ export const API_ENDPOINTS = {
   KPI_CALENDAR: `${API_BASE_URL}/api/kpi_calendar`,
   KPI_CALENDAR_DETAILS: `${API_BASE_URL}/api/kpi_calendar/details`,
 
-  // Batch report DB (MaterialInfo / ConsumptionInfo / PM1Data via SSRS_DATABASE_URI bind)
+  // Historical reports (Hercules.dbo.BatchMaterials via /api/ssrs/*)
   BATCH_REPORT_HEALTH: `${API_BASE_URL}/api/ssrs/health`,
   BATCH_DATE_BOUNDS: `${API_BASE_URL}/api/ssrs/meta/date-bounds`,
   BATCH_FEED_PRODUCTION: `${API_BASE_URL}/api/ssrs/feed-production`,

@@ -1,4 +1,4 @@
-"""SSRS historical report APIs — RDL SQL against bind `ssrs`."""
+"""Historical report APIs — RDL-style SQL against Hercules.dbo.BatchMaterials."""
 from __future__ import annotations
 
 import logging
@@ -113,7 +113,7 @@ def ssrs_health():
 
 @ssrs_bp.route("/ssrs/meta/date-bounds", methods=["GET"])
 def ssrs_date_bounds():
-    """Min/max Batch_ActEnd for MaterialInfo — drives default filter dates."""
+    """Min/max [Batch Act End] on BatchMaterials — drives default filter dates."""
     engine, eng_err = _require_engine()
     if eng_err:
         return eng_err
@@ -121,11 +121,11 @@ def ssrs_date_bounds():
         rows = _fetch_all(
             """
             SELECT
-              MIN(Batch_ActEnd) AS min_act_end,
-              MAX(Batch_ActEnd) AS max_act_end,
+              MIN([Batch Act End]) AS min_act_end,
+              MAX([Batch Act End]) AS max_act_end,
               COUNT(*) AS row_count
-            FROM dbo.MaterialInfo
-            WHERE Batch_ActEnd IS NOT NULL
+            FROM dbo.BatchMaterials
+            WHERE [Batch Act End] IS NOT NULL
             """,
             {},
         )
@@ -149,13 +149,13 @@ def feed_production():
         return eng_err
     sql = """
         SELECT DISTINCT
-          OrderCat_Name,
-          Batch_ActEnd,
-          Batch_RecpName,
-          Batch_FormulaName,
-          Batch_Quantity AS Batch_QTY
-        FROM dbo.MaterialInfo
-        WHERE [Batch_ActEnd] BETWEEN :begin_time AND :end_time
+          ISNULL(FormulaCategoryName, N'') AS OrderCat_Name,
+          [Batch Act End] AS Batch_ActEnd,
+          [Batch Name] AS Batch_RecpName,
+          [Product Name] AS Batch_FormulaName,
+          Quantity AS Batch_QTY
+        FROM dbo.BatchMaterials
+        WHERE [Batch Act End] BETWEEN :begin_time AND :end_time
         ORDER BY OrderCat_Name ASC
     """
     try:
@@ -178,12 +178,12 @@ def raw_material_products():
     if eng_err:
         return eng_err
     sql = """
-        SELECT DISTINCT Batch_FormulaName
-        FROM dbo.MaterialInfo
-        WHERE [Batch_ActEnd] BETWEEN :begin_time AND :end_time
-          AND OnlinePar_sp_float > 0
-          AND OnlinePar_sp_matcode <> '0'
-        ORDER BY Batch_FormulaName
+        SELECT DISTINCT [Product Name] AS Batch_FormulaName
+        FROM dbo.BatchMaterials
+        WHERE [Batch Act End] BETWEEN :begin_time AND :end_time
+          AND [SetPoint Float] > 0
+          AND CAST([Material Code] AS nvarchar(255)) <> N'0'
+        ORDER BY [Product Name]
     """
     try:
         rows = _fetch_all(sql, {"begin_time": begin_time, "end_time": end_time})
@@ -208,23 +208,23 @@ def raw_material_consumption():
     in_clause, in_params = expand_in("prod", products)
     sql = f"""
         SELECT
-          OrderCat_Name,
-          Batch_ActEnd,
-          CONVERT(date, Batch_ActEnd) AS Date,
-          Batch_RecpName,
-          Batch_FormulaName,
-          Batch_Quantity,
-          OnlinePar_sp_matname AS Material_Name,
-          OnlinePar_sp_matcode AS Material_Code,
-          ROUND(OnlinePar_sp_float, 2) AS SetPoint,
-          ROUND(OnlinePar_av_float, 2) AS Actual,
-          ROUND((OnlinePar_av_float - OnlinePar_sp_float), 2) AS Diffrence
-        FROM dbo.MaterialInfo
-        WHERE [Batch_ActEnd] BETWEEN :begin_time AND :end_time
-          AND OnlinePar_sp_float > 0
-          AND OnlinePar_sp_matcode <> '0'
-          AND Batch_FormulaName IN ({in_clause})
-        ORDER BY Batch_FormulaName
+          ISNULL(FormulaCategoryName, N'') AS OrderCat_Name,
+          [Batch Act End] AS Batch_ActEnd,
+          CONVERT(date, [Batch Act End]) AS Date,
+          [Batch Name] AS Batch_RecpName,
+          [Product Name] AS Batch_FormulaName,
+          Quantity AS Batch_Quantity,
+          [Material Name] AS Material_Name,
+          [Material Code] AS Material_Code,
+          ROUND([SetPoint Float], 2) AS SetPoint,
+          ROUND([Actual Value Float], 2) AS Actual,
+          ROUND(([Actual Value Float] - [SetPoint Float]), 2) AS Diffrence
+        FROM dbo.BatchMaterials
+        WHERE [Batch Act End] BETWEEN :begin_time AND :end_time
+          AND [SetPoint Float] > 0
+          AND CAST([Material Code] AS nvarchar(255)) <> N'0'
+          AND [Product Name] IN ({in_clause})
+        ORDER BY [Product Name]
     """
     params = {"begin_time": begin_time, "end_time": end_time, **in_params}
     try:
@@ -245,9 +245,12 @@ def consumption_quantity():
     if eng_err:
         return eng_err
     sql = """
-        SELECT Batch_Quantity
-        FROM dbo.ConsumptionInfo
-        WHERE [Batch_ActEnd] BETWEEN :begin_time AND :end_time
+        SELECT DISTINCT
+          Quantity AS Batch_Quantity,
+          ROOTGUID,
+          [Batch GUID]
+        FROM dbo.BatchMaterials
+        WHERE [Batch Act End] BETWEEN :begin_time AND :end_time
     """
     try:
         rows = _fetch_all(sql, {"begin_time": begin_time, "end_time": end_time})
@@ -268,11 +271,11 @@ def cumulative_materials_list():
         return eng_err
     # RDL has no date filter on this dropdown dataset
     sql = """
-        SELECT DISTINCT OnlinePar_sp_matname AS Material_Name
-        FROM dbo.MaterialInfo
-        WHERE OnlinePar_sp_matname IS NOT NULL
-          AND OnlinePar_sp_matname <> ''
-        ORDER BY OnlinePar_sp_matname
+        SELECT DISTINCT [Material Name] AS Material_Name
+        FROM dbo.BatchMaterials
+        WHERE [Material Name] IS NOT NULL
+          AND [Material Name] <> N''
+        ORDER BY [Material Name]
     """
     try:
         rows = _fetch_all(sql, {})
@@ -297,23 +300,23 @@ def raw_material_cumulative():
     in_clause, in_params = expand_in("mat", materials)
     sql = f"""
         SELECT
-          OrderCat_Name,
-          Batch_ActEnd,
-          CONVERT(date, Batch_ActEnd) AS Date,
-          Batch_RecpName,
-          Batch_FormulaName,
-          Batch_Quantity,
-          OnlinePar_sp_matname AS Material_Name,
-          OnlinePar_sp_matcode AS Material_Code,
-          ROUND(OnlinePar_sp_float, 2) AS SetPoint,
-          ROUND(OnlinePar_av_float, 2) AS Actual,
-          ROUND((OnlinePar_av_float - OnlinePar_sp_float), 2) AS Diffrence
-        FROM dbo.MaterialInfo
-        WHERE [Batch_ActEnd] BETWEEN :begin_time AND :end_time
-          AND OnlinePar_sp_float > 0
-          AND OnlinePar_sp_matcode <> '0'
-          AND OnlinePar_sp_matname IN ({in_clause})
-        ORDER BY OnlinePar_sp_matname
+          ISNULL(FormulaCategoryName, N'') AS OrderCat_Name,
+          [Batch Act End] AS Batch_ActEnd,
+          CONVERT(date, [Batch Act End]) AS Date,
+          [Batch Name] AS Batch_RecpName,
+          [Product Name] AS Batch_FormulaName,
+          Quantity AS Batch_Quantity,
+          [Material Name] AS Material_Name,
+          [Material Code] AS Material_Code,
+          ROUND([SetPoint Float], 2) AS SetPoint,
+          ROUND([Actual Value Float], 2) AS Actual,
+          ROUND(([Actual Value Float] - [SetPoint Float]), 2) AS Diffrence
+        FROM dbo.BatchMaterials
+        WHERE [Batch Act End] BETWEEN :begin_time AND :end_time
+          AND [SetPoint Float] > 0
+          AND CAST([Material Code] AS nvarchar(255)) <> N'0'
+          AND [Material Name] IN ({in_clause})
+        ORDER BY [Material Name]
     """
     params = {"begin_time": begin_time, "end_time": end_time, **in_params}
     try:
@@ -336,9 +339,9 @@ def batch_clients():
     if eng_err:
         return eng_err
     sql = """
-        SELECT DISTINCT OrderCat_Name
-        FROM dbo.MaterialInfo
-        WHERE [Batch_ActEnd] BETWEEN :begin_time AND :end_time
+        SELECT DISTINCT ISNULL(FormulaCategoryName, N'') AS OrderCat_Name
+        FROM dbo.BatchMaterials
+        WHERE [Batch Act End] BETWEEN :begin_time AND :end_time
         ORDER BY OrderCat_Name
     """
     try:
@@ -368,12 +371,12 @@ def batch_recipes():
     in_clause, in_params = expand_in("cli", clients)
     sql = f"""
         SELECT DISTINCT
-          Batch_RecpGUID,
-          Batch_FormulaName AS Batch_RecpName
-        FROM dbo.MaterialInfo
-        WHERE [OrderCat_Name] IN ({in_clause})
-          AND [Batch_ActEnd] BETWEEN :begin_time AND :end_time
-        ORDER BY Batch_FormulaName
+          [Batch GUID] AS Batch_RecpGUID,
+          [Product Name] AS Batch_RecpName
+        FROM dbo.BatchMaterials
+        WHERE ISNULL(FormulaCategoryName, N'') IN ({in_clause})
+          AND [Batch Act End] BETWEEN :begin_time AND :end_time
+        ORDER BY [Product Name]
     """
     params = {"begin_time": begin_time, "end_time": end_time, **in_params}
     try:
@@ -401,12 +404,12 @@ def batch_batches():
     sql = f"""
         SELECT DISTINCT
           ROOTGUID AS Batch_OGUID,
-          Batch_Name
-        FROM dbo.MaterialInfo
-        WHERE [OrderCat_Name] IN ({cli_clause})
-          AND [Batch_FormulaName] IN ({rec_clause})
-          AND [Batch_ActEnd] BETWEEN :begin_time AND :end_time
-        ORDER BY Batch_Name
+          [Batch Name] AS Batch_Name
+        FROM dbo.BatchMaterials
+        WHERE ISNULL(FormulaCategoryName, N'') IN ({cli_clause})
+          AND [Product Name] IN ({rec_clause})
+          AND [Batch Act End] BETWEEN :begin_time AND :end_time
+        ORDER BY [Batch Name]
     """
     params = {"begin_time": begin_time, "end_time": end_time, **cli_params, **rec_params}
     try:
@@ -433,21 +436,21 @@ def batch_report():
     bat_clause, bat_params = expand_in("bat", batches)
     sql = f"""
         SELECT
-          OrderCat_Name,
-          Batch_Name,
+          ISNULL(FormulaCategoryName, N'') AS OrderCat_Name,
+          [Batch Name] AS Batch_Name,
           ROOTGUID AS Batch_OGUID,
-          Batch_ActEnd,
-          OnlinePar_sp_matname AS Material_Name,
-          OnlinePar_sp_matcode AS Material_Code,
-          ROUND(OnlinePar_sp_float, 2) AS SetPoint,
-          ROUND(OnlinePar_av_float, 2) AS Actual,
-          ROUND((OnlinePar_av_float - OnlinePar_sp_float), 2) AS Diffrence,
-          DATEADD(HOUR, 3, Batch_ActEnd) AS BatchTime
-        FROM dbo.MaterialInfo
-        WHERE [OrderCat_Name] IN ({cli_clause})
-          AND [ROOTGUID] IN ({bat_clause})
-          AND [Batch_ActEnd] BETWEEN :begin_time AND :end_time
-          AND OnlinePar_sp_float > 0
+          [Batch Act End] AS Batch_ActEnd,
+          [Material Name] AS Material_Name,
+          [Material Code] AS Material_Code,
+          ROUND([SetPoint Float], 2) AS SetPoint,
+          ROUND([Actual Value Float], 2) AS Actual,
+          ROUND(([Actual Value Float] - [SetPoint Float]), 2) AS Diffrence,
+          DATEADD(HOUR, 3, [Batch Act End]) AS BatchTime
+        FROM dbo.BatchMaterials
+        WHERE ISNULL(FormulaCategoryName, N'') IN ({cli_clause})
+          AND ROOTGUID IN ({bat_clause})
+          AND [Batch Act End] BETWEEN :begin_time AND :end_time
+          AND [SetPoint Float] > 0
     """
     params = {"begin_time": begin_time, "end_time": end_time, **cli_params, **bat_params}
     try:
