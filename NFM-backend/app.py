@@ -94,21 +94,20 @@ app.logger.addHandler(handler)
 # ------------------------------------------------------
 # 🔓 Enable CORS
 # ------------------------------------------------------
-CORS(app, supports_credentials=True, origins=[
-    # Any local Vite/dev port (5173, 5174, 5180, …)
-    r"http://localhost:\d+",
-    r"http://127\.0\.0\.1:\d+",
-    "http://localhost:5174", "http://localhost:5173", "http://localhost:5180", "http://localhost:3000",
-    "http://127.0.0.1:5180", "http://127.0.0.1:5174",
-    "http://host.docker.internal:5000",
-    "http://192.168.1.212:5174", "http://192.168.1.253:5174", "http://192.168.1.252:5174",
-    "http://192.168.1.213:5174", "http://192.168.0.251:5174",
-    "http://172.29.16.1:5174", "http://172.20.16.1:5174", "http://172.18.128.1:5174",
-    "http://192.168.8.13:5174", "http://192.168.2.40:5174",
-    # PureBread Vite port 5180 (LAN)
-    "http://192.168.8.117:5180", "http://192.168.2.40:5180", "http://192.168.20.13:5180",
-    "http://192.168.8.13:5180",
-])
+# Reflect any Origin (LAN IPs change). Cannot use "*" with credentials.
+# Matches localhost, 127.0.0.1, any IPv4/IPv6, and hostnames on any port.
+CORS(
+    app,
+    supports_credentials=True,
+    allow_private_network=True,
+    origins=[
+        r"https?://localhost(:\d+)?",
+        r"https?://127\.0\.0\.1(:\d+)?",
+        r"https?://\d{1,3}(\.\d{1,3}){3}(:\d+)?",
+        r"https?://\[.+\](:\d+)?",
+        r"https?://[\w\.-]+(:\d+)?",
+    ],
+)
 
 # ------------------------------------------------------
 # 🗃️ Database Setup with Error Handling
