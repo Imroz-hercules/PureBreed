@@ -422,14 +422,14 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
   );
 };
 
-// Default dates: Last month with 7 AM Saudi time
+// Default dates: last 30 days (includes current month mill data)
 const getDefaultDates = () => {
   const saudiNow = getSaudiNow();
-  const lastMonth = new Date(saudiNow);
-  lastMonth.setMonth(saudiNow.getMonth() - 1);
-
-  const startDate = new Date(lastMonth.getFullYear(), lastMonth.getMonth(), 1, 7, 0, 0);
-  const endDate = new Date(lastMonth.getFullYear(), lastMonth.getMonth() + 1, 0, 7, 0, 0);
+  const endDate = new Date(saudiNow);
+  endDate.setHours(23, 0, 0, 0);
+  const startDate = new Date(saudiNow);
+  startDate.setDate(startDate.getDate() - 30);
+  startDate.setHours(7, 0, 0, 0);
 
   const formatForInput = (date: Date) => {
     const year = date.getFullYear();
@@ -494,6 +494,42 @@ export function ReportsPage() {
 
   // Tab state
   const [currentTab, setCurrentTab] = useState("reports");
+
+  // Align default range with available BatchMaterials dates
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await axios.get(API_ENDPOINTS.BATCH_DATE_BOUNDS, { timeout: 30000 });
+        if (cancelled) return;
+        const maxRaw = res.data?.max_act_end;
+        const minRaw = res.data?.min_act_end;
+        if (!maxRaw) return;
+        const maxD = new Date(maxRaw.includes("T") ? maxRaw : maxRaw.replace(" ", "T"));
+        const minD = minRaw ? new Date(minRaw.includes("T") ? minRaw : minRaw.replace(" ", "T")) : null;
+        if (isNaN(maxD.getTime())) return;
+        const end = new Date(maxD);
+        end.setHours(23, 0, 0, 0);
+        const start = new Date(maxD);
+        start.setDate(start.getDate() - 30);
+        start.setHours(7, 0, 0, 0);
+        if (minD && !isNaN(minD.getTime()) && start < minD) {
+          start.setTime(minD.getTime());
+          start.setHours(7, 0, 0, 0);
+        }
+        const pad = (n: number) => String(n).padStart(2, "0");
+        const fmt = (d: Date) =>
+          `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+        setStartDate(fmt(start));
+        setEndDate(fmt(end));
+      } catch {
+        /* keep last-30-days default */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Fetch filter options
   const fetchFilterOptions = async () => {

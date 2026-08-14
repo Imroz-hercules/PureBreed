@@ -3,7 +3,7 @@ from extensions import db
 from models.kpi import KPI
 from models.kpi_material import KPIMaterial
 from datetime import datetime
-from sqlalchemy import func
+from sqlalchemy import func, or_, and_
 from utils.timezone_utils import parse_filter_date, utc_to_saudi, serialize_kpi_material
 import traceback
 import logging
@@ -11,6 +11,35 @@ import logging
 # ✅ Changed variable name to match app.py
 kpi_blueprint = Blueprint("kpi", __name__)
 logger = logging.getLogger(__name__)
+
+
+def _activity_time():
+    """Live BatchMaterials often has NULL [Batch Transfer Time]; use act start/end first."""
+    return func.coalesce(
+        KPIMaterial.batch_act_start,
+        KPIMaterial.batch_act_end,
+        KPIMaterial.batch_transfer_time,
+    )
+
+
+def _in_date_range(start_date, end_date):
+    return or_(
+        and_(
+            KPIMaterial.batch_act_start.isnot(None),
+            KPIMaterial.batch_act_start >= start_date,
+            KPIMaterial.batch_act_start <= end_date,
+        ),
+        and_(
+            KPIMaterial.batch_act_end.isnot(None),
+            KPIMaterial.batch_act_end >= start_date,
+            KPIMaterial.batch_act_end <= end_date,
+        ),
+        and_(
+            KPIMaterial.batch_transfer_time.isnot(None),
+            KPIMaterial.batch_transfer_time >= start_date,
+            KPIMaterial.batch_transfer_time <= end_date,
+        ),
+    )
 
 # 🟢 Route to Insert KPI Data
 @kpi_blueprint.route("/kpi", methods=["POST"])
@@ -46,8 +75,7 @@ def get_kpis():
         if start_date_str and end_date_str:
             start_date = parse_filter_date(start_date_str)
             end_date = parse_filter_date(end_date_str)
-            # Use batch_transfer_time for date filter (same as Raw Data / csv-format-report) so Historical shows same batches
-            date_filter = [KPIMaterial.batch_transfer_time >= start_date, KPIMaterial.batch_transfer_time <= end_date]
+            date_filter = [_in_date_range(start_date, end_date)]
 
         query = KPIMaterial.query
         if date_filter:
@@ -60,7 +88,7 @@ def get_kpis():
             query = query.filter(KPIMaterial.material_name.in_(material_filters))
 
         query = query.filter(func.lower(KPIMaterial.product_name) != 'not selected')
-        query = query.order_by(KPIMaterial.batch_transfer_time.asc())  # Match Raw Data column, oldest first
+        query = query.order_by(_activity_time().asc())
 
         pagination = query.paginate(page=page, per_page=limit, error_out=False)
         materials = pagination.items
@@ -160,8 +188,7 @@ def get_kpi_csv_format_report():
         end_date = parse_filter_date(end_date_str)
 
         query = KPIMaterial.query.filter(
-            KPIMaterial.batch_transfer_time >= start_date,
-            KPIMaterial.batch_transfer_time <= end_date,
+            _in_date_range(start_date, end_date),
             func.lower(KPIMaterial.product_name) != 'not selected'
         )
         if batch_filters:
@@ -171,7 +198,7 @@ def get_kpi_csv_format_report():
         if material_filters:
             query = query.filter(KPIMaterial.material_name.in_(material_filters))
 
-        query = query.order_by(KPIMaterial.batch_transfer_time.desc())
+        query = query.order_by(_activity_time().desc())
         pagination = query.paginate(page=page, per_page=limit, error_out=False)
         materials = pagination.items
 
@@ -202,10 +229,7 @@ def get_filter_options():
         if start_date_str and end_date_str:
             start_date = parse_filter_date(start_date_str)
             end_date = parse_filter_date(end_date_str)
-            query = query.filter(
-                KPIMaterial.batch_transfer_time >= start_date,
-                KPIMaterial.batch_transfer_time <= end_date,
-            )
+            query = query.filter(_in_date_range(start_date, end_date))
         
         # Filter out 'not selected' products
         query = query.filter(func.lower(KPIMaterial.product_name) != 'not selected')
