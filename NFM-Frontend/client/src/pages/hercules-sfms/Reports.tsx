@@ -317,7 +317,10 @@ function clientTokenMatch(text: string, client: string): boolean {
   if (!n || !t) return false;
   if (t.toLowerCase() === n.toLowerCase()) return true;
   const escaped = n.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  return new RegExp(`^${escaped}(?=$|[\\s\\-_./])`, "i").test(t);
+  // Farm1 must not match Farm11. Flush may match flush7 / Flush-1.
+  const endsWithDigit = /\d$/.test(n);
+  const boundary = endsWithDigit ? `(?=$|[\\s\\-_./])` : `(?=$|[\\s\\-_./]|\\d)`;
+  return new RegExp(`^${escaped}${boundary}`, "i").test(t);
 }
 
 function matchesClientName(
@@ -332,14 +335,15 @@ function matchesClientName(
 }
 
 function resolveClientName(row: LegacyRow): string {
-  for (const c of CLIENT_OPTIONS) {
-    if (matchesClientName(row, c)) return c;
-  }
+  const hits = CLIENT_OPTIONS.filter((c) => matchesClientName(row, c)).sort(
+    (a, b) => b.length - a.length
+  );
+  if (hits[0]) return hits[0];
   return (row.formulaCategoryName || row.productName || "Unknown").trim() || "Unknown";
 }
 
 function batchNameMatchesClients(batchName: string, clients: string[]): boolean {
-  if (!clients.length || clients.length === CLIENT_OPTIONS.length) return true;
+  if (!clients.length) return false;
   return clients.some((c) => clientTokenMatch(batchName, c));
 }
 
@@ -523,7 +527,7 @@ export function Reports() {
   const [pendingProduct, setPendingProduct] = useState<string[]>([]);
   const [pendingBatch, setPendingBatch] = useState<string[]>([]);
   const [pendingMaterial, setPendingMaterial] = useState<string[]>([]);
-  const [pendingClient, setPendingClient] = useState<string[]>([...CLIENT_OPTIONS]);
+  const [pendingClient, setPendingClient] = useState<string[]>([]);
   const [expandedClients, setExpandedClients] = useState<Set<string>>(new Set());
   const [expandedBatches, setExpandedBatches] = useState<Set<string>>(new Set());
 
@@ -596,15 +600,21 @@ export function Reports() {
       setProductOptions(products);
       setBatchOptions(batches);
       setMaterialOptions(materials);
-      setPendingProduct(products);
-      setPendingBatch(batches);
-      setPendingMaterial(materials);
+      if (activeTab === "Detailed Report") {
+        setPendingProduct([]);
+        setPendingBatch([]);
+        setPendingMaterial([]);
+      } else {
+        setPendingProduct(products);
+        setPendingBatch(batches);
+        setPendingMaterial(materials);
+      }
     } catch (e: any) {
       setError(e?.response?.data?.error || e.message || "Failed to load filters");
     } finally {
       setFiltersLoading(false);
     }
-  }, [pendingStartDate, pendingEndDate]);
+  }, [pendingStartDate, pendingEndDate, activeTab]);
 
   const loadSsrsFilters = useCallback(async () => {
     const start = parseDateTimeLocal(pendingStartDate);
@@ -753,6 +763,12 @@ export function Reports() {
   }, [activeTab, ssrsFilter1, ssrsFilter2, pendingStartDate, pendingEndDate, datesReady]);
 
   const fetchLegacyReport = async () => {
+    if (activeTab === "Detailed Report" && pendingClient.length === 0) {
+      setLegacyRows([]);
+      setSsrsRows([]);
+      showToast("Select at least one client", "error");
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -791,7 +807,7 @@ export function Reports() {
       if (pendingMaterial.length) {
         rows = rows.filter((r) => pendingMaterial.includes(r.materialName));
       }
-      if (pendingClient.length && pendingClient.length < CLIENT_OPTIONS.length) {
+      if (pendingClient.length) {
         rows = rows.filter((r) => pendingClient.some((c) => matchesClientName(r, c)));
       }
       setLegacyRows(rows);
@@ -910,29 +926,41 @@ export function Reports() {
   };
 
   const detailedTree = useMemo(() => {
-    if (activeTab !== "Detailed Report") return [] as DetailedClient[];
+    if (activeTab !== "Detailed Report" || pendingClient.length === 0) return [] as DetailedClient[];
     return buildDetailedTree(legacyRows);
-  }, [activeTab, legacyRows]);
+  }, [activeTab, legacyRows, pendingClient.length]);
+
+  const visibleProductOptions = useMemo(() => {
+    if (activeTab !== "Detailed Report") return productOptions;
+    if (!pendingClient.length) return [];
+    return productOptions.filter((p) => pendingClient.some((c) => clientTokenMatch(p, c)));
+  }, [activeTab, productOptions, pendingClient]);
 
   const visibleBatchOptions = useMemo(() => {
     if (activeTab !== "Detailed Report") return batchOptions;
+    if (!pendingClient.length) return [];
     return batchOptions.filter((b) => batchNameMatchesClients(b, pendingClient));
   }, [activeTab, batchOptions, pendingClient]);
 
+  const visibleMaterialOptions = useMemo(() => {
+    if (activeTab !== "Detailed Report") return materialOptions;
+    if (!pendingClient.length) return [];
+    return materialOptions;
+  }, [activeTab, materialOptions, pendingClient.length]);
+
   useEffect(() => {
     if (activeTab !== "Detailed Report") return;
-    setPendingBatch((prev) => {
-      let next: string[];
-      if (prev.length === 0 || prev.length === batchOptions.length) {
-        next = visibleBatchOptions;
-      } else {
-        next = prev.filter((b) => visibleBatchOptions.includes(b));
-        if (next.length === 0) next = visibleBatchOptions;
-      }
-      if (next.length === prev.length && next.every((b, i) => b === prev[i])) return prev;
-      return next;
-    });
-  }, [activeTab, visibleBatchOptions, batchOptions.length]);
+    if (!pendingClient.length) {
+      setPendingProduct([]);
+      setPendingBatch([]);
+      setPendingMaterial([]);
+      setLegacyRows([]);
+      return;
+    }
+    setPendingProduct(visibleProductOptions);
+    setPendingBatch(visibleBatchOptions);
+    setPendingMaterial(visibleMaterialOptions);
+  }, [activeTab, pendingClient, visibleProductOptions, visibleBatchOptions, visibleMaterialOptions]);
 
   useEffect(() => {
     setExpandedClients(new Set());
@@ -1219,10 +1247,12 @@ export function Reports() {
                       />
                     </div>
                   )}
+                  {(activeTab !== "Detailed Report" || pendingClient.length > 0) && (
+                    <>
                   <div className="space-y-1">
                     <Label className="text-xs font-medium">Select Product:</Label>
                     <MultiSelect
-                      options={productOptions}
+                      options={activeTab === "Detailed Report" ? visibleProductOptions : productOptions}
                       selectedValues={pendingProduct}
                       onChange={setPendingProduct}
                       placeholder="Select Product"
@@ -1242,13 +1272,15 @@ export function Reports() {
                   <div className="space-y-1">
                     <Label className="text-xs font-medium">Select Material:</Label>
                     <MultiSelect
-                      options={materialOptions}
+                      options={activeTab === "Detailed Report" ? visibleMaterialOptions : materialOptions}
                       selectedValues={pendingMaterial}
                       onChange={setPendingMaterial}
                       placeholder="Select Material"
                       allSelectedText="All Materials"
                     />
                   </div>
+                    </>
+                  )}
                 </>
               )}
 
@@ -1365,7 +1397,9 @@ export function Reports() {
                     {paginatedRows.length === 0 ? (
                       <tr>
                         <td colSpan={Math.max(headers.length, 1)} className="px-4 py-8 text-center text-slate-500 dark:text-slate-400">
-                          No rows — set dates in the available range and click VIEW
+                          {activeTab === "Detailed Report"
+                            ? "Select a client, then click VIEW"
+                            : "No rows — set dates in the available range and click VIEW"}
                         </td>
                       </tr>
                     ) : activeTab === "Detailed Report" ? (
