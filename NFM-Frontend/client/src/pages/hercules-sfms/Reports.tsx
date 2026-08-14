@@ -439,6 +439,48 @@ function flattenDetailedTree(tree: DetailedClient[]) {
   return rows;
 }
 
+function buildBatchReportTree(rows: Record<string, unknown>[]): DetailedClient[] {
+  const clientMap = new Map<string, Map<string, Record<string, unknown>[]>>();
+  for (const item of rows) {
+    const client = String(item.OrderCat_Name ?? "Unknown").trim() || "Unknown";
+    const batchKey = String(
+      item.Batch_OGUID || `${item.Batch_Name ?? ""}__${item.BatchTime ?? item.Batch_ActEnd ?? ""}`
+    );
+    if (!clientMap.has(client)) clientMap.set(client, new Map());
+    const batches = clientMap.get(client)!;
+    if (!batches.has(batchKey)) batches.set(batchKey, []);
+    batches.get(batchKey)!.push(item);
+  }
+  return [...clientMap.entries()].map(([client, batchMap]) => {
+    const batches = [...batchMap.entries()].map(([key, items]) => {
+      const first = items[0];
+      const materials = items.map((r) => {
+        const setPoint = Number(r.SetPoint ?? 0);
+        const actual = Number(r.Actual ?? 0);
+        return {
+          materialName: String(r.Material_Name ?? ""),
+          materialCode: String(r.Material_Code ?? ""),
+          setPoint,
+          actual,
+          difference: Number(r.Diffrence ?? actual - setPoint),
+        };
+      });
+      const totalSetPoint = materials.reduce((s, m) => s + m.setPoint, 0);
+      const totalActual = materials.reduce((s, m) => s + m.actual, 0);
+      return {
+        key,
+        batchName: String(first.Batch_Name ?? ""),
+        batchTime: formatDisplayDate(first.BatchTime ?? first.Batch_ActEnd),
+        materials,
+        totalSetPoint,
+        totalActual,
+        totalDifference: totalActual - totalSetPoint,
+      };
+    });
+    return { client, batches };
+  });
+}
+
 function aggregateByProduct(data: LegacyRow[]) {
   const groups: Record<string, any> = {};
   data.forEach((item) => {
@@ -930,6 +972,16 @@ export function Reports() {
     return buildDetailedTree(legacyRows);
   }, [activeTab, legacyRows, pendingClient.length]);
 
+  const batchReportTree = useMemo(() => {
+    if (activeTab !== "Batch Report") return [] as DetailedClient[];
+    return buildBatchReportTree(ssrsRows);
+  }, [activeTab, ssrsRows]);
+
+  const expandTree =
+    activeTab === "Detailed Report" ? detailedTree : activeTab === "Batch Report" ? batchReportTree : [];
+  const isExpandableReport = activeTab === "Detailed Report" || activeTab === "Batch Report";
+  const showBatchTime = activeTab === "Batch Report";
+
   const visibleProductOptions = useMemo(() => {
     if (activeTab !== "Detailed Report") return productOptions;
     if (!pendingClient.length) return [];
@@ -965,7 +1017,7 @@ export function Reports() {
   useEffect(() => {
     setExpandedClients(new Set());
     setExpandedBatches(new Set());
-  }, [legacyRows]);
+  }, [legacyRows, ssrsRows]);
 
   const displayRows = useMemo(() => {
     if (isSsrsTab(activeTab)) return ssrsRows;
@@ -990,25 +1042,25 @@ export function Reports() {
 
   const headers = getTableHeaders(activeTab);
 
-  const paginatedDetailedClients = useMemo(() => {
-    if (activeTab !== "Detailed Report") return [] as DetailedClient[];
-    if (rowsPerPage === -1) return detailedTree;
+  const paginatedExpandClients = useMemo(() => {
+    if (!isExpandableReport) return [] as DetailedClient[];
+    if (rowsPerPage === -1) return expandTree;
     const start = (currentPage - 1) * rowsPerPage;
-    return detailedTree.slice(start, start + rowsPerPage);
-  }, [activeTab, detailedTree, currentPage, rowsPerPage]);
+    return expandTree.slice(start, start + rowsPerPage);
+  }, [isExpandableReport, expandTree, currentPage, rowsPerPage]);
 
   const paginatedRows = useMemo(() => {
-    if (activeTab === "Detailed Report") return flattenDetailedTree(paginatedDetailedClients);
+    if (isExpandableReport) return flattenDetailedTree(paginatedExpandClients);
     if (rowsPerPage === -1) return displayRows;
     const start = (currentPage - 1) * rowsPerPage;
     return displayRows.slice(start, start + rowsPerPage);
-  }, [activeTab, displayRows, currentPage, rowsPerPage, paginatedDetailedClients]);
+  }, [isExpandableReport, displayRows, currentPage, rowsPerPage, paginatedExpandClients]);
 
   const totalPages =
-    activeTab === "Detailed Report"
+    isExpandableReport
       ? rowsPerPage === -1
         ? 1
-        : Math.max(1, Math.ceil(detailedTree.length / Math.max(rowsPerPage, 1)))
+        : Math.max(1, Math.ceil(expandTree.length / Math.max(rowsPerPage, 1)))
       : rowsPerPage === -1
         ? 1
         : Math.max(1, Math.ceil(displayRows.length / Math.max(rowsPerPage, 1)));
@@ -1402,9 +1454,10 @@ export function Reports() {
                             : "No rows — set dates in the available range and click VIEW"}
                         </td>
                       </tr>
-                    ) : activeTab === "Detailed Report" ? (
-                      paginatedDetailedClients.flatMap((clientNode) => {
+                    ) : isExpandableReport ? (
+                      paginatedExpandClients.flatMap((clientNode) => {
                         const clientOpen = expandedClients.has(clientNode.client);
+                        const extraCols = showBatchTime ? 7 : 6;
                         const rows: React.ReactNode[] = [
                           <tr
                             key={`client-${clientNode.client}`}
@@ -1421,7 +1474,7 @@ export function Reports() {
                               </button>
                               {clientNode.client}
                             </td>
-                            <td colSpan={6} className="px-3 py-2 text-xs text-white/80">
+                            <td colSpan={extraCols} className="px-3 py-2 text-xs text-white/80">
                               {clientNode.batches.length} batch{clientNode.batches.length === 1 ? "" : "es"}
                             </td>
                           </tr>,
@@ -1445,8 +1498,13 @@ export function Reports() {
                                   {batchOpen ? <Minus className="w-3 h-3" /> : <Plus className="w-3 h-3" />}
                                 </button>
                                 <span className="font-medium">{batch.batchName}</span>
-                                <span className="ml-2 text-xs text-slate-500 dark:text-slate-300">{batch.batchTime}</span>
+                                {!showBatchTime && (
+                                  <span className="ml-2 text-xs text-slate-500 dark:text-slate-300">{batch.batchTime}</span>
+                                )}
                               </td>
+                              {showBatchTime && (
+                                <td className="px-3 py-2 whitespace-nowrap text-sm">{batch.batchTime}</td>
+                              )}
                               <td colSpan={5} className="px-3 py-2" />
                             </tr>
                           );
@@ -1461,6 +1519,7 @@ export function Reports() {
                               >
                                 <td className="px-3 py-2" />
                                 <td className="px-3 py-2" />
+                                {showBatchTime && <td className="px-3 py-2" />}
                                 <td className="px-3 py-2">{m.materialName}</td>
                                 <td className="px-3 py-2 font-mono text-xs">{m.materialCode}</td>
                                 <td className="px-3 py-2">{fmtNum(m.setPoint)}</td>
@@ -1476,6 +1535,7 @@ export function Reports() {
                             >
                               <td className="px-3 py-2" />
                               <td className="px-3 py-2" />
+                              {showBatchTime && <td className="px-3 py-2" />}
                               <td className="px-3 py-2">Total</td>
                               <td className="px-3 py-2" />
                               <td className="px-3 py-2">{fmtNum(batch.totalSetPoint)}</td>
@@ -1507,7 +1567,7 @@ export function Reports() {
                 <div className="flex justify-between items-center p-4 bg-slate-50 dark:bg-slate-800/80 border-t border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200">
                   <div className="flex items-center gap-2 text-sm">
                     <span>
-                      {activeTab === "Detailed Report" ? "Clients per page:" : "Rows per page:"}
+                      {isExpandableReport ? "Clients per page:" : "Rows per page:"}
                     </span>
                     <select
                       value={rowsPerPage}
@@ -1533,8 +1593,8 @@ export function Reports() {
                       Previous
                     </Button>
                     <span className="text-sm text-slate-600 dark:text-slate-300">
-                      {activeTab === "Detailed Report"
-                        ? `Page ${currentPage} of ${totalPages} (${detailedTree.length} clients)`
+                      {isExpandableReport
+                        ? `Page ${currentPage} of ${totalPages} (${expandTree.length} clients)`
                         : `Page ${currentPage} of ${totalPages} (${displayRows.length} total items)`}
                     </span>
                     <Button
