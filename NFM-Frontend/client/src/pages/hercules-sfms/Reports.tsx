@@ -60,6 +60,14 @@ const CLIENT_OPTIONS = [
   "flush3",
 ];
 
+const MASTER_RECIPES = [
+  "Clean V1.0",
+  "Flush V1.0",
+  "Mesh V2.0",
+  "Mesh_with_RecMat5 V2.0",
+  "Pellet V2.0",
+];
+
 const isSsrsTab = (tab: string) => (SSRS_TABS as readonly string[]).includes(tab);
 
 const LARGE_REPORT_TIMEOUT_MS = 120_000;
@@ -334,6 +342,11 @@ function matchesClientName(
   );
 }
 
+function batchNameMatchesClients(batchName: string, clients: string[]): boolean {
+  if (!clients.length) return false;
+  return clients.some((c) => clientTokenMatch(batchName, c));
+}
+
 function resolveClientName(row: LegacyRow): string {
   const hits = CLIENT_OPTIONS.filter((c) => matchesClientName(row, c)).sort(
     (a, b) => b.length - a.length
@@ -342,9 +355,28 @@ function resolveClientName(row: LegacyRow): string {
   return (row.formulaCategoryName || row.productName || "Unknown").trim() || "Unknown";
 }
 
-function batchNameMatchesClients(batchName: string, clients: string[]): boolean {
-  if (!clients.length) return false;
-  return clients.some((c) => clientTokenMatch(batchName, c));
+function masterRecipeToken(recipe: string): string {
+  return recipe.replace(/\s*V\d+(?:\.\d+)*$/i, "").trim();
+}
+
+function matchesMasterRecipe(text: string, master: string): boolean {
+  const token = masterRecipeToken(master);
+  const t = String(text || "").trim();
+  if (!token || !t) return false;
+  const tl = t.toLowerCase();
+  const nl = token.toLowerCase();
+  const base = masterRecipeToken(t).toLowerCase();
+  if (base === nl || tl === nl) return true;
+  if (base.startsWith(`${nl} `) || tl.startsWith(`${nl} `)) return true;
+  if (base.endsWith(` ${nl}`) || tl.endsWith(` ${nl}`)) return true;
+  if (token.includes("_") && (tl.startsWith(nl) || base.startsWith(nl))) return true;
+  if (!token.includes("_") && tl.startsWith(nl) && /^\d/.test(t.slice(token.length))) return true;
+  return false;
+}
+
+function apiRecipesForMasters(apiNames: string[], masters: string[]): string[] {
+  if (!masters.length) return [];
+  return [...new Set(apiNames.filter((name) => masters.some((m) => matchesMasterRecipe(name, m))))];
 }
 
 type DetailedMaterial = {
@@ -580,6 +612,7 @@ export function Reports() {
   const [ssrsFilter2, setSsrsFilter2] = useState<string[]>([]);
   const [ssrsFilter3, setSsrsFilter3] = useState<string[]>([]);
   const [batchLabelToGuid, setBatchLabelToGuid] = useState<Record<string, string>>({});
+  const [apiRecipeNames, setApiRecipeNames] = useState<string[]>([]);
 
   const showToast = (message: string, type: "success" | "error" = "success") => {
     setToast({ show: true, message, type });
@@ -699,10 +732,11 @@ export function Reports() {
         const list: string[] = (res.data.clients || []).filter(Boolean);
         setSsrsFilter1Options(list);
         setSsrsFilter1(list.length ? [list[0]] : []);
-        setSsrsFilter2Options([]);
+        setSsrsFilter2Options([...MASTER_RECIPES]);
         setSsrsFilter3Options([]);
         setSsrsFilter2([]);
         setSsrsFilter3([]);
+        setApiRecipeNames([]);
         setBatchLabelToGuid({});
       } else {
         setSsrsFilter1Options([]);
@@ -733,9 +767,15 @@ export function Reports() {
     return () => window.clearTimeout(t);
   }, [activeTab, pendingStartDate, pendingEndDate, datesReady, loadLegacyFilters, loadSsrsFilters]);
 
-  // Batch report cascade
+  // Batch report cascade: hardcoded master recipes, then mill product names that belong to them
   useEffect(() => {
-    if (activeTab !== "Batch Report" || ssrsFilter1.length === 0 || !datesReady) return;
+    if (activeTab !== "Batch Report" || ssrsFilter1.length === 0 || !datesReady) {
+      if (activeTab === "Batch Report") {
+        setApiRecipeNames([]);
+        setSsrsFilter2Options([...MASTER_RECIPES]);
+      }
+      return;
+    }
     const start = parseDateTimeLocal(pendingStartDate);
     const end = parseDateTimeLocal(pendingEndDate);
     axios
@@ -750,14 +790,24 @@ export function Reports() {
         { timeout: LARGE_REPORT_TIMEOUT_MS }
       )
       .then((res) => {
-        const list = (res.data.recipes || [])
-          .map((r: { Batch_RecpName: string }) => r.Batch_RecpName)
-          .filter(Boolean);
-        setSsrsFilter2Options(list);
-        setSsrsFilter2(list);
+        const list = [
+          ...new Set(
+            (res.data.recipes || [])
+              .map((r: { Batch_RecpName: string }) => r.Batch_RecpName)
+              .filter(Boolean)
+          ),
+        ] as string[];
+        setApiRecipeNames(list);
+        const visible = MASTER_RECIPES.filter((m) =>
+          list.some((n) => matchesMasterRecipe(n, m))
+        );
+        const options = visible.length ? visible : [...MASTER_RECIPES];
+        setSsrsFilter2Options(options);
+        setSsrsFilter2((prev) => prev.filter((m) => options.includes(m)));
       })
       .catch(() => {
-        setSsrsFilter2Options([]);
+        setApiRecipeNames([]);
+        setSsrsFilter2Options([...MASTER_RECIPES]);
         setSsrsFilter2([]);
       });
   }, [activeTab, ssrsFilter1, pendingStartDate, pendingEndDate, datesReady]);
@@ -768,8 +818,21 @@ export function Reports() {
       ssrsFilter1.length === 0 ||
       ssrsFilter2.length === 0 ||
       !datesReady
-    )
+    ) {
+      if (activeTab === "Batch Report") {
+        setSsrsFilter3Options([]);
+        setSsrsFilter3([]);
+        setBatchLabelToGuid({});
+      }
       return;
+    }
+    const recipeParams = apiRecipesForMasters(apiRecipeNames, ssrsFilter2);
+    if (!recipeParams.length) {
+      setSsrsFilter3Options([]);
+      setSsrsFilter3([]);
+      setBatchLabelToGuid({});
+      return;
+    }
     const start = parseDateTimeLocal(pendingStartDate);
     const end = parseDateTimeLocal(pendingEndDate);
     axios
@@ -780,7 +843,7 @@ export function Reports() {
           beginHour: start.hour,
           endHour: end.hour,
           clients: ssrsFilter1.join(","),
-          recipe: ssrsFilter2.join(","),
+          recipe: recipeParams.join(","),
         }),
         { timeout: LARGE_REPORT_TIMEOUT_MS }
       )
@@ -790,6 +853,7 @@ export function Reports() {
         for (const b of res.data.batches || []) {
           const guid = String(b.Batch_OGUID);
           const label = `${b.Batch_Name || "Batch"} (${guid.slice(0, 8)}…)`;
+          if (map[label]) continue;
           map[label] = guid;
           labels.push(label);
         }
@@ -802,7 +866,7 @@ export function Reports() {
         setSsrsFilter3([]);
         setBatchLabelToGuid({});
       });
-  }, [activeTab, ssrsFilter1, ssrsFilter2, pendingStartDate, pendingEndDate, datesReady]);
+  }, [activeTab, ssrsFilter1, ssrsFilter2, apiRecipeNames, pendingStartDate, pendingEndDate, datesReady]);
 
   const fetchLegacyReport = async () => {
     if (activeTab === "Detailed Report" && pendingClient.length === 0) {
@@ -916,8 +980,8 @@ export function Reports() {
         setSsrsRows(main.data.data || []);
         setQuantityTotal(qty.data.totalQuantity ?? null);
       } else if (activeTab === "Batch Report") {
-        if (!ssrsFilter1.length || !ssrsFilter3.length) {
-          throw new Error("Select client(s) and batch(es)");
+        if (!ssrsFilter1.length || !ssrsFilter2.length || !ssrsFilter3.length) {
+          throw new Error("Select client(s), recipe(s), and batch(es)");
         }
         const guids = ssrsFilter3.map((l) => batchLabelToGuid[l] || l);
         const res = await axios.get(
@@ -1210,8 +1274,28 @@ export function Reports() {
         : activeTab === "Batch Report"
           ? [
               { key: "f1" as const, label: "Select Client", options: ssrsFilter1Options, selected: ssrsFilter1, onChange: setSsrsFilter1 },
-              { key: "f2" as const, label: "Select Recipe", options: ssrsFilter2Options, selected: ssrsFilter2, onChange: setSsrsFilter2 },
-              { key: "f3" as const, label: "Select Batch", options: ssrsFilter3Options, selected: ssrsFilter3, onChange: setSsrsFilter3 },
+              ...(ssrsFilter1.length
+                ? [
+                    {
+                      key: "f2" as const,
+                      label: "Select Recipe",
+                      options: ssrsFilter2Options,
+                      selected: ssrsFilter2,
+                      onChange: setSsrsFilter2,
+                    },
+                  ]
+                : []),
+              ...(ssrsFilter1.length && ssrsFilter2.length
+                ? [
+                    {
+                      key: "f3" as const,
+                      label: "Select Batch",
+                      options: ssrsFilter3Options,
+                      selected: ssrsFilter3,
+                      onChange: setSsrsFilter3,
+                    },
+                  ]
+                : []),
             ]
           : [];
 
