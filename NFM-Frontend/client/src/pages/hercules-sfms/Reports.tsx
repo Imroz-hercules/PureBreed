@@ -289,19 +289,7 @@ function getTableHeaders(tab: TabName): string[] {
     case "Feed Production":
       return ["Order Category", "Batch End", "Recipe", "Formula", "Batch Qty"];
     case "Raw Material Consumption":
-      return [
-        "Order Category",
-        "Batch End",
-        "Date",
-        "Recipe",
-        "Formula",
-        "Batch Qty",
-        "Material Name",
-        "Material Code",
-        "SetPoint",
-        "Actual",
-        "Difference",
-      ];
+      return ["Date", "Recipes", "Order Cat Name", "Material", "Set Point", "Actual", "Difference"];
     case "Raw Material Cumulative":
       return ["Material Name", "Code", "Planned (kg)", "Actual (kg)", "Difference (kg)"];
     case "Batch Report":
@@ -569,6 +557,129 @@ function aggregateByMaterial(data: LegacyRow[]) {
       g.plannedKG !== 0 ? (Math.abs(g.actualKG - g.plannedKG) / g.plannedKG) * 100 : 0;
     return { ...g, diffPercent: diff };
   });
+}
+
+function formatReportDate(value: unknown): string {
+  const s = String(value ?? "").trim();
+  const iso = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (iso) return `${Number(iso[2])}/${Number(iso[3])}/${iso[1]}`;
+  const dt = s.match(/^(\d{4})-(\d{2})-(\d{2})[ T]/);
+  if (dt) return `${Number(dt[2])}/${Number(dt[3])}/${dt[1]}`;
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    return `${value.getMonth() + 1}/${value.getDate()}/${value.getFullYear()}`;
+  }
+  return s || "—";
+}
+
+type CumulativeMaterialRow = {
+  materialLabel: string;
+  setPoint: number;
+  actual: number;
+  difference: number;
+};
+
+type CumulativeOrderCat = {
+  orderCat: string;
+  materials: CumulativeMaterialRow[];
+  totalSetPoint: number;
+  totalActual: number;
+  totalDifference: number;
+};
+
+type CumulativeRecipe = {
+  recipe: string;
+  orderCats: CumulativeOrderCat[];
+};
+
+type CumulativeDateGroup = {
+  date: string;
+  recipes: CumulativeRecipe[];
+};
+
+function buildCumulativeTree(rows: Record<string, unknown>[]): CumulativeDateGroup[] {
+  type MatAcc = { code: string; name: string; setPoint: number; actual: number };
+  const dates = new Map<string, Map<string, Map<string, Map<string, MatAcc>>>>();
+  for (const item of rows) {
+    const date = formatReportDate(item.Date ?? item.Batch_ActEnd);
+    const recipe = String(item.Batch_FormulaName ?? item.Batch_RecpName ?? "—").trim() || "—";
+    const orderCat = String(item.OrderCat_Name ?? "—").trim() || "—";
+    const name = String(item.Material_Name ?? "Unknown").trim() || "Unknown";
+    const code = String(item.Material_Code ?? "").trim();
+    if (!dates.has(date)) dates.set(date, new Map());
+    const recipes = dates.get(date)!;
+    if (!recipes.has(recipe)) recipes.set(recipe, new Map());
+    const cats = recipes.get(recipe)!;
+    if (!cats.has(orderCat)) cats.set(orderCat, new Map());
+    const mats = cats.get(orderCat)!;
+    if (!mats.has(name)) mats.set(name, { code, name, setPoint: 0, actual: 0 });
+    const acc = mats.get(name)!;
+    acc.setPoint += Number(item.SetPoint) || 0;
+    acc.actual += Number(item.Actual) || 0;
+    if (code && !acc.code) acc.code = code;
+  }
+  return [...dates.entries()].map(([date, recipes]) => ({
+    date,
+    recipes: [...recipes.entries()].map(([recipe, cats]) => ({
+      recipe,
+      orderCats: [...cats.entries()].map(([orderCat, mats]) => {
+        const materials = [...mats.values()].map((m) => ({
+          materialLabel: [m.code, m.name].filter(Boolean).join(" "),
+          setPoint: m.setPoint,
+          actual: m.actual,
+          difference: Math.abs(m.actual - m.setPoint),
+        }));
+        const totalSetPoint = materials.reduce((s, m) => s + m.setPoint, 0);
+        const totalActual = materials.reduce((s, m) => s + m.actual, 0);
+        return {
+          orderCat,
+          materials,
+          totalSetPoint,
+          totalActual,
+          totalDifference: Math.abs(totalActual - totalSetPoint),
+        };
+      }),
+    })),
+  }));
+}
+
+function cumulativeRecipeSpan(recipe: CumulativeRecipe): number {
+  return recipe.orderCats.reduce((s, c) => s + c.materials.length + 1, 0);
+}
+
+function cumulativeDateSpan(group: CumulativeDateGroup): number {
+  return group.recipes.reduce((s, r) => s + cumulativeRecipeSpan(r), 0);
+}
+
+function flattenCumulativeTree(tree: CumulativeDateGroup[]): Record<string, unknown>[] {
+  const rows: Record<string, unknown>[] = [];
+  for (const d of tree) {
+    for (const r of d.recipes) {
+      for (const c of r.orderCats) {
+        for (const m of c.materials) {
+          rows.push({
+            Date: d.date,
+            Batch_FormulaName: r.recipe,
+            OrderCat_Name: c.orderCat,
+            Material_Name: m.materialLabel,
+            SetPoint: m.setPoint,
+            Actual: m.actual,
+            Diffrence: m.difference,
+          });
+        }
+        rows.push({
+          Date: d.date,
+          Batch_FormulaName: r.recipe,
+          OrderCat_Name: "Total",
+          Material_Name: "",
+          SetPoint: c.totalSetPoint,
+          Actual: c.totalActual,
+          Diffrence: c.totalDifference,
+          isTotal: true,
+        });
+      }
+    }
+  }
+  return rows;
 }
 
 function aggregateCumulativeMaterials(rows: Record<string, unknown>[]) {
@@ -1115,7 +1226,13 @@ export function Reports() {
   const expandTree =
     activeTab === "Detailed Report" ? detailedTree : activeTab === "Batch Report" ? batchReportTree : [];
   const isExpandableReport = activeTab === "Detailed Report" || activeTab === "Batch Report";
+  const isGroupedConsumption = activeTab === "Raw Material Consumption";
   const showBatchTime = activeTab === "Batch Report";
+
+  const consumptionTree = useMemo(() => {
+    if (activeTab !== "Raw Material Consumption") return [] as CumulativeDateGroup[];
+    return buildCumulativeTree(ssrsRows);
+  }, [activeTab, ssrsRows]);
 
   const visibleProductOptions = useMemo(() => {
     if (activeTab !== "Detailed Report") return productOptions;
@@ -1155,6 +1272,7 @@ export function Reports() {
   }, [legacyRows, ssrsRows]);
 
   const displayRows = useMemo(() => {
+    if (activeTab === "Raw Material Consumption") return flattenCumulativeTree(consumptionTree);
     if (activeTab === "Raw Material Cumulative") return aggregateCumulativeMaterials(ssrsRows);
     if (isSsrsTab(activeTab)) return ssrsRows;
     if (activeTab === "Detailed Report") {
@@ -1174,18 +1292,33 @@ export function Reports() {
       return aggregateByMaterial(legacyRows);
     }
     return legacyRows;
-  }, [activeTab, legacyRows, ssrsRows, detailedTree]);
+  }, [activeTab, legacyRows, ssrsRows, detailedTree, consumptionTree]);
+
+  const consumptionTotals = useMemo(() => {
+    if (activeTab !== "Raw Material Consumption") return null;
+    let planned = 0;
+    let actual = 0;
+    for (const dateNode of consumptionTree) {
+      for (const recipe of dateNode.recipes) {
+        for (const cat of recipe.orderCats) {
+          planned += cat.totalSetPoint;
+          actual += cat.totalActual;
+        }
+      }
+    }
+    return { planned, actual, difference: Math.abs(actual - planned) };
+  }, [activeTab, consumptionTree]);
 
   const cumulativeTotals = useMemo(() => {
     if (activeTab !== "Raw Material Cumulative") return null;
     let planned = 0;
     let actual = 0;
-    for (const row of displayRows) {
-      planned += Number((row as Record<string, unknown>).SetPoint) || 0;
-      actual += Number((row as Record<string, unknown>).Actual) || 0;
+    for (const row of ssrsRows) {
+      planned += Number(row.SetPoint) || 0;
+      actual += Number(row.Actual) || 0;
     }
     return { planned, actual, difference: Math.abs(actual - planned) };
-  }, [activeTab, displayRows]);
+  }, [activeTab, ssrsRows]);
 
   const headers = getTableHeaders(activeTab);
 
@@ -1196,18 +1329,30 @@ export function Reports() {
     return expandTree.slice(start, start + rowsPerPage);
   }, [isExpandableReport, expandTree, currentPage, rowsPerPage]);
 
+  const paginatedConsumptionDates = useMemo(() => {
+    if (!isGroupedConsumption) return [] as CumulativeDateGroup[];
+    if (rowsPerPage === -1) return consumptionTree;
+    const start = (currentPage - 1) * rowsPerPage;
+    return consumptionTree.slice(start, start + rowsPerPage);
+  }, [isGroupedConsumption, consumptionTree, currentPage, rowsPerPage]);
+
   const paginatedRows = useMemo(() => {
     if (isExpandableReport) return flattenDetailedTree(paginatedExpandClients);
+    if (isGroupedConsumption) return flattenCumulativeTree(paginatedConsumptionDates);
     if (rowsPerPage === -1) return displayRows;
     const start = (currentPage - 1) * rowsPerPage;
     return displayRows.slice(start, start + rowsPerPage);
-  }, [isExpandableReport, displayRows, currentPage, rowsPerPage, paginatedExpandClients]);
+  }, [isExpandableReport, isGroupedConsumption, displayRows, currentPage, rowsPerPage, paginatedExpandClients, paginatedConsumptionDates]);
 
   const totalPages =
     isExpandableReport
       ? rowsPerPage === -1
         ? 1
         : Math.max(1, Math.ceil(expandTree.length / Math.max(rowsPerPage, 1)))
+      : isGroupedConsumption
+        ? rowsPerPage === -1
+          ? 1
+          : Math.max(1, Math.ceil(consumptionTree.length / Math.max(rowsPerPage, 1)))
       : rowsPerPage === -1
         ? 1
         : Math.max(1, Math.ceil(displayRows.length / Math.max(rowsPerPage, 1)));
@@ -1223,20 +1368,20 @@ export function Reports() {
             String(item.Batch_FormulaName ?? "—"),
             fmtNum(item.Batch_QTY),
           ];
-        case "Raw Material Consumption":
+        case "Raw Material Consumption": {
+          const planned = Number(item.SetPoint) || 0;
+          const actual = Number(item.Actual) || 0;
+          const diff = Number(item.Diffrence ?? Math.abs(actual - planned));
           return [
-            String(item.OrderCat_Name ?? "—"),
-            formatDisplayDate(item.Batch_ActEnd),
             String(item.Date ?? "—"),
-            String(item.Batch_RecpName ?? "—"),
             String(item.Batch_FormulaName ?? "—"),
-            fmtNum(item.Batch_Quantity),
-            String(item.Material_Name ?? "—"),
-            String(item.Material_Code ?? "—"),
-            fmtNum(item.SetPoint),
-            fmtNum(item.Actual),
-            fmtNum(item.Diffrence),
+            String(item.OrderCat_Name ?? "—"),
+            String(item.Material_Name ?? ""),
+            fmtNum(planned),
+            fmtNum(actual),
+            fmtNum(diff),
           ];
+        }
         case "Raw Material Cumulative": {
           const planned = Number(item.SetPoint) || 0;
           const actual = Number(item.Actual) || 0;
@@ -1328,6 +1473,13 @@ export function Reports() {
           .map((v) => `"${String(v).replace(/"/g, '""')}"`)
           .join(",")
       ),
+      ...(consumptionTotals
+        ? [
+            ["Total", "", "", "", fmtNum(consumptionTotals.planned), fmtNum(consumptionTotals.actual), fmtNum(consumptionTotals.difference)]
+              .map((v) => `"${String(v).replace(/"/g, '""')}"`)
+              .join(","),
+          ]
+        : []),
       ...(cumulativeTotals
         ? [
             ["Total", "", fmtNum(cumulativeTotals.planned), fmtNum(cumulativeTotals.actual), fmtNum(cumulativeTotals.difference)]
@@ -1361,9 +1513,11 @@ export function Reports() {
         <tbody>${displayRows
           .map((r) => `<tr>${renderCells(r).map((c) => `<td>${c}</td>`).join("")}</tr>`)
           .join("")}${
-          cumulativeTotals
-            ? `<tr><td><b>Total</b></td><td></td><td><b>${fmtNum(cumulativeTotals.planned)}</b></td><td><b>${fmtNum(cumulativeTotals.actual)}</b></td><td><b>${fmtNum(cumulativeTotals.difference)}</b></td></tr>`
-            : ""
+          consumptionTotals
+            ? `<tr><td><b>Total</b></td><td></td><td></td><td></td><td><b>${fmtNum(consumptionTotals.planned)}</b></td><td><b>${fmtNum(consumptionTotals.actual)}</b></td><td><b>${fmtNum(consumptionTotals.difference)}</b></td></tr>`
+            : cumulativeTotals
+              ? `<tr><td><b>Total</b></td><td></td><td><b>${fmtNum(cumulativeTotals.planned)}</b></td><td><b>${fmtNum(cumulativeTotals.actual)}</b></td><td><b>${fmtNum(cumulativeTotals.difference)}</b></td></tr>`
+              : ""
         }</tbody>
       </table></body></html>`);
     w.document.close();
@@ -1734,6 +1888,103 @@ export function Reports() {
                         });
                         return rows;
                       })
+                    ) : isGroupedConsumption ? (
+                      <>
+                        {paginatedConsumptionDates.flatMap((dateNode) => {
+                          const dSpan = cumulativeDateSpan(dateNode);
+                          let datePrinted = false;
+                          const out: React.ReactNode[] = [];
+                          for (const recipe of dateNode.recipes) {
+                            const rSpan = cumulativeRecipeSpan(recipe);
+                            let recipePrinted = false;
+                            for (const cat of recipe.orderCats) {
+                              cat.materials.forEach((m, mi) => {
+                                out.push(
+                                  <tr
+                                    key={`${dateNode.date}|${recipe.recipe}|${cat.orderCat}|${mi}`}
+                                    className="text-slate-800 dark:text-slate-100 bg-emerald-50/70 dark:bg-emerald-950/20"
+                                  >
+                                    {!datePrinted ? (
+                                      <td
+                                        rowSpan={dSpan}
+                                        className="border border-slate-300 dark:border-slate-600 px-3 py-2 align-top whitespace-nowrap font-medium"
+                                      >
+                                        {dateNode.date}
+                                      </td>
+                                    ) : null}
+                                    {!recipePrinted ? (
+                                      <td
+                                        rowSpan={rSpan}
+                                        className="border border-slate-300 dark:border-slate-600 px-3 py-2 align-top"
+                                      >
+                                        {recipe.recipe}
+                                      </td>
+                                    ) : null}
+                                    {mi === 0 ? (
+                                      <td
+                                        rowSpan={cat.materials.length}
+                                        className="border border-slate-300 dark:border-slate-600 px-3 py-2 align-top whitespace-nowrap"
+                                      >
+                                        {cat.orderCat}
+                                      </td>
+                                    ) : null}
+                                    <td className="border border-slate-300 dark:border-slate-600 px-3 py-2 whitespace-nowrap">
+                                      {m.materialLabel}
+                                    </td>
+                                    <td className="border border-slate-300 dark:border-slate-600 px-3 py-2 whitespace-nowrap text-right">
+                                      {fmtNum(m.setPoint)}
+                                    </td>
+                                    <td className="border border-slate-300 dark:border-slate-600 px-3 py-2 whitespace-nowrap text-right">
+                                      {fmtNum(m.actual)}
+                                    </td>
+                                    <td className="border border-slate-300 dark:border-slate-600 px-3 py-2 whitespace-nowrap text-right">
+                                      {fmtNum(m.difference)}
+                                    </td>
+                                  </tr>
+                                );
+                                datePrinted = true;
+                                recipePrinted = true;
+                              });
+                              out.push(
+                                <tr
+                                  key={`${dateNode.date}|${recipe.recipe}|${cat.orderCat}|total`}
+                                  className="bg-slate-200 dark:bg-slate-600 font-semibold text-slate-800 dark:text-slate-100"
+                                >
+                                  <td className="border border-slate-300 dark:border-slate-600 px-3 py-2">Total</td>
+                                  <td className="border border-slate-300 dark:border-slate-600 px-3 py-2" />
+                                  <td className="border border-slate-300 dark:border-slate-600 px-3 py-2 whitespace-nowrap text-right">
+                                    {fmtNum(cat.totalSetPoint)}
+                                  </td>
+                                  <td className="border border-slate-300 dark:border-slate-600 px-3 py-2 whitespace-nowrap text-right">
+                                    {fmtNum(cat.totalActual)}
+                                  </td>
+                                  <td className="border border-slate-300 dark:border-slate-600 px-3 py-2 whitespace-nowrap text-right">
+                                    {fmtNum(cat.totalDifference)}
+                                  </td>
+                                </tr>
+                              );
+                            }
+                          }
+                          return out;
+                        })}
+                        {consumptionTotals && paginatedConsumptionDates.length > 0 && (
+                          <tr className="bg-slate-300 dark:bg-slate-500 font-bold text-slate-900 dark:text-white">
+                            <td className="border border-slate-400 dark:border-slate-600 px-3 py-2">Total</td>
+                            <td className="border border-slate-400 dark:border-slate-600 px-3 py-2" />
+                            <td className="border border-slate-400 dark:border-slate-600 px-3 py-2" />
+                            <td className="border border-slate-400 dark:border-slate-600 px-3 py-2" />
+                            <td className="border border-slate-400 dark:border-slate-600 px-3 py-2 whitespace-nowrap text-right">
+                              {fmtNum(consumptionTotals.planned)}
+                            </td>
+                            <td className="border border-slate-400 dark:border-slate-600 px-3 py-2 whitespace-nowrap text-right">
+                              {fmtNum(consumptionTotals.actual)}
+                            </td>
+                            <td className="border border-slate-400 dark:border-slate-600 px-3 py-2 whitespace-nowrap text-right">
+                              {fmtNum(consumptionTotals.difference)}
+                            </td>
+                          </tr>
+                        )}
+                      </>
                     ) : (
                       paginatedRows.map((item, i) => (
                         <tr
@@ -1766,7 +2017,11 @@ export function Reports() {
                 <div className="flex justify-between items-center p-4 bg-slate-50 dark:bg-slate-800/80 border-t border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200">
                   <div className="flex items-center gap-2 text-sm">
                     <span>
-                      {isExpandableReport ? "Clients per page:" : "Rows per page:"}
+                      {isExpandableReport
+                        ? "Clients per page:"
+                        : isGroupedConsumption
+                          ? "Dates per page:"
+                          : "Rows per page:"}
                     </span>
                     <select
                       value={rowsPerPage}
@@ -1794,7 +2049,9 @@ export function Reports() {
                     <span className="text-sm text-slate-600 dark:text-slate-300">
                       {isExpandableReport
                         ? `Page ${currentPage} of ${totalPages} (${expandTree.length} clients)`
-                        : `Page ${currentPage} of ${totalPages} (${displayRows.length} total items)`}
+                        : isGroupedConsumption
+                          ? `Page ${currentPage} of ${totalPages} (${consumptionTree.length} dates)`
+                          : `Page ${currentPage} of ${totalPages} (${displayRows.length} total items)`}
                     </span>
                     <Button
                       onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
