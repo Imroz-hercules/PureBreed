@@ -300,22 +300,16 @@ def raw_material_cumulative():
     in_clause, in_params = expand_in("mat", materials)
     sql = f"""
         SELECT
-          ISNULL(FormulaCategoryName, N'') AS OrderCat_Name,
-          [Batch Act End] AS Batch_ActEnd,
-          CONVERT(date, [Batch Act End]) AS Date,
-          [Batch Name] AS Batch_RecpName,
-          [Product Name] AS Batch_FormulaName,
-          Quantity AS Batch_Quantity,
           [Material Name] AS Material_Name,
-          [Material Code] AS Material_Code,
-          ROUND([SetPoint Float], 2) AS SetPoint,
-          ROUND([Actual Value Float], 2) AS Actual,
-          ROUND(([Actual Value Float] - [SetPoint Float]), 2) AS Diffrence
+          MAX(CAST([Material Code] AS nvarchar(255))) AS Material_Code,
+          ROUND(SUM([SetPoint Float]), 2) AS SetPoint,
+          ROUND(SUM([Actual Value Float]), 2) AS Actual
         FROM dbo.BatchMaterials
         WHERE [Batch Act End] BETWEEN :begin_time AND :end_time
           AND [SetPoint Float] > 0
           AND CAST([Material Code] AS nvarchar(255)) <> N'0'
           AND [Material Name] IN ({in_clause})
+        GROUP BY [Material Name]
         ORDER BY [Material Name]
     """
     params = {"begin_time": begin_time, "end_time": end_time, **in_params}

@@ -289,7 +289,6 @@ function getTableHeaders(tab: TabName): string[] {
     case "Feed Production":
       return ["Order Category", "Batch End", "Recipe", "Formula", "Batch Qty"];
     case "Raw Material Consumption":
-    case "Raw Material Cumulative":
       return [
         "Order Category",
         "Batch End",
@@ -303,6 +302,8 @@ function getTableHeaders(tab: TabName): string[] {
         "Actual",
         "Difference",
       ];
+    case "Raw Material Cumulative":
+      return ["Material Name", "Code", "Planned (kg)", "Actual (kg)", "Difference %"];
     case "Batch Report":
       return [
         "Client",
@@ -568,6 +569,24 @@ function aggregateByMaterial(data: LegacyRow[]) {
       g.plannedKG !== 0 ? (Math.abs(g.actualKG - g.plannedKG) / g.plannedKG) * 100 : 0;
     return { ...g, diffPercent: diff };
   });
+}
+
+function aggregateCumulativeMaterials(rows: Record<string, unknown>[]) {
+  const groups: Record<string, { Material_Name: string; Material_Code: string; SetPoint: number; Actual: number }> = {};
+  for (const item of rows) {
+    const key = String(item.Material_Name || "Unknown");
+    if (!groups[key]) {
+      groups[key] = {
+        Material_Name: key,
+        Material_Code: String(item.Material_Code ?? ""),
+        SetPoint: 0,
+        Actual: 0,
+      };
+    }
+    groups[key].SetPoint += Number(item.SetPoint) || 0;
+    groups[key].Actual += Number(item.Actual) || 0;
+  }
+  return Object.values(groups);
 }
 
 export function Reports() {
@@ -1084,6 +1103,7 @@ export function Reports() {
   }, [legacyRows, ssrsRows]);
 
   const displayRows = useMemo(() => {
+    if (activeTab === "Raw Material Cumulative") return aggregateCumulativeMaterials(ssrsRows);
     if (isSsrsTab(activeTab)) return ssrsRows;
     if (activeTab === "Detailed Report") {
       return flattenDetailedTree(detailedTree);
@@ -1141,7 +1161,6 @@ export function Reports() {
             fmtNum(item.Batch_QTY),
           ];
         case "Raw Material Consumption":
-        case "Raw Material Cumulative":
           return [
             String(item.OrderCat_Name ?? "—"),
             formatDisplayDate(item.Batch_ActEnd),
@@ -1155,6 +1174,18 @@ export function Reports() {
             fmtNum(item.Actual),
             fmtNum(item.Diffrence),
           ];
+        case "Raw Material Cumulative": {
+          const planned = Number(item.SetPoint) || 0;
+          const actual = Number(item.Actual) || 0;
+          const diffPct = planned !== 0 ? (Math.abs(actual - planned) / planned) * 100 : 0;
+          return [
+            String(item.Material_Name ?? "—"),
+            String(item.Material_Code ?? "—"),
+            fmtNum(planned),
+            fmtNum(actual),
+            fmtNum(diffPct),
+          ];
+        }
         case "Batch Report":
           return [
             String(item.OrderCat_Name ?? "—"),
