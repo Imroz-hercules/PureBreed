@@ -632,6 +632,8 @@ export function Reports() {
   const [ssrsFilter3, setSsrsFilter3] = useState<string[]>([]);
   const [batchLabelToGuid, setBatchLabelToGuid] = useState<Record<string, string>>({});
   const [apiRecipeNames, setApiRecipeNames] = useState<string[]>([]);
+  const [filtersEpoch, setFiltersEpoch] = useState(0);
+  const fetchSeqRef = useRef(0);
 
   const showToast = (message: string, type: "success" | "error" = "success") => {
     setToast({ show: true, message, type });
@@ -695,6 +697,7 @@ export function Reports() {
       setBatchOptions(batches);
       setMaterialOptions(materials);
       if (activeTab === "Detailed Report") {
+        setPendingClient((prev) => (prev.length ? prev : [...CLIENT_OPTIONS]));
         setPendingProduct([]);
         setPendingBatch([]);
         setPendingMaterial([]);
@@ -707,6 +710,7 @@ export function Reports() {
       setError(e?.response?.data?.error || e.message || "Failed to load filters");
     } finally {
       setFiltersLoading(false);
+      setFiltersEpoch((n) => n + 1);
     }
   }, [pendingStartDate, pendingEndDate, activeTab]);
 
@@ -750,7 +754,7 @@ export function Reports() {
         });
         const list: string[] = (res.data.clients || []).filter(Boolean);
         setSsrsFilter1Options(list);
-        setSsrsFilter1(list.length ? [list[0]] : []);
+        setSsrsFilter1(list);
         setSsrsFilter2Options([...MASTER_RECIPES]);
         setSsrsFilter3Options([]);
         setSsrsFilter2([]);
@@ -769,6 +773,7 @@ export function Reports() {
       setError(e?.response?.data?.error || e.message || "Failed to load filters");
     } finally {
       setFiltersLoading(false);
+      setFiltersEpoch((n) => n + 1);
     }
   }, [activeTab, pendingStartDate, pendingEndDate]);
 
@@ -779,6 +784,7 @@ export function Reports() {
     setQuantityTotal(null);
     setError(null);
     setCurrentPage(1);
+    setFiltersLoading(true);
     const t = window.setTimeout(() => {
       if (isSsrsTab(activeTab)) loadSsrsFilters();
       else loadLegacyFilters();
@@ -822,7 +828,10 @@ export function Reports() {
         );
         const options = visible.length ? visible : [...MASTER_RECIPES];
         setSsrsFilter2Options(options);
-        setSsrsFilter2((prev) => prev.filter((m) => options.includes(m)));
+        setSsrsFilter2((prev) => {
+          const kept = prev.filter((m) => options.includes(m));
+          return kept.length ? kept : options;
+        });
       })
       .catch(() => {
         setApiRecipeNames([]);
@@ -887,24 +896,24 @@ export function Reports() {
       });
   }, [activeTab, ssrsFilter1, ssrsFilter2, apiRecipeNames, pendingStartDate, pendingEndDate, datesReady]);
 
-  const fetchLegacyReport = async () => {
+  const fetchLegacyReport = async (silent = false) => {
     if (activeTab === "Detailed Report" && pendingClient.length === 0) {
       setLegacyRows([]);
       setSsrsRows([]);
-      showToast("Select at least one client", "error");
+      if (!silent) showToast("Select at least one client", "error");
       return;
     }
+    const seq = ++fetchSeqRef.current;
     setLoading(true);
     setError(null);
     try {
-      const params: Record<string, string | number> = {
+      const url = buildApiUrl(API_ENDPOINTS.KPI, {
         startDate: pendingStartDate,
         endDate: pendingEndDate,
         page: 1,
         limit: 300000,
-      };
-      const url = buildApiUrl(API_ENDPOINTS.KPI, params);
-      // axios get with array params
+      });
+      void url;
       const res = await axios.get(API_ENDPOINTS.KPI, {
         params: {
           startDate: pendingStartDate,
@@ -920,7 +929,7 @@ export function Reports() {
         },
         timeout: LARGE_REPORT_TIMEOUT_MS,
       });
-      void url;
+      if (seq !== fetchSeqRef.current) return;
       const raw = res.data.data || res.data || [];
       let rows = (Array.isArray(raw) ? raw : []).map(mapLegacyRow);
       if (pendingProduct.length) {
@@ -937,17 +946,34 @@ export function Reports() {
       }
       setLegacyRows(rows);
       setSsrsRows([]);
-      showToast(`Loaded ${rows.length} rows`, "success");
+      if (!silent) showToast(`Loaded ${rows.length} rows`, "success");
     } catch (e: any) {
+      if (seq !== fetchSeqRef.current) return;
       const msg = e?.response?.data?.error || e.message || "Report failed";
       setError(msg);
-      showToast(msg, "error");
+      if (!silent) showToast(msg, "error");
     } finally {
-      setLoading(false);
+      if (seq === fetchSeqRef.current) setLoading(false);
     }
   };
 
-  const fetchSsrsReport = async () => {
+  const fetchSsrsReport = async (silent = false) => {
+    if (activeTab === "Raw Material Consumption" && !ssrsFilter1.length) {
+      if (!silent) showToast("Select at least one product", "error");
+      return;
+    }
+    if (activeTab === "Raw Material Cumulative" && !ssrsFilter3.length) {
+      if (!silent) showToast("Select at least one material", "error");
+      return;
+    }
+    if (
+      activeTab === "Batch Report" &&
+      (!ssrsFilter1.length || !ssrsFilter2.length || !ssrsFilter3.length)
+    ) {
+      if (!silent) showToast("Select client(s), recipe(s), and batch(es)", "error");
+      return;
+    }
+    const seq = ++fetchSeqRef.current;
     setLoading(true);
     setError(null);
     setQuantityTotal(null);
@@ -965,9 +991,9 @@ export function Reports() {
         const res = await axios.get(buildApiUrl(API_ENDPOINTS.BATCH_FEED_PRODUCTION, range), {
           timeout: LARGE_REPORT_TIMEOUT_MS,
         });
+        if (seq !== fetchSeqRef.current) return;
         setSsrsRows(res.data.data || []);
       } else if (activeTab === "Raw Material Consumption") {
-        if (!ssrsFilter1.length) throw new Error("Select at least one product");
         const [main, qty] = await Promise.all([
           axios.get(
             buildApiUrl(API_ENDPOINTS.BATCH_RAW_MATERIAL, {
@@ -980,10 +1006,10 @@ export function Reports() {
             timeout: LARGE_REPORT_TIMEOUT_MS,
           }),
         ]);
+        if (seq !== fetchSeqRef.current) return;
         setSsrsRows(main.data.data || []);
         setQuantityTotal(qty.data.totalQuantity ?? null);
       } else if (activeTab === "Raw Material Cumulative") {
-        if (!ssrsFilter3.length) throw new Error("Select at least one material");
         const [main, qty] = await Promise.all([
           axios.get(
             buildApiUrl(API_ENDPOINTS.BATCH_RAW_CUMULATIVE, {
@@ -996,12 +1022,10 @@ export function Reports() {
             timeout: LARGE_REPORT_TIMEOUT_MS,
           }),
         ]);
+        if (seq !== fetchSeqRef.current) return;
         setSsrsRows(main.data.data || []);
         setQuantityTotal(qty.data.totalQuantity ?? null);
       } else if (activeTab === "Batch Report") {
-        if (!ssrsFilter1.length || !ssrsFilter2.length || !ssrsFilter3.length) {
-          throw new Error("Select client(s), recipe(s), and batch(es)");
-        }
         const guids = ssrsFilter3.map((l) => batchLabelToGuid[l] || l);
         const res = await axios.get(
           buildApiUrl(API_ENDPOINTS.BATCH_REPORT, {
@@ -1011,26 +1035,54 @@ export function Reports() {
           }),
           { timeout: LARGE_REPORT_TIMEOUT_MS }
         );
+        if (seq !== fetchSeqRef.current) return;
         setSsrsRows(res.data.data || []);
       }
       setLegacyRows([]);
-      showToast("Report loaded", "success");
+      if (!silent) showToast("Report loaded", "success");
     } catch (e: any) {
+      if (seq !== fetchSeqRef.current) return;
       const msg = e?.response?.data?.error || e.message || "Report failed";
       setError(msg);
-      showToast(msg, "error");
+      if (!silent) showToast(msg, "error");
     } finally {
-      setLoading(false);
+      if (seq === fetchSeqRef.current) setLoading(false);
     }
   };
 
-  const applyFilters = () => {
+  const applyFilters = (silent?: boolean) => {
+    const quiet = silent === true;
     setAppliedStartDate(pendingStartDate);
     setAppliedEndDate(pendingEndDate);
     setCurrentPage(1);
-    if (isSsrsTab(activeTab)) fetchSsrsReport();
-    else fetchLegacyReport();
+    if (isSsrsTab(activeTab)) fetchSsrsReport(quiet);
+    else fetchLegacyReport(quiet);
   };
+
+  const applyFiltersRef = useRef(applyFilters);
+  applyFiltersRef.current = applyFilters;
+
+  const reportReadyToLoad =
+    datesReady &&
+    !filtersLoading &&
+    filtersEpoch > 0 &&
+    (activeTab === "Feed Production" ||
+      (activeTab === "Raw Material Consumption" && ssrsFilter1.length > 0) ||
+      (activeTab === "Raw Material Cumulative" && ssrsFilter3.length > 0) ||
+      (activeTab === "Batch Report" &&
+        ssrsFilter1.length > 0 &&
+        ssrsFilter2.length > 0 &&
+        ssrsFilter3.length > 0) ||
+      (activeTab === "Detailed Report" && pendingClient.length > 0 && pendingProduct.length > 0) ||
+      (!isSsrsTab(activeTab) &&
+        activeTab !== "Detailed Report" &&
+        (pendingProduct.length > 0 || productOptions.length === 0)));
+
+  useEffect(() => {
+    if (!reportReadyToLoad) return;
+    const t = window.setTimeout(() => applyFiltersRef.current(true), 250);
+    return () => window.clearTimeout(t);
+  }, [reportReadyToLoad, activeTab, filtersEpoch]);
 
   const toggleClient = (client: string) => {
     setExpandedClients((prev) => {
@@ -1564,9 +1616,9 @@ export function Reports() {
                     {paginatedRows.length === 0 ? (
                       <tr>
                         <td colSpan={Math.max(headers.length, 1)} className="px-4 py-8 text-center text-slate-500 dark:text-slate-400">
-                          {activeTab === "Detailed Report"
-                            ? "Select a client, then click VIEW"
-                            : "No rows — set dates in the available range and click VIEW"}
+                          {loading || filtersLoading
+                            ? "Loading report…"
+                            : "No rows for this date range"}
                         </td>
                       </tr>
                     ) : isExpandableReport ? (
