@@ -303,7 +303,7 @@ function getTableHeaders(tab: TabName): string[] {
         "Difference",
       ];
     case "Raw Material Cumulative":
-      return ["Material Name", "Code", "Planned (kg)", "Actual (kg)", "Difference %"];
+      return ["Material Name", "Code", "Planned (kg)", "Actual (kg)", "Difference (kg)"];
     case "Batch Report":
       return [
         "Client",
@@ -1229,13 +1229,12 @@ export function Reports() {
         case "Raw Material Cumulative": {
           const planned = Number(item.SetPoint) || 0;
           const actual = Number(item.Actual) || 0;
-          const diffPct = planned !== 0 ? (Math.abs(actual - planned) / planned) * 100 : 0;
           return [
             String(item.Material_Name ?? "—"),
             String(item.Material_Code ?? "—"),
             fmtNum(planned),
             fmtNum(actual),
-            fmtNum(diffPct),
+            fmtNum(actual - planned),
           ];
         }
         case "Batch Report":
