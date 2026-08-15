@@ -1234,7 +1234,7 @@ export function Reports() {
             String(item.Material_Code ?? "—"),
             fmtNum(planned),
             fmtNum(actual),
-            fmtNum(actual - planned),
+            fmtNum(Math.abs(actual - planned)),
           ];
         }
         case "Batch Report":
