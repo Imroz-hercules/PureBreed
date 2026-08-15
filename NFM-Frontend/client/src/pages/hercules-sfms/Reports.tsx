@@ -1176,6 +1176,17 @@ export function Reports() {
     return legacyRows;
   }, [activeTab, legacyRows, ssrsRows, detailedTree]);
 
+  const cumulativeTotals = useMemo(() => {
+    if (activeTab !== "Raw Material Cumulative") return null;
+    let planned = 0;
+    let actual = 0;
+    for (const row of displayRows) {
+      planned += Number((row as Record<string, unknown>).SetPoint) || 0;
+      actual += Number((row as Record<string, unknown>).Actual) || 0;
+    }
+    return { planned, actual, difference: Math.abs(actual - planned) };
+  }, [activeTab, displayRows]);
+
   const headers = getTableHeaders(activeTab);
 
   const paginatedExpandClients = useMemo(() => {
@@ -1317,6 +1328,13 @@ export function Reports() {
           .map((v) => `"${String(v).replace(/"/g, '""')}"`)
           .join(",")
       ),
+      ...(cumulativeTotals
+        ? [
+            ["Total", "", fmtNum(cumulativeTotals.planned), fmtNum(cumulativeTotals.actual), fmtNum(cumulativeTotals.difference)]
+              .map((v) => `"${String(v).replace(/"/g, '""')}"`)
+              .join(","),
+          ]
+        : []),
     ];
     const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
@@ -1342,7 +1360,11 @@ export function Reports() {
         <thead><tr>${headers.map((h) => `<th>${h}</th>`).join("")}</tr></thead>
         <tbody>${displayRows
           .map((r) => `<tr>${renderCells(r).map((c) => `<td>${c}</td>`).join("")}</tr>`)
-          .join("")}</tbody>
+          .join("")}${
+          cumulativeTotals
+            ? `<tr><td><b>Total</b></td><td></td><td><b>${fmtNum(cumulativeTotals.planned)}</b></td><td><b>${fmtNum(cumulativeTotals.actual)}</b></td><td><b>${fmtNum(cumulativeTotals.difference)}</b></td></tr>`
+            : ""
+        }</tbody>
       </table></body></html>`);
     w.document.close();
     w.print();
@@ -1728,6 +1750,17 @@ export function Reports() {
                         </tr>
                       ))
                     )}
+                    {activeTab === "Raw Material Cumulative" &&
+                      paginatedRows.length > 0 &&
+                      cumulativeTotals && (
+                        <tr className="bg-slate-200 dark:bg-slate-600 font-semibold text-slate-800 dark:text-slate-100 border-t-2 border-slate-400 dark:border-slate-500">
+                          <td className="px-4 py-2">Total</td>
+                          <td className="px-4 py-2" />
+                          <td className="px-4 py-2 whitespace-nowrap">{fmtNum(cumulativeTotals.planned)}</td>
+                          <td className="px-4 py-2 whitespace-nowrap">{fmtNum(cumulativeTotals.actual)}</td>
+                          <td className="px-4 py-2 whitespace-nowrap">{fmtNum(cumulativeTotals.difference)}</td>
+                        </tr>
+                      )}
                   </tbody>
                 </table>
                 <div className="flex justify-between items-center p-4 bg-slate-50 dark:bg-slate-800/80 border-t border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200">
