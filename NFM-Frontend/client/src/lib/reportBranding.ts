@@ -81,7 +81,7 @@ export const REPORT_HEADER_CSS = `
   .report-header-left, .report-header-right { display: flex; align-items: center; gap: 12px; }
   .logo-hercules { height: 52px; width: auto; }
   .logo-asm { height: 62px; width: auto; background: #fff; border-radius: 6px; padding: 4px; }
-  .logo-purebreed { height: 62px; width: auto; background: #fff; border-radius: 6px; padding: 4px; }
+  .logo-purebreed { height: 96px; width: auto; object-fit: contain; background: #fff; border-radius: 6px; padding: 4px; }
   .report-header-line { height: 3px; background: #0e7490; margin: 10px 0 14px; }
   .report-title { text-align: center; color: #0e7490; font-size: 22px; margin: 0 0 4px; }
   .report-generated { text-align: center; color: #64748b; font-size: 12px; margin: 0 0 14px; }
@@ -92,9 +92,12 @@ export const REPORT_HEADER_CSS = `
   td { padding: 5px 8px; border: 1px solid #cbd5e1; }
   tr:nth-child(even) td { background: #f8fafc; }
   .total-row td { font-weight: 700; background: #e2e8f0 !important; }
+  .client-row td { background: #0e7490 !important; color: #fff; font-weight: 700; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  .batch-row td { background: #ecfeff !important; font-weight: 600; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
   @media print {
     body { margin: 12px; }
     .report-header { break-after: avoid; }
+    .client-row td, .batch-row td, .total-row td { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
   }
 `;
 

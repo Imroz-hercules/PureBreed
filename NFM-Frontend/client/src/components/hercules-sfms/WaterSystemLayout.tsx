@@ -71,7 +71,7 @@ export function WaterSystemLayout({ children }: WaterSystemLayoutProps) {
       />
 
       <div className="flex-1 flex flex-col relative z-10 min-w-0">
-        <header className="h-[88px] min-h-[88px] bg-shell border-b border-shell-border px-5 flex items-center justify-between">
+        <header className="h-[112px] min-h-[112px] bg-shell border-b border-shell-border px-5 flex items-center justify-between">
           <div>
             <h1 className="text-xl font-bold text-shell-text">PureBreed-reporting</h1>
             <p className="text-sm text-shell-secondary">{getPageTitle()}</p>
@@ -104,16 +104,20 @@ export function WaterSystemLayout({ children }: WaterSystemLayoutProps) {
             </div>
 
             <div className="flex items-center space-x-3 border-l border-shell-border pl-4">
-              <img
-                src={pureBreedLogo}
-                alt="Pure Breed Poultry Co."
-                className="h-[62px] w-auto bg-white rounded-lg p-1 opacity-90 hover:opacity-100 transition-opacity"
-              />
-              <img
-                src={asmLogo}
-                alt="ASM Logo"
-                className="h-[62px] w-auto bg-white rounded-lg p-1 opacity-90 hover:opacity-100 transition-opacity"
-              />
+              <div className="bg-white rounded-lg p-1 flex items-center justify-center">
+                <img
+                  src={pureBreedLogo}
+                  alt="Pure Breed Poultry Co."
+                  className="h-[96px] w-auto object-contain"
+                />
+              </div>
+              <div className="bg-white rounded-lg p-1 flex items-center justify-center">
+                <img
+                  src={asmLogo}
+                  alt="ASM Logo"
+                  className="h-[62px] w-auto object-contain"
+                />
+              </div>
             </div>
           </div>
         </header>

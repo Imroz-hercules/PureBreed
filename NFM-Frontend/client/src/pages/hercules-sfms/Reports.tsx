@@ -437,6 +437,93 @@ function buildDetailedTree(data: LegacyRow[]): DetailedClient[] {
     });
 }
 
+function escapeHtml(value: unknown): string {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function buildBatchHierarchyHtml(tree: DetailedClient[]): string {
+  const body = tree
+    .map((clientNode) => {
+      const clientRow = `<tr class="client-row"><td colspan="8">${escapeHtml(clientNode.client)} (${clientNode.batches.length} batch${clientNode.batches.length === 1 ? "" : "es"})</td></tr>`;
+      const batchRows = clientNode.batches
+        .map((batch) => {
+          const batchRow = `<tr class="batch-row"><td></td><td>${escapeHtml(batch.batchName)}</td><td>${escapeHtml(batch.batchTime)}</td><td colspan="5"></td></tr>`;
+          const materialRows = batch.materials
+            .map(
+              (m) =>
+                `<tr><td></td><td></td><td></td><td>${escapeHtml(m.materialName)}</td><td>${escapeHtml(m.materialCode)}</td><td>${fmtNum(m.setPoint)}</td><td>${fmtNum(m.actual)}</td><td>${fmtNum(m.difference)}</td></tr>`
+            )
+            .join("");
+          const totalRow = `<tr class="total-row"><td></td><td></td><td></td><td>Total</td><td></td><td>${fmtNum(batch.totalSetPoint)}</td><td>${fmtNum(batch.totalActual)}</td><td>${fmtNum(batch.totalDifference)}</td></tr>`;
+          return `${batchRow}${materialRows}${totalRow}`;
+        })
+        .join("");
+      return `${clientRow}${batchRows}`;
+    })
+    .join("");
+  return `<table>
+    <thead><tr><th>Client</th><th>Batch Name</th><th>Batch Time</th><th>Material Name</th><th>Material Code</th><th>SetPoint</th><th>Actual</th><th>Difference</th></tr></thead>
+    <tbody>${body}</tbody>
+  </table>`;
+}
+
+function buildBatchHierarchyCsv(tree: DetailedClient[]): string[] {
+  const q = (s: unknown) => `"${String(s ?? "").replace(/"/g, '""')}"`;
+  const lines = [
+    ["Client", "Batch Name", "Batch Time", "Material Name", "Material Code", "SetPoint", "Actual", "Difference"].join(","),
+  ];
+  for (const clientNode of tree) {
+    lines.push(
+      [
+        q(
+          `${clientNode.client} (${clientNode.batches.length} batch${clientNode.batches.length === 1 ? "" : "es"})`
+        ),
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+      ].join(",")
+    );
+    for (const batch of clientNode.batches) {
+      lines.push([q(""), q(batch.batchName), q(batch.batchTime), "", "", "", "", ""].join(","));
+      for (const m of batch.materials) {
+        lines.push(
+          [
+            q(""),
+            q(""),
+            q(""),
+            q(m.materialName),
+            q(m.materialCode),
+            q(fmtNum(m.setPoint)),
+            q(fmtNum(m.actual)),
+            q(fmtNum(m.difference)),
+          ].join(",")
+        );
+      }
+      lines.push(
+        [
+          q(""),
+          q(""),
+          q(""),
+          q("Total"),
+          q(""),
+          q(fmtNum(batch.totalSetPoint)),
+          q(fmtNum(batch.totalActual)),
+          q(fmtNum(batch.totalDifference)),
+        ].join(",")
+      );
+    }
+  }
+  return lines;
+}
+
 function flattenDetailedTree(tree: DetailedClient[]) {
   const rows: Array<Record<string, unknown>> = [];
   for (const c of tree) {
@@ -1571,6 +1658,9 @@ export function Reports() {
   };
 
   const reportTableHtml = () => {
+    if (activeTab === "Batch Report") {
+      return buildBatchHierarchyHtml(batchReportTree);
+    }
     const totalRow = consumptionTotals
       ? `<tr class="total-row"><td>Total</td><td></td><td></td><td></td><td>${fmtNum(consumptionTotals.planned)}</td><td>${fmtNum(consumptionTotals.actual)}</td><td>${fmtNum(consumptionTotals.difference)}</td></tr>`
       : cumulativeTotals
@@ -1585,6 +1675,25 @@ export function Reports() {
   };
 
   const exportToCSV = async () => {
+    if (activeTab === "Batch Report") {
+      if (!batchReportTree.length) {
+        showToast("No data to export", "error");
+        return;
+      }
+      const { generatedOn, dateRange } = reportMeta();
+      const lines = [
+        ...csvBrandingLines(activeTab, generatedOn, dateRange),
+        ...buildBatchHierarchyCsv(batchReportTree),
+      ];
+      const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${activeTab.replace(/\s+/g, "_")}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      return;
+    }
     if (!displayRows.length) {
       showToast("No data to export", "error");
       return;
@@ -1623,7 +1732,8 @@ export function Reports() {
   };
 
   const handlePrint = async () => {
-    if (!displayRows.length) {
+    const hasPrintData = activeTab === "Batch Report" ? batchReportTree.length > 0 : displayRows.length > 0;
+    if (!hasPrintData) {
       showToast("No data to print", "error");
       return;
     }
