@@ -71,7 +71,7 @@ export function WaterSystemLayout({ children }: WaterSystemLayoutProps) {
       />
 
       <div className="flex-1 flex flex-col relative z-10 min-w-0">
-        <header className="h-[72px] min-h-[72px] bg-shell border-b border-shell-border px-5 flex items-center justify-between">
+        <header className="h-[88px] min-h-[88px] bg-shell border-b border-shell-border px-5 flex items-center justify-between">
           <div>
             <h1 className="text-xl font-bold text-shell-text">PureBreed-reporting</h1>
             <p className="text-sm text-shell-secondary">{getPageTitle()}</p>
@@ -107,12 +107,12 @@ export function WaterSystemLayout({ children }: WaterSystemLayoutProps) {
               <img
                 src={pureBreedLogo}
                 alt="Pure Breed Poultry Co."
-                className="h-12 w-auto bg-black rounded-lg p-1 opacity-90 hover:opacity-100 transition-opacity"
+                className="h-[62px] w-auto bg-white rounded-lg p-1 opacity-90 hover:opacity-100 transition-opacity"
               />
               <img
                 src={asmLogo}
                 alt="ASM Logo"
-                className="h-12 w-auto bg-white/95 rounded-lg p-1 opacity-90 hover:opacity-100 transition-opacity"
+                className="h-[62px] w-auto bg-white rounded-lg p-1 opacity-90 hover:opacity-100 transition-opacity"
               />
             </div>
           </div>
