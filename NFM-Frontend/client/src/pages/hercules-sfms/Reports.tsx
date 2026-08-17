@@ -380,6 +380,7 @@ type DetailedBatch = {
   key: string;
   batchName: string;
   batchTime: string;
+  batchGuid?: string;
   materials: DetailedMaterial[];
   totalSetPoint: number;
   totalActual: number;
@@ -492,6 +493,7 @@ function buildBatchReportTree(rows: Record<string, unknown>[]): DetailedClient[]
         key,
         batchName: String(first.Batch_Name ?? ""),
         batchTime: formatDisplayDate(first.BatchTime ?? first.Batch_ActEnd),
+        batchGuid: String(first.Batch_OGUID ?? key),
         materials,
         totalSetPoint,
         totalActual,
@@ -745,6 +747,13 @@ export function Reports() {
   const [apiRecipeNames, setApiRecipeNames] = useState<string[]>([]);
   const [filtersEpoch, setFiltersEpoch] = useState(0);
   const fetchSeqRef = useRef(0);
+  const [assignDialog, setAssignDialog] = useState<{
+    batchGuid: string;
+    batchName: string;
+    currentClient: string;
+  } | null>(null);
+  const [assignTargetClient, setAssignTargetClient] = useState("");
+  const [assigning, setAssigning] = useState(false);
 
   const showToast = (message: string, type: "success" | "error" = "success") => {
     setToast({ show: true, message, type });
@@ -1213,6 +1222,72 @@ export function Reports() {
     });
   };
 
+  const assignClientOptions = useMemo(() => {
+    const set = new Set<string>([...CLIENT_OPTIONS, ...ssrsFilter1Options]);
+    return [...set].filter(Boolean).sort((a, b) => a.localeCompare(b));
+  }, [ssrsFilter1Options]);
+
+  const openAssignDialog = (batch: DetailedBatch, currentClient: string) => {
+    const guid = batch.batchGuid || batch.key;
+    if (!guid) {
+      showToast("This batch has no id and cannot be reassigned", "error");
+      return;
+    }
+    setAssignDialog({
+      batchGuid: guid,
+      batchName: batch.batchName,
+      currentClient,
+    });
+    setAssignTargetClient(assignClientOptions.find((c) => c !== currentClient) || "");
+  };
+
+  const confirmAssignBatch = async () => {
+    if (!assignDialog || !assignTargetClient) {
+      showToast("Select a target client", "error");
+      return;
+    }
+    if (assignTargetClient === assignDialog.currentClient) {
+      showToast("Choose a different client", "error");
+      return;
+    }
+    setAssigning(true);
+    try {
+      const res = await axios.post(
+        API_ENDPOINTS.BATCH_REPORT_ASSIGN_CLIENT,
+        {
+          batchGuid: assignDialog.batchGuid,
+          newClient: assignTargetClient,
+        },
+        { timeout: LARGE_REPORT_TIMEOUT_MS }
+      );
+      const updated = Number(res.data?.updated ?? 0);
+      const oldClient = String(res.data?.oldClient ?? assignDialog.currentClient);
+      const newClient = String(res.data?.newClient ?? assignTargetClient);
+      setAssignDialog(null);
+      setAssignTargetClient("");
+      showToast(
+        updated > 0
+          ? `Moved "${assignDialog.batchName}" from ${oldClient} to ${newClient}`
+          : res.data?.message || "No rows updated",
+        updated > 0 ? "success" : "error"
+      );
+      if (updated > 0) {
+        setSsrsFilter1((prev) => (prev.includes(newClient) ? prev : [...prev, newClient]));
+        setSsrsFilter1Options((prev) => (prev.includes(newClient) ? prev : [...prev, newClient]));
+        setExpandedClients((prev) => {
+          const next = new Set(prev);
+          next.add(newClient);
+          return next;
+        });
+        setFiltersEpoch((n) => n + 1);
+      }
+    } catch (e: any) {
+      showToast(e?.response?.data?.error || e.message || "Failed to assign batch", "error");
+    } finally {
+      setAssigning(false);
+    }
+  };
+
   const detailedTree = useMemo(() => {
     if (activeTab !== "Detailed Report" || pendingClient.length === 0) return [] as DetailedClient[];
     return buildDetailedTree(legacyRows);
@@ -1581,6 +1656,81 @@ export function Reports() {
         </div>
       )}
 
+      {assignDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-md rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 shadow-xl p-4 space-y-3">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h2 className="text-base font-semibold text-slate-800 dark:text-cyan-300">
+                  Assign batch to client
+                </h2>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  Updates FormulaCategoryName for all materials in this batch.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => !assigning && setAssignDialog(null)}
+                className="text-slate-500 hover:text-slate-800 dark:hover:text-white"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="text-sm text-slate-700 dark:text-slate-200 space-y-1">
+              <p>
+                <span className="font-medium">Batch:</span> {assignDialog.batchName}
+              </p>
+              <p>
+                <span className="font-medium">Current client:</span> {assignDialog.currentClient}
+              </p>
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs font-medium">New client</Label>
+              <select
+                value={assignTargetClient}
+                onChange={(e) => setAssignTargetClient(e.target.value)}
+                disabled={assigning}
+                className="w-full h-8 rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-2 text-sm text-slate-900 dark:text-white"
+              >
+                <option value="">Select client…</option>
+                {assignClientOptions
+                  .filter((c) => c !== assignDialog.currentClient)
+                  .map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+              </select>
+            </div>
+            <div className="flex justify-end gap-2 pt-1">
+              <Button
+                type="button"
+                onClick={() => setAssignDialog(null)}
+                disabled={assigning}
+                className="h-8 px-3 text-sm bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-100"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                onClick={confirmAssignBatch}
+                disabled={assigning || !assignTargetClient}
+                className="h-8 px-3 text-sm !bg-[#0088a9] hover:!bg-[#007b98] !text-white"
+              >
+                {assigning ? (
+                  <>
+                    <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                    Saving…
+                  </>
+                ) : (
+                  "Confirm assign"
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="space-y-6">
         <div className="flex items-center gap-3">
           <FileText className="text-cyan-400 text-2xl" />
@@ -1847,7 +1997,17 @@ export function Reports() {
                               {showBatchTime && (
                                 <td className="px-3 py-2 whitespace-nowrap text-sm">{batch.batchTime}</td>
                               )}
-                              <td colSpan={5} className="px-3 py-2" />
+                              <td colSpan={5} className="px-3 py-2">
+                                {showBatchTime && (
+                                  <Button
+                                    type="button"
+                                    onClick={() => openAssignDialog(batch, clientNode.client)}
+                                    className="h-7 px-2 text-xs !bg-[#0088a9] hover:!bg-[#007b98] !text-white"
+                                  >
+                                    Assign to client
+                                  </Button>
+                                )}
+                              </td>
                             </tr>
                           );
                           if (!batchOpen) return;

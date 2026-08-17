@@ -460,6 +460,79 @@ def batch_report():
         return jsonify({"error": str(e)}), 500
 
 
+@ssrs_bp.route("/ssrs/batch-report/assign-client", methods=["POST"])
+def assign_batch_client():
+    """Move all material rows for one batch (ROOTGUID) to a different FormulaCategoryName client."""
+    data = request.get_json(silent=True) or {}
+    batch_guid = str(data.get("batchGuid") or data.get("batch_guid") or "").strip()
+    new_client = str(data.get("newClient") or data.get("new_client") or "").strip()
+    if not batch_guid or not new_client:
+        return jsonify({"error": "batchGuid and newClient are required"}), 400
+    engine, eng_err = _require_engine()
+    if eng_err:
+        return eng_err
+    try:
+        with engine.begin() as conn:
+            current = conn.execute(
+                text(
+                    """
+                    SELECT TOP 1
+                      ISNULL(FormulaCategoryName, N'') AS OrderCat_Name,
+                      ISNULL([Batch Name], N'') AS Batch_Name
+                    FROM dbo.BatchMaterials
+                    WHERE ROOTGUID = CAST(:batch_guid AS uniqueidentifier)
+                    """
+                ),
+                {"batch_guid": batch_guid},
+            ).mappings().first()
+            if not current:
+                return jsonify({"error": "Batch not found"}), 404
+            old_client = str(current.get("OrderCat_Name") or "").strip()
+            batch_name = str(current.get("Batch_Name") or "").strip()
+            if old_client == new_client:
+                return jsonify(
+                    {
+                        "updated": 0,
+                        "batchGuid": batch_guid,
+                        "batchName": batch_name,
+                        "oldClient": old_client,
+                        "newClient": new_client,
+                        "message": "Batch is already assigned to this client",
+                    }
+                ), 200
+            result = conn.execute(
+                text(
+                    """
+                    UPDATE dbo.BatchMaterials
+                    SET FormulaCategoryName = :new_client
+                    WHERE ROOTGUID = CAST(:batch_guid AS uniqueidentifier)
+                    """
+                ),
+                {"new_client": new_client, "batch_guid": batch_guid},
+            )
+            updated = int(result.rowcount or 0)
+        logger.info(
+            "Assigned batch %s (%s) from %s to %s (%s rows)",
+            batch_guid,
+            batch_name,
+            old_client,
+            new_client,
+            updated,
+        )
+        return jsonify(
+            {
+                "updated": updated,
+                "batchGuid": batch_guid,
+                "batchName": batch_name,
+                "oldClient": old_client,
+                "newClient": new_client,
+            }
+        ), 200
+    except Exception as e:
+        logger.exception("assign batch client failed")
+        return jsonify({"error": str(e)}), 500
+
+
 # ---------------------------------------------------------------------------
 # PM1 / CL Temp — ignored (no PM1Data in Hercules)
 # ---------------------------------------------------------------------------
