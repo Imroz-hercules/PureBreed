@@ -104,18 +104,18 @@ export function WaterSystemLayout({ children }: WaterSystemLayoutProps) {
             </div>
 
             <div className="flex items-center space-x-3 border-l border-shell-border pl-4">
-              <div className="bg-white rounded-lg p-1 flex items-center justify-center">
+              <div className="h-[96px] bg-white rounded-lg px-2 flex items-center justify-center">
                 <img
                   src={pureBreedLogo}
                   alt="Pure Breed Poultry Co."
-                  className="h-[96px] w-auto object-contain"
+                  className="h-full w-auto object-contain"
                 />
               </div>
-              <div className="bg-white rounded-lg p-1 flex items-center justify-center">
+              <div className="h-[96px] bg-white rounded-lg px-2 flex items-center justify-center">
                 <img
                   src={asmLogo}
                   alt="ASM Logo"
-                  className="h-[62px] w-auto object-contain"
+                  className="h-full w-auto object-contain"
                 />
               </div>
             </div>

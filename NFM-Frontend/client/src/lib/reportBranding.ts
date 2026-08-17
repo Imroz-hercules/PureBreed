@@ -80,8 +80,7 @@ export const REPORT_HEADER_CSS = `
   .report-header-row { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
   .report-header-left, .report-header-right { display: flex; align-items: center; gap: 12px; }
   .logo-hercules { height: 52px; width: auto; }
-  .logo-asm { height: 62px; width: auto; background: #fff; border-radius: 6px; padding: 4px; }
-  .logo-purebreed { height: 96px; width: auto; object-fit: contain; background: #fff; border-radius: 6px; padding: 4px; }
+  .logo-asm, .logo-purebreed { height: 96px; width: auto; object-fit: contain; background: #fff; border-radius: 6px; padding: 4px; }
   .report-header-line { height: 3px; background: #0e7490; margin: 10px 0 14px; }
   .report-title { text-align: center; color: #0e7490; font-size: 22px; margin: 0 0 4px; }
   .report-generated { text-align: center; color: #64748b; font-size: 12px; margin: 0 0 14px; }
