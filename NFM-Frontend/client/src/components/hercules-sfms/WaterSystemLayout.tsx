@@ -113,8 +113,7 @@ export function WaterSystemLayout({ children }: WaterSystemLayoutProps) {
               <div className="text-shell-accent">{formatCurrentTimeOnly()}</div>
             </div>
 
-            <div className="flex items-center space-x-3 text-sm border-l border-shell-border pl-4">
-              <span className="text-shell-secondary">Production Manager</span>
+            <div className="flex items-center border-l border-shell-border pl-4">
               <div className="w-9 h-9 rounded-full bg-shell-hover border border-[#2a3347] flex items-center justify-center">
                 <User className="h-[18px] w-[18px] text-shell-secondary" />
               </div>
