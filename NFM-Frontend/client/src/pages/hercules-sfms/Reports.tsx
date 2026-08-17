@@ -750,6 +750,7 @@ export function Reports() {
   const [assignTargetClient, setAssignTargetClient] = useState("");
   const [assignBatchGuid, setAssignBatchGuid] = useState("");
   const [assigning, setAssigning] = useState(false);
+  const [assignPopupOpen, setAssignPopupOpen] = useState(false);
 
   const showToast = (message: string, type: "success" | "error" = "success") => {
     setToast({ show: true, message, type });
@@ -1276,13 +1277,6 @@ export function Reports() {
       showToast("Batch is already under this client", "error");
       return;
     }
-    if (
-      !window.confirm(
-        `Assign batch "${selected.batchName}" from ${selected.currentClient} to ${assignTargetClient}?`
-      )
-    ) {
-      return;
-    }
     setAssigning(true);
     try {
       const res = await axios.post(
@@ -1304,6 +1298,8 @@ export function Reports() {
       );
       if (updated > 0) {
         setAssignBatchGuid("");
+        setAssignTargetClient("");
+        setAssignPopupOpen(false);
         setSsrsFilter1((prev) => (prev.includes(newClient) ? prev : [...prev, newClient]));
         setSsrsFilter1Options((prev) => (prev.includes(newClient) ? prev : [...prev, newClient]));
         setExpandedClients((prev) => {
@@ -1330,6 +1326,10 @@ export function Reports() {
     if (activeTab !== "Raw Material Consumption") return [] as CumulativeDateGroup[];
     return buildCumulativeTree(ssrsRows);
   }, [activeTab, ssrsRows]);
+
+  useEffect(() => {
+    if (activeTab !== "Batch Report") setAssignPopupOpen(false);
+  }, [activeTab]);
 
   const visibleProductOptions = useMemo(() => {
     if (activeTab !== "Detailed Report") return productOptions;
@@ -1678,6 +1678,95 @@ export function Reports() {
         </div>
       )}
 
+      {assignPopupOpen && activeTab === "Batch Report" && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+          onClick={() => !assigning && setAssignPopupOpen(false)}
+        >
+          <div
+            className="w-full max-w-lg rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 shadow-xl p-4 space-y-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h2 className="text-base font-semibold text-slate-800 dark:text-cyan-300">
+                  Assign batch to client
+                </h2>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  Select the new client and the batch to move, then click ASSIGN.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => !assigning && setAssignPopupOpen(false)}
+                className="text-slate-500 hover:text-slate-800 dark:hover:text-white"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label className="text-xs font-medium">Assign client</Label>
+                <select
+                  value={assignTargetClient}
+                  onChange={(e) => setAssignTargetClient(e.target.value)}
+                  disabled={assigning}
+                  className="w-full h-9 rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-2 text-sm text-slate-900 dark:text-white"
+                >
+                  <option value="">Select client…</option>
+                  {assignClientOptions.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs font-medium">Assign batch</Label>
+                <select
+                  value={assignBatchGuid}
+                  onChange={(e) => setAssignBatchGuid(e.target.value)}
+                  disabled={assigning || assignBatchOptions.length === 0}
+                  className="w-full h-9 rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-2 text-sm text-slate-900 dark:text-white"
+                >
+                  <option value="">Select batch…</option>
+                  {assignBatchOptions.map((b) => (
+                    <option key={b.guid} value={b.guid}>
+                      {b.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 pt-1">
+              <Button
+                type="button"
+                onClick={() => setAssignPopupOpen(false)}
+                disabled={assigning}
+                className="h-9 px-3 text-sm bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-100"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                onClick={confirmAssignBatch}
+                disabled={assigning || !assignTargetClient || !assignBatchGuid}
+                className="h-9 px-4 text-sm !bg-[#0088a9] hover:!bg-[#007b98] !text-white"
+              >
+                {assigning ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Assigning…
+                  </>
+                ) : (
+                  "ASSIGN"
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="space-y-6">
         <div className="flex items-center gap-3">
           <FileText className="text-cyan-400 text-2xl" />
@@ -1835,57 +1924,16 @@ export function Reports() {
           </CardContent>
         </Card>
 
-        <div className="flex flex-wrap justify-end items-end gap-3">
+        <div className="flex flex-wrap justify-end items-center gap-3">
           {activeTab === "Batch Report" && (
-            <>
-              <div className="space-y-1 min-w-[160px]">
-                <Label className="text-xs font-medium">Assign client</Label>
-                <select
-                  value={assignTargetClient}
-                  onChange={(e) => setAssignTargetClient(e.target.value)}
-                  disabled={assigning}
-                  className="w-full h-9 rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-2 text-sm text-slate-900 dark:text-white"
-                >
-                  <option value="">Select client…</option>
-                  {assignClientOptions.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="space-y-1 min-w-[220px]">
-                <Label className="text-xs font-medium">Assign batch</Label>
-                <select
-                  value={assignBatchGuid}
-                  onChange={(e) => setAssignBatchGuid(e.target.value)}
-                  disabled={assigning || assignBatchOptions.length === 0}
-                  className="w-full h-9 rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-2 text-sm text-slate-900 dark:text-white"
-                >
-                  <option value="">Select batch…</option>
-                  {assignBatchOptions.map((b) => (
-                    <option key={b.guid} value={b.guid}>
-                      {b.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <Button
-                type="button"
-                onClick={confirmAssignBatch}
-                disabled={assigning || !assignTargetClient || !assignBatchGuid}
-                className="bg-[#0088a9] hover:bg-[#007b98] !text-white text-sm h-9"
-              >
-                {assigning ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Assigning…
-                  </>
-                ) : (
-                  "ASSIGN"
-                )}
-              </Button>
-            </>
+            <Button
+              type="button"
+              onClick={() => setAssignPopupOpen(true)}
+              disabled={assigning || !assignBatchOptions.length}
+              className="bg-[#0088a9] hover:bg-[#007b98] !text-white text-sm h-9"
+            >
+              ASSIGN
+            </Button>
           )}
           <Button
             onClick={handlePrint}
