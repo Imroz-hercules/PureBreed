@@ -306,6 +306,7 @@ import { format } from "date-fns";
 import axios from "axios";
 import { API_ENDPOINTS, API_BASE_URL } from '@/lib/api';
 import { formatApiDateTime, dateToApiIso, getSaudiNow } from '@/lib/saudiTime';
+import { csvBrandingLines } from '@/lib/reportBranding';
 
 // MultiSelect Component
 interface MultiSelectProps {
@@ -741,7 +742,13 @@ export function ReportsPage() {
         );
         
         // Combine headers and rows
-        const csvContent = [headers, ...csvRows].join('\n');
+        const generatedOn = new Date().toLocaleString("en-US");
+        const dateRange = `${dateToApiIso(startDate)} to ${dateToApiIso(endDate)}`;
+        const csvContent = [
+          ...csvBrandingLines("Raw Data", generatedOn, dateRange),
+          headers,
+          ...csvRows,
+        ].join('\n');
         
         // Create and download file
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });

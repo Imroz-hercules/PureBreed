@@ -4,6 +4,7 @@ import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { User, Settings, LogOut } from 'lucide-react'
 import { useLocation } from 'wouter'
 import asmLogo from '../../assets/Asm_Logo.png'
+import pureBreedLogo from '../../assets/PureBreed.png'
 
 interface WaterSystemLayoutProps {
   children: React.ReactNode
@@ -102,7 +103,12 @@ export function WaterSystemLayout({ children }: WaterSystemLayoutProps) {
               <div className="text-shell-accent">{formatCurrentTimeOnly()}</div>
             </div>
 
-            <div className="flex items-center space-x-4 border-l border-shell-border pl-4">
+            <div className="flex items-center space-x-3 border-l border-shell-border pl-4">
+              <img
+                src={pureBreedLogo}
+                alt="Pure Breed Poultry Co."
+                className="h-12 w-auto bg-black rounded-lg p-1 opacity-90 hover:opacity-100 transition-opacity"
+              />
               <img
                 src={asmLogo}
                 alt="ASM Logo"

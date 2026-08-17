@@ -20,6 +20,12 @@ import {
 } from "lucide-react";
 import axios from "axios";
 import { API_ENDPOINTS, buildApiUrl } from "@/lib/api";
+import {
+  buildReportHeaderHtml,
+  csvBrandingLines,
+  getReportLogoDataUrls,
+  REPORT_HEADER_CSS,
+} from "@/lib/reportBranding";
 
 /** Legacy BatchMaterials_Shadow reports + MaterialInfo-view (SSRS-style) reports */
 const LEGACY_TABS = [
@@ -1558,12 +1564,34 @@ export function Reports() {
     ];
   };
 
-  const exportToCSV = () => {
+  const reportMeta = () => {
+    const generatedOn = new Date().toLocaleString("en-US");
+    const dateRange = `${appliedStartDate} to ${appliedEndDate}`;
+    return { generatedOn, dateRange };
+  };
+
+  const reportTableHtml = () => {
+    const totalRow = consumptionTotals
+      ? `<tr class="total-row"><td>Total</td><td></td><td></td><td></td><td>${fmtNum(consumptionTotals.planned)}</td><td>${fmtNum(consumptionTotals.actual)}</td><td>${fmtNum(consumptionTotals.difference)}</td></tr>`
+      : cumulativeTotals
+        ? `<tr class="total-row"><td>Total</td><td></td><td>${fmtNum(cumulativeTotals.planned)}</td><td>${fmtNum(cumulativeTotals.actual)}</td><td>${fmtNum(cumulativeTotals.difference)}</td></tr>`
+        : "";
+    return `<table>
+      <thead><tr>${headers.map((h) => `<th>${h}</th>`).join("")}</tr></thead>
+      <tbody>${displayRows
+        .map((r) => `<tr>${renderCells(r).map((c) => `<td>${c}</td>`).join("")}</tr>`)
+        .join("")}${totalRow}</tbody>
+    </table>`;
+  };
+
+  const exportToCSV = async () => {
     if (!displayRows.length) {
       showToast("No data to export", "error");
       return;
     }
+    const { generatedOn, dateRange } = reportMeta();
     const lines = [
+      ...csvBrandingLines(activeTab, generatedOn, dateRange),
       headers.join(","),
       ...displayRows.map((row) =>
         renderCells(row)
@@ -1594,31 +1622,35 @@ export function Reports() {
     URL.revokeObjectURL(url);
   };
 
-  const handlePrint = () => {
+  const handlePrint = async () => {
     if (!displayRows.length) {
       showToast("No data to print", "error");
       return;
     }
     const w = window.open("", "_blank");
     if (!w) return;
+    const { generatedOn, dateRange } = reportMeta();
+    const logos = await getReportLogoDataUrls();
+    const headerHtml = buildReportHeaderHtml({
+      title: activeTab,
+      generatedOn,
+      dateRange,
+      logos,
+    });
     w.document.write(`
-      <html><head><title>${activeTab}</title></head><body>
-      <h1>${activeTab}</h1>
-      <p>${appliedStartDate} → ${appliedEndDate}</p>
-      <table border="1" cellpadding="4" cellspacing="0" style="border-collapse:collapse;font-size:11px;width:100%">
-        <thead><tr>${headers.map((h) => `<th>${h}</th>`).join("")}</tr></thead>
-        <tbody>${displayRows
-          .map((r) => `<tr>${renderCells(r).map((c) => `<td>${c}</td>`).join("")}</tr>`)
-          .join("")}${
-          consumptionTotals
-            ? `<tr><td><b>Total</b></td><td></td><td></td><td></td><td><b>${fmtNum(consumptionTotals.planned)}</b></td><td><b>${fmtNum(consumptionTotals.actual)}</b></td><td><b>${fmtNum(consumptionTotals.difference)}</b></td></tr>`
-            : cumulativeTotals
-              ? `<tr><td><b>Total</b></td><td></td><td><b>${fmtNum(cumulativeTotals.planned)}</b></td><td><b>${fmtNum(cumulativeTotals.actual)}</b></td><td><b>${fmtNum(cumulativeTotals.difference)}</b></td></tr>`
-              : ""
-        }</tbody>
-      </table></body></html>`);
+      <html>
+        <head>
+          <title>${activeTab}</title>
+          <style>${REPORT_HEADER_CSS}</style>
+        </head>
+        <body>
+          ${headerHtml}
+          ${reportTableHtml()}
+        </body>
+      </html>`);
     w.document.close();
-    w.print();
+    w.focus();
+    setTimeout(() => w.print(), 250);
   };
 
   const ssrsFilterSlots =
