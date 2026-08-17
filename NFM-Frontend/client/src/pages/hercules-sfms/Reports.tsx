@@ -747,12 +747,8 @@ export function Reports() {
   const [apiRecipeNames, setApiRecipeNames] = useState<string[]>([]);
   const [filtersEpoch, setFiltersEpoch] = useState(0);
   const fetchSeqRef = useRef(0);
-  const [assignDialog, setAssignDialog] = useState<{
-    batchGuid: string;
-    batchName: string;
-    currentClient: string;
-  } | null>(null);
   const [assignTargetClient, setAssignTargetClient] = useState("");
+  const [assignBatchGuid, setAssignBatchGuid] = useState("");
   const [assigning, setAssigning] = useState(false);
 
   const showToast = (message: string, type: "success" | "error" = "success") => {
@@ -1227,27 +1223,64 @@ export function Reports() {
     return [...set].filter(Boolean).sort((a, b) => a.localeCompare(b));
   }, [ssrsFilter1Options]);
 
-  const openAssignDialog = (batch: DetailedBatch, currentClient: string) => {
-    const guid = batch.batchGuid || batch.key;
-    if (!guid) {
-      showToast("This batch has no id and cannot be reassigned", "error");
-      return;
+  const detailedTree = useMemo(() => {
+    if (activeTab !== "Detailed Report" || pendingClient.length === 0) return [] as DetailedClient[];
+    return buildDetailedTree(legacyRows);
+  }, [activeTab, legacyRows, pendingClient.length]);
+
+  const batchReportTree = useMemo(() => {
+    if (activeTab !== "Batch Report") return [] as DetailedClient[];
+    return buildBatchReportTree(ssrsRows);
+  }, [activeTab, ssrsRows]);
+
+  const assignBatchOptions = useMemo(() => {
+    if (activeTab !== "Batch Report") return [] as { guid: string; label: string; currentClient: string; batchName: string }[];
+    const list: { guid: string; label: string; currentClient: string; batchName: string }[] = [];
+    for (const clientNode of batchReportTree) {
+      for (const batch of clientNode.batches) {
+        const guid = batch.batchGuid || batch.key;
+        if (!guid) continue;
+        list.push({
+          guid,
+          batchName: batch.batchName,
+          currentClient: clientNode.client,
+          label: `${batch.batchName} — ${clientNode.client}`,
+        });
+      }
     }
-    setAssignDialog({
-      batchGuid: guid,
-      batchName: batch.batchName,
-      currentClient,
-    });
-    setAssignTargetClient(assignClientOptions.find((c) => c !== currentClient) || "");
-  };
+    return list;
+  }, [activeTab, batchReportTree]);
+
+  useEffect(() => {
+    if (!assignBatchGuid) return;
+    if (!assignBatchOptions.some((b) => b.guid === assignBatchGuid)) {
+      setAssignBatchGuid("");
+    }
+  }, [assignBatchOptions, assignBatchGuid]);
 
   const confirmAssignBatch = async () => {
-    if (!assignDialog || !assignTargetClient) {
-      showToast("Select a target client", "error");
+    if (!assignTargetClient) {
+      showToast("Select a client", "error");
       return;
     }
-    if (assignTargetClient === assignDialog.currentClient) {
-      showToast("Choose a different client", "error");
+    if (!assignBatchGuid) {
+      showToast("Select a batch", "error");
+      return;
+    }
+    const selected = assignBatchOptions.find((b) => b.guid === assignBatchGuid);
+    if (!selected) {
+      showToast("Selected batch not found", "error");
+      return;
+    }
+    if (assignTargetClient === selected.currentClient) {
+      showToast("Batch is already under this client", "error");
+      return;
+    }
+    if (
+      !window.confirm(
+        `Assign batch "${selected.batchName}" from ${selected.currentClient} to ${assignTargetClient}?`
+      )
+    ) {
       return;
     }
     setAssigning(true);
@@ -1255,23 +1288,22 @@ export function Reports() {
       const res = await axios.post(
         API_ENDPOINTS.BATCH_REPORT_ASSIGN_CLIENT,
         {
-          batchGuid: assignDialog.batchGuid,
+          batchGuid: assignBatchGuid,
           newClient: assignTargetClient,
         },
         { timeout: LARGE_REPORT_TIMEOUT_MS }
       );
       const updated = Number(res.data?.updated ?? 0);
-      const oldClient = String(res.data?.oldClient ?? assignDialog.currentClient);
+      const oldClient = String(res.data?.oldClient ?? selected.currentClient);
       const newClient = String(res.data?.newClient ?? assignTargetClient);
-      setAssignDialog(null);
-      setAssignTargetClient("");
       showToast(
         updated > 0
-          ? `Moved "${assignDialog.batchName}" from ${oldClient} to ${newClient}`
+          ? `Moved "${selected.batchName}" from ${oldClient} to ${newClient}`
           : res.data?.message || "No rows updated",
         updated > 0 ? "success" : "error"
       );
       if (updated > 0) {
+        setAssignBatchGuid("");
         setSsrsFilter1((prev) => (prev.includes(newClient) ? prev : [...prev, newClient]));
         setSsrsFilter1Options((prev) => (prev.includes(newClient) ? prev : [...prev, newClient]));
         setExpandedClients((prev) => {
@@ -1287,16 +1319,6 @@ export function Reports() {
       setAssigning(false);
     }
   };
-
-  const detailedTree = useMemo(() => {
-    if (activeTab !== "Detailed Report" || pendingClient.length === 0) return [] as DetailedClient[];
-    return buildDetailedTree(legacyRows);
-  }, [activeTab, legacyRows, pendingClient.length]);
-
-  const batchReportTree = useMemo(() => {
-    if (activeTab !== "Batch Report") return [] as DetailedClient[];
-    return buildBatchReportTree(ssrsRows);
-  }, [activeTab, ssrsRows]);
 
   const expandTree =
     activeTab === "Detailed Report" ? detailedTree : activeTab === "Batch Report" ? batchReportTree : [];
@@ -1656,81 +1678,6 @@ export function Reports() {
         </div>
       )}
 
-      {assignDialog && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-md rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 shadow-xl p-4 space-y-3">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <h2 className="text-base font-semibold text-slate-800 dark:text-cyan-300">
-                  Assign batch to client
-                </h2>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                  Updates FormulaCategoryName for all materials in this batch.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => !assigning && setAssignDialog(null)}
-                className="text-slate-500 hover:text-slate-800 dark:hover:text-white"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-            <div className="text-sm text-slate-700 dark:text-slate-200 space-y-1">
-              <p>
-                <span className="font-medium">Batch:</span> {assignDialog.batchName}
-              </p>
-              <p>
-                <span className="font-medium">Current client:</span> {assignDialog.currentClient}
-              </p>
-            </div>
-            <div className="space-y-1">
-              <Label className="text-xs font-medium">New client</Label>
-              <select
-                value={assignTargetClient}
-                onChange={(e) => setAssignTargetClient(e.target.value)}
-                disabled={assigning}
-                className="w-full h-8 rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-2 text-sm text-slate-900 dark:text-white"
-              >
-                <option value="">Select client…</option>
-                {assignClientOptions
-                  .filter((c) => c !== assignDialog.currentClient)
-                  .map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-              </select>
-            </div>
-            <div className="flex justify-end gap-2 pt-1">
-              <Button
-                type="button"
-                onClick={() => setAssignDialog(null)}
-                disabled={assigning}
-                className="h-8 px-3 text-sm bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-100"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="button"
-                onClick={confirmAssignBatch}
-                disabled={assigning || !assignTargetClient}
-                className="h-8 px-3 text-sm !bg-[#0088a9] hover:!bg-[#007b98] !text-white"
-              >
-                {assigning ? (
-                  <>
-                    <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                    Saving…
-                  </>
-                ) : (
-                  "Confirm assign"
-                )}
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-
       <div className="space-y-6">
         <div className="flex items-center gap-3">
           <FileText className="text-cyan-400 text-2xl" />
@@ -1888,11 +1835,62 @@ export function Reports() {
           </CardContent>
         </Card>
 
-        <div className="flex justify-end gap-3">
+        <div className="flex flex-wrap justify-end items-end gap-3">
+          {activeTab === "Batch Report" && (
+            <>
+              <div className="space-y-1 min-w-[160px]">
+                <Label className="text-xs font-medium">Assign client</Label>
+                <select
+                  value={assignTargetClient}
+                  onChange={(e) => setAssignTargetClient(e.target.value)}
+                  disabled={assigning}
+                  className="w-full h-9 rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-2 text-sm text-slate-900 dark:text-white"
+                >
+                  <option value="">Select client…</option>
+                  {assignClientOptions.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-1 min-w-[220px]">
+                <Label className="text-xs font-medium">Assign batch</Label>
+                <select
+                  value={assignBatchGuid}
+                  onChange={(e) => setAssignBatchGuid(e.target.value)}
+                  disabled={assigning || assignBatchOptions.length === 0}
+                  className="w-full h-9 rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-2 text-sm text-slate-900 dark:text-white"
+                >
+                  <option value="">Select batch…</option>
+                  {assignBatchOptions.map((b) => (
+                    <option key={b.guid} value={b.guid}>
+                      {b.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <Button
+                type="button"
+                onClick={confirmAssignBatch}
+                disabled={assigning || !assignTargetClient || !assignBatchGuid}
+                className="bg-[#0088a9] hover:bg-[#007b98] !text-white text-sm h-9"
+              >
+                {assigning ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Assigning…
+                  </>
+                ) : (
+                  "ASSIGN"
+                )}
+              </Button>
+            </>
+          )}
           <Button
             onClick={handlePrint}
             disabled={!displayRows.length}
-            className="bg-[#0088a9] hover:bg-[#007b98] !text-white text-sm"
+            className="bg-[#0088a9] hover:bg-[#007b98] !text-white text-sm h-9"
           >
             <Printer className="h-4 w-4 mr-2" />
             PRINT
@@ -1900,7 +1898,7 @@ export function Reports() {
           <Button
             onClick={exportToCSV}
             disabled={!displayRows.length}
-            className="bg-[#0088a9] hover:bg-[#007b98] !text-white text-sm"
+            className="bg-[#0088a9] hover:bg-[#007b98] !text-white text-sm h-9"
           >
             <Download className="h-4 w-4 mr-2" />
             EXPORT TO CSV
@@ -1997,17 +1995,7 @@ export function Reports() {
                               {showBatchTime && (
                                 <td className="px-3 py-2 whitespace-nowrap text-sm">{batch.batchTime}</td>
                               )}
-                              <td colSpan={5} className="px-3 py-2">
-                                {showBatchTime && (
-                                  <Button
-                                    type="button"
-                                    onClick={() => openAssignDialog(batch, clientNode.client)}
-                                    className="h-7 px-2 text-xs !bg-[#0088a9] hover:!bg-[#007b98] !text-white"
-                                  >
-                                    Assign to client
-                                  </Button>
-                                )}
-                              </td>
+                              <td colSpan={5} className="px-3 py-2" />
                             </tr>
                           );
                           if (!batchOpen) return;
