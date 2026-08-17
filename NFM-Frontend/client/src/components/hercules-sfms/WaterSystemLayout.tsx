@@ -71,13 +71,29 @@ export function WaterSystemLayout({ children }: WaterSystemLayoutProps) {
       />
 
       <div className="flex-1 flex flex-col relative z-10 min-w-0">
-        <header className="h-[112px] min-h-[112px] bg-shell border-b border-shell-border px-5 flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-bold text-shell-text">PureBreed-reporting</h1>
-            <p className="text-sm text-shell-secondary">{getPageTitle()}</p>
+        <header className="h-[112px] min-h-[112px] bg-shell border-b border-shell-border px-5 flex items-center justify-between gap-4">
+          <div className="flex items-center space-x-3 min-w-0">
+            <div className="h-[96px] bg-white rounded-lg px-2 flex items-center justify-center shrink-0">
+              <img
+                src={pureBreedLogo}
+                alt="Pure Breed Poultry Co."
+                className="h-full w-auto object-contain"
+              />
+            </div>
+            <div className="h-[96px] bg-white rounded-lg px-2 flex items-center justify-center shrink-0">
+              <img
+                src={asmLogo}
+                alt="ASM Logo"
+                className="h-full w-auto object-contain"
+              />
+            </div>
+            <div className="min-w-0 pl-2">
+              <h1 className="text-xl font-bold text-shell-text truncate">PureBreed-reporting</h1>
+              <p className="text-sm text-shell-secondary truncate">{getPageTitle()}</p>
+            </div>
           </div>
 
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-4 shrink-0">
             <div className="flex items-center space-x-3 text-sm">
               <span className="text-shell-secondary">Production Manager</span>
               <div className="w-9 h-9 rounded-full bg-shell-hover border border-[#2a3347] flex items-center justify-center">
@@ -101,23 +117,6 @@ export function WaterSystemLayout({ children }: WaterSystemLayoutProps) {
             <div className="text-xs text-shell-muted border-l border-shell-border pl-4">
               <div>{formatCurrentTime()}</div>
               <div className="text-shell-accent">{formatCurrentTimeOnly()}</div>
-            </div>
-
-            <div className="flex items-center space-x-3 border-l border-shell-border pl-4">
-              <div className="h-[96px] bg-white rounded-lg px-2 flex items-center justify-center">
-                <img
-                  src={pureBreedLogo}
-                  alt="Pure Breed Poultry Co."
-                  className="h-full w-auto object-contain"
-                />
-              </div>
-              <div className="h-[96px] bg-white rounded-lg px-2 flex items-center justify-center">
-                <img
-                  src={asmLogo}
-                  alt="ASM Logo"
-                  className="h-full w-auto object-contain"
-                />
-              </div>
             </div>
           </div>
         </header>
