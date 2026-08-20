@@ -13,7 +13,7 @@ if not exist "%ROOT%\NFM-backend\app.py" (
 cd /d "%ROOT%"
 
 echo Starting PureBreed Backend (port 5002)...
-start "PureBreed Backend" cmd /k "cd /d "%ROOT%\NFM-backend" && call venv\Scripts\activate.bat && python app.py"
+start "PureBreed Backend" cmd /k "cd /d "%ROOT%\NFM-backend" && call venv\Scripts\activate.bat && py -3.10 app.py"
 
 timeout /t 5 /nobreak >nul
 
