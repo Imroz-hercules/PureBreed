@@ -22,10 +22,14 @@ import axios from "axios";
 import { API_ENDPOINTS, buildApiUrl } from "@/lib/api";
 import {
   buildReportHeaderHtml,
-  csvBrandingLines,
   getReportLogoDataUrls,
   REPORT_HEADER_CSS,
 } from "@/lib/reportBranding";
+import {
+  buildBatchHierarchyExcelRows,
+  downloadReportExcel,
+  type ExcelDataRow,
+} from "@/lib/reportExcelExport";
 
 /** Legacy BatchMaterials_Shadow reports + MaterialInfo-view (SSRS-style) reports */
 const LEGACY_TABS = [
@@ -469,59 +473,6 @@ function buildBatchHierarchyHtml(tree: DetailedClient[]): string {
     <thead><tr><th>Client</th><th>Batch Name</th><th>Batch Time</th><th>Material Name</th><th>Material Code</th><th>SetPoint</th><th>Actual</th><th>Difference</th></tr></thead>
     <tbody>${body}</tbody>
   </table>`;
-}
-
-function buildBatchHierarchyCsv(tree: DetailedClient[]): string[] {
-  const q = (s: unknown) => `"${String(s ?? "").replace(/"/g, '""')}"`;
-  const lines = [
-    ["Client", "Batch Name", "Batch Time", "Material Name", "Material Code", "SetPoint", "Actual", "Difference"].join(","),
-  ];
-  for (const clientNode of tree) {
-    lines.push(
-      [
-        q(
-          `${clientNode.client} (${clientNode.batches.length} batch${clientNode.batches.length === 1 ? "" : "es"})`
-        ),
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-      ].join(",")
-    );
-    for (const batch of clientNode.batches) {
-      lines.push([q(""), q(batch.batchName), q(batch.batchTime), "", "", "", "", ""].join(","));
-      for (const m of batch.materials) {
-        lines.push(
-          [
-            q(""),
-            q(""),
-            q(""),
-            q(m.materialName),
-            q(m.materialCode),
-            q(fmtNum(m.setPoint)),
-            q(fmtNum(m.actual)),
-            q(fmtNum(m.difference)),
-          ].join(",")
-        );
-      }
-      lines.push(
-        [
-          q(""),
-          q(""),
-          q(""),
-          q("Total"),
-          q(""),
-          q(fmtNum(batch.totalSetPoint)),
-          q(fmtNum(batch.totalActual)),
-          q(fmtNum(batch.totalDifference)),
-        ].join(",")
-      );
-    }
-  }
-  return lines;
 }
 
 function flattenDetailedTree(tree: DetailedClient[]) {
@@ -1686,61 +1637,68 @@ export function Reports() {
     </table>`;
   };
 
-  const exportToCSV = async () => {
-    if (activeTab === "Batch Report") {
-      if (!batchReportTree.length) {
+  const exportToExcel = async () => {
+    const { generatedOn, dateRange } = reportMeta();
+    try {
+      if (activeTab === "Batch Report") {
+        if (!batchReportTree.length) {
+          showToast("No data to export", "error");
+          return;
+        }
+        const { headers: batchHeaders, rows } = buildBatchHierarchyExcelRows(batchReportTree, fmtNum);
+        await downloadReportExcel({
+          title: activeTab,
+          generatedOn,
+          dateRange,
+          headers: batchHeaders,
+          rows,
+        });
+        return;
+      }
+      if (!displayRows.length) {
         showToast("No data to export", "error");
         return;
       }
-      const { generatedOn, dateRange } = reportMeta();
-      const lines = [
-        ...csvBrandingLines(activeTab, generatedOn, dateRange),
-        ...buildBatchHierarchyCsv(batchReportTree),
-      ];
-      const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${activeTab.replace(/\s+/g, "_")}.csv`;
-      a.click();
-      URL.revokeObjectURL(url);
-      return;
+      const rows: ExcelDataRow[] = displayRows.map((row) => ({
+        values: renderCells(row),
+        kind: "normal",
+      }));
+      if (consumptionTotals) {
+        rows.push({
+          kind: "total",
+          values: [
+            "Total",
+            "",
+            "",
+            "",
+            fmtNum(consumptionTotals.planned),
+            fmtNum(consumptionTotals.actual),
+            fmtNum(consumptionTotals.difference),
+          ],
+        });
+      }
+      if (cumulativeTotals) {
+        rows.push({
+          kind: "total",
+          values: [
+            "Total",
+            "",
+            fmtNum(cumulativeTotals.planned),
+            fmtNum(cumulativeTotals.actual),
+            fmtNum(cumulativeTotals.difference),
+          ],
+        });
+      }
+      await downloadReportExcel({
+        title: activeTab,
+        generatedOn,
+        dateRange,
+        headers,
+        rows,
+      });
+    } catch (e: any) {
+      showToast(e?.message || "Failed to export Excel", "error");
     }
-    if (!displayRows.length) {
-      showToast("No data to export", "error");
-      return;
-    }
-    const { generatedOn, dateRange } = reportMeta();
-    const lines = [
-      ...csvBrandingLines(activeTab, generatedOn, dateRange),
-      headers.join(","),
-      ...displayRows.map((row) =>
-        renderCells(row)
-          .map((v) => `"${String(v).replace(/"/g, '""')}"`)
-          .join(",")
-      ),
-      ...(consumptionTotals
-        ? [
-            ["Total", "", "", "", fmtNum(consumptionTotals.planned), fmtNum(consumptionTotals.actual), fmtNum(consumptionTotals.difference)]
-              .map((v) => `"${String(v).replace(/"/g, '""')}"`)
-              .join(","),
-          ]
-        : []),
-      ...(cumulativeTotals
-        ? [
-            ["Total", "", fmtNum(cumulativeTotals.planned), fmtNum(cumulativeTotals.actual), fmtNum(cumulativeTotals.difference)]
-              .map((v) => `"${String(v).replace(/"/g, '""')}"`)
-              .join(","),
-          ]
-        : []),
-    ];
-    const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${activeTab.replace(/\s+/g, "_")}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
   };
 
   const handlePrint = async () => {
@@ -2129,19 +2087,19 @@ export function Reports() {
           )}
           <Button
             onClick={handlePrint}
-            disabled={!displayRows.length}
+            disabled={activeTab === "Batch Report" ? !batchReportTree.length : !displayRows.length}
             className="bg-[#0088a9] hover:bg-[#007b98] !text-white text-sm h-9"
           >
             <Printer className="h-4 w-4 mr-2" />
             PRINT
           </Button>
           <Button
-            onClick={exportToCSV}
-            disabled={!displayRows.length}
+            onClick={exportToExcel}
+            disabled={activeTab === "Batch Report" ? !batchReportTree.length : !displayRows.length}
             className="bg-[#0088a9] hover:bg-[#007b98] !text-white text-sm h-9"
           >
             <Download className="h-4 w-4 mr-2" />
-            EXPORT TO CSV
+            EXPORT TO EXCEL
           </Button>
         </div>
 
