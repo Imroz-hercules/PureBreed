@@ -462,70 +462,134 @@ def batch_report():
 
 @ssrs_bp.route("/ssrs/batch-report/assign-client", methods=["POST"])
 def assign_batch_client():
-    """Move all material rows for one batch (ROOTGUID) to a different FormulaCategoryName client."""
+    """Move material rows for one or more batches (ROOTGUID) to a FormulaCategoryName client."""
     data = request.get_json(silent=True) or {}
-    batch_guid = str(data.get("batchGuid") or data.get("batch_guid") or "").strip()
     new_client = str(data.get("newClient") or data.get("new_client") or "").strip()
-    if not batch_guid or not new_client:
-        return jsonify({"error": "batchGuid and newClient are required"}), 400
+    raw_guids = data.get("batchGuids") or data.get("batch_guids")
+    if isinstance(raw_guids, list):
+        batch_guids = [str(g).strip() for g in raw_guids if str(g).strip()]
+    else:
+        single = str(data.get("batchGuid") or data.get("batch_guid") or "").strip()
+        batch_guids = [single] if single else []
+    # de-dupe while preserving order
+    seen = set()
+    unique_guids = []
+    for g in batch_guids:
+        key = g.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        unique_guids.append(g)
+    batch_guids = unique_guids
+
+    if not batch_guids or not new_client:
+        return jsonify({"error": "batchGuid/batchGuids and newClient are required"}), 400
     engine, eng_err = _require_engine()
     if eng_err:
         return eng_err
     try:
+        results = []
+        total_updated = 0
         with engine.begin() as conn:
-            current = conn.execute(
-                text(
-                    """
-                    SELECT TOP 1
-                      ISNULL(FormulaCategoryName, N'') AS OrderCat_Name,
-                      ISNULL([Batch Name], N'') AS Batch_Name
-                    FROM dbo.BatchMaterials
-                    WHERE ROOTGUID = CAST(:batch_guid AS uniqueidentifier)
-                    """
-                ),
-                {"batch_guid": batch_guid},
-            ).mappings().first()
-            if not current:
-                return jsonify({"error": "Batch not found"}), 404
-            old_client = str(current.get("OrderCat_Name") or "").strip()
-            batch_name = str(current.get("Batch_Name") or "").strip()
-            if old_client == new_client:
-                return jsonify(
+            for batch_guid in batch_guids:
+                current = conn.execute(
+                    text(
+                        """
+                        SELECT TOP 1
+                          ISNULL(FormulaCategoryName, N'') AS OrderCat_Name,
+                          ISNULL([Batch Name], N'') AS Batch_Name
+                        FROM dbo.BatchMaterials
+                        WHERE ROOTGUID = CAST(:batch_guid AS uniqueidentifier)
+                        """
+                    ),
+                    {"batch_guid": batch_guid},
+                ).mappings().first()
+                if not current:
+                    results.append(
+                        {
+                            "batchGuid": batch_guid,
+                            "updated": 0,
+                            "error": "Batch not found",
+                        }
+                    )
+                    continue
+                old_client = str(current.get("OrderCat_Name") or "").strip()
+                batch_name = str(current.get("Batch_Name") or "").strip()
+                if old_client == new_client:
+                    results.append(
+                        {
+                            "batchGuid": batch_guid,
+                            "batchName": batch_name,
+                            "oldClient": old_client,
+                            "newClient": new_client,
+                            "updated": 0,
+                            "message": "Batch is already assigned to this client",
+                        }
+                    )
+                    continue
+                result = conn.execute(
+                    text(
+                        """
+                        UPDATE dbo.BatchMaterials
+                        SET FormulaCategoryName = :new_client
+                        WHERE ROOTGUID = CAST(:batch_guid AS uniqueidentifier)
+                        """
+                    ),
+                    {"new_client": new_client, "batch_guid": batch_guid},
+                )
+                updated = int(result.rowcount or 0)
+                total_updated += updated
+                results.append(
                     {
-                        "updated": 0,
                         "batchGuid": batch_guid,
                         "batchName": batch_name,
                         "oldClient": old_client,
                         "newClient": new_client,
-                        "message": "Batch is already assigned to this client",
+                        "updated": updated,
                     }
-                ), 200
-            result = conn.execute(
-                text(
-                    """
-                    UPDATE dbo.BatchMaterials
-                    SET FormulaCategoryName = :new_client
-                    WHERE ROOTGUID = CAST(:batch_guid AS uniqueidentifier)
-                    """
-                ),
-                {"new_client": new_client, "batch_guid": batch_guid},
-            )
-            updated = int(result.rowcount or 0)
-        logger.info(
-            "Assigned batch %s (%s) from %s to %s (%s rows)",
-            batch_guid,
-            batch_name,
-            old_client,
-            new_client,
-            updated,
-        )
+                )
+                logger.info(
+                    "Assigned batch %s (%s) from %s to %s (%s rows)",
+                    batch_guid,
+                    batch_name,
+                    old_client,
+                    new_client,
+                    updated,
+                )
+
+        moved = [r for r in results if int(r.get("updated") or 0) > 0]
+        skipped = [r for r in results if int(r.get("updated") or 0) == 0]
+        # Backward-compatible single-batch shape when only one GUID was sent
+        if len(batch_guids) == 1:
+            one = results[0]
+            if one.get("error") == "Batch not found":
+                return jsonify({"error": "Batch not found"}), 404
+            return jsonify(
+                {
+                    "updated": int(one.get("updated") or 0),
+                    "batchGuid": one.get("batchGuid"),
+                    "batchName": one.get("batchName"),
+                    "oldClient": one.get("oldClient"),
+                    "newClient": new_client,
+                    "message": one.get("message"),
+                    "results": results,
+                    "movedCount": len(moved),
+                    "skippedCount": len(skipped),
+                }
+            ), 200
+
         return jsonify(
             {
-                "updated": updated,
-                "batchGuid": batch_guid,
-                "batchName": batch_name,
-                "oldClient": old_client,
+                "updated": total_updated,
                 "newClient": new_client,
+                "results": results,
+                "movedCount": len(moved),
+                "skippedCount": len(skipped),
+                "message": (
+                    f"Moved {len(moved)} batch(es) to {new_client}"
+                    if moved
+                    else "No batches updated"
+                ),
             }
         ), 200
     except Exception as e:

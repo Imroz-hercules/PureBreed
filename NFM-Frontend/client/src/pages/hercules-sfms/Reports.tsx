@@ -841,7 +841,7 @@ export function Reports() {
   const [filtersEpoch, setFiltersEpoch] = useState(0);
   const fetchSeqRef = useRef(0);
   const [assignTargetClient, setAssignTargetClient] = useState("");
-  const [assignBatchGuid, setAssignBatchGuid] = useState("");
+  const [assignBatchGuids, setAssignBatchGuids] = useState<string[]>([]);
   const [assigning, setAssigning] = useState(false);
   const [assignPopupOpen, setAssignPopupOpen] = useState(false);
 
@@ -1346,28 +1346,37 @@ export function Reports() {
   }, [activeTab, batchReportTree]);
 
   useEffect(() => {
-    if (!assignBatchGuid) return;
-    if (!assignBatchOptions.some((b) => b.guid === assignBatchGuid)) {
-      setAssignBatchGuid("");
-    }
-  }, [assignBatchOptions, assignBatchGuid]);
+    setAssignBatchGuids((prev) => {
+      if (!prev.length) return prev;
+      const valid = new Set(assignBatchOptions.map((b) => b.guid));
+      const next = prev.filter((g) => valid.has(g));
+      return next.length === prev.length ? prev : next;
+    });
+  }, [assignBatchOptions]);
+
+  const toggleAssignBatch = (guid: string) => {
+    setAssignBatchGuids((prev) =>
+      prev.includes(guid) ? prev.filter((g) => g !== guid) : [...prev, guid]
+    );
+  };
 
   const confirmAssignBatch = async () => {
     if (!assignTargetClient) {
       showToast("Select a client", "error");
       return;
     }
-    if (!assignBatchGuid) {
-      showToast("Select a batch", "error");
+    if (!assignBatchGuids.length) {
+      showToast("Select at least one batch", "error");
       return;
     }
-    const selected = assignBatchOptions.find((b) => b.guid === assignBatchGuid);
-    if (!selected) {
+    const selected = assignBatchOptions.filter((b) => assignBatchGuids.includes(b.guid));
+    if (!selected.length) {
       showToast("Selected batch not found", "error");
       return;
     }
-    if (assignTargetClient === selected.currentClient) {
-      showToast("Batch is already under this client", "error");
+    const movable = selected.filter((b) => b.currentClient !== assignTargetClient);
+    if (!movable.length) {
+      showToast("All selected batches are already under this client", "error");
       return;
     }
     setAssigning(true);
@@ -1375,22 +1384,25 @@ export function Reports() {
       const res = await axios.post(
         API_ENDPOINTS.BATCH_REPORT_ASSIGN_CLIENT,
         {
-          batchGuid: assignBatchGuid,
+          batchGuids: movable.map((b) => b.guid),
           newClient: assignTargetClient,
         },
         { timeout: LARGE_REPORT_TIMEOUT_MS }
       );
-      const updated = Number(res.data?.updated ?? 0);
-      const oldClient = String(res.data?.oldClient ?? selected.currentClient);
+      const movedCount = Number(res.data?.movedCount ?? (Number(res.data?.updated ?? 0) > 0 ? 1 : 0));
+      const skippedCount = Number(res.data?.skippedCount ?? 0);
       const newClient = String(res.data?.newClient ?? assignTargetClient);
+      const ok = movedCount > 0 || Number(res.data?.updated ?? 0) > 0;
       showToast(
-        updated > 0
-          ? `Moved "${selected.batchName}" from ${oldClient} to ${newClient}`
-          : res.data?.message || "No rows updated",
-        updated > 0 ? "success" : "error"
+        ok
+          ? skippedCount > 0
+            ? `Moved ${movedCount} batch(es) to ${newClient} (${skippedCount} skipped)`
+            : `Moved ${movedCount || movable.length} batch(es) to ${newClient}`
+          : res.data?.message || "No batches updated",
+        ok ? "success" : "error"
       );
-      if (updated > 0) {
-        setAssignBatchGuid("");
+      if (ok) {
+        setAssignBatchGuids([]);
         setAssignTargetClient("");
         setAssignPopupOpen(false);
         setSsrsFilter1((prev) => (prev.includes(newClient) ? prev : [...prev, newClient]));
@@ -1835,7 +1847,7 @@ export function Reports() {
                   Assign batch to client
                 </h2>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                  Select the new client and the batch to move, then click ASSIGN.
+                  Select the new client and one or more batches to move, then click ASSIGN.
                 </p>
               </div>
               <button
@@ -1864,20 +1876,58 @@ export function Reports() {
                 </select>
               </div>
               <div className="space-y-1">
-                <Label className="text-xs font-medium">Assign batch</Label>
-                <select
-                  value={assignBatchGuid}
-                  onChange={(e) => setAssignBatchGuid(e.target.value)}
-                  disabled={assigning || assignBatchOptions.length === 0}
-                  className="w-full h-9 rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-2 text-sm text-slate-900 dark:text-white"
+                <div className="flex items-center justify-between gap-2">
+                  <Label className="text-xs font-medium">Assign batch</Label>
+                  {assignBatchOptions.length > 0 && (
+                    <button
+                      type="button"
+                      disabled={assigning}
+                      onClick={() =>
+                        setAssignBatchGuids((prev) =>
+                          prev.length === assignBatchOptions.length
+                            ? []
+                            : assignBatchOptions.map((b) => b.guid)
+                        )
+                      }
+                      className="text-[11px] text-[#0088a9] hover:underline"
+                    >
+                      {assignBatchGuids.length === assignBatchOptions.length ? "Clear all" : "Select all"}
+                    </button>
+                  )}
+                </div>
+                <div
+                  className={`max-h-44 overflow-y-auto rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-2 py-1.5 ${
+                    assigning || assignBatchOptions.length === 0 ? "opacity-60 pointer-events-none" : ""
+                  }`}
                 >
-                  <option value="">Select batch…</option>
-                  {assignBatchOptions.map((b) => (
-                    <option key={b.guid} value={b.guid}>
-                      {b.label}
-                    </option>
-                  ))}
-                </select>
+                  {assignBatchOptions.length === 0 ? (
+                    <p className="text-xs text-slate-500 py-2">No batches available</p>
+                  ) : (
+                    assignBatchOptions.map((b) => {
+                      const checked = assignBatchGuids.includes(b.guid);
+                      return (
+                        <label
+                          key={b.guid}
+                          className="flex items-start gap-2 py-1.5 text-sm text-slate-900 dark:text-white cursor-pointer"
+                        >
+                          <input
+                            type="checkbox"
+                            className="mt-0.5"
+                            checked={checked}
+                            disabled={assigning}
+                            onChange={() => toggleAssignBatch(b.guid)}
+                          />
+                          <span className="leading-snug">{b.label}</span>
+                        </label>
+                      );
+                    })
+                  )}
+                </div>
+                {assignBatchGuids.length > 0 && (
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                    {assignBatchGuids.length} selected
+                  </p>
+                )}
               </div>
             </div>
             <div className="flex justify-end gap-2 pt-1">
@@ -1892,7 +1942,7 @@ export function Reports() {
               <Button
                 type="button"
                 onClick={confirmAssignBatch}
-                disabled={assigning || !assignTargetClient || !assignBatchGuid}
+                disabled={assigning || !assignTargetClient || !assignBatchGuids.length}
                 className="h-9 px-4 text-sm !bg-[#0088a9] hover:!bg-[#007b98] !text-white"
               >
                 {assigning ? (
