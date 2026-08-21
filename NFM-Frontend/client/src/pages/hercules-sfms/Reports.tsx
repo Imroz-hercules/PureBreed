@@ -297,7 +297,7 @@ function getTableHeaders(tab: TabName): string[] {
     case "Raw Material Consumption":
       return ["Date", "Recipes", "Order Cat Name", "Material", "Set Point", "Actual", "Difference"];
     case "Raw Material Cumulative":
-      return ["Material Name", "Code", "Planned (kg)", "Actual (kg)", "Difference (kg)"];
+      return ["Material Name", "Code", "SetPoint", "Actual (kg)", "Difference (kg)"];
     case "Batch Report":
       return [
         "Client",
