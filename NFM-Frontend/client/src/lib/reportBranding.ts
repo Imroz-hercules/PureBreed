@@ -1,6 +1,6 @@
 import herculesLogo from "@/assets/hercules-logo-final.png";
 import asmLogo from "@/assets/Asm_Logo.png";
-import pureBreedLogo from "@/assets/PureBreed.png";
+import pureBreedLogo from "@/assets/purebreed2.png";
 
 export const REPORT_LOGOS = {
   hercules: herculesLogo,

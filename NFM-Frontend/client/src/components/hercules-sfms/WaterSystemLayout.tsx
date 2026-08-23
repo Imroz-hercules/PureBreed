@@ -4,7 +4,7 @@ import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { User, Settings, LogOut } from 'lucide-react'
 import { useLocation } from 'wouter'
 import asmLogo from '../../assets/Asm_Logo.png'
-import pureBreedLogo from '../../assets/PureBreed.png'
+import pureBreedLogo from '../../assets/purebreed2.png'
 
 interface WaterSystemLayoutProps {
   children: React.ReactNode
