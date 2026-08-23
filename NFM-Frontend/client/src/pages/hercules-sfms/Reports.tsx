@@ -31,7 +31,7 @@ import {
   downloadReportExcel,
   type ExcelDataRow,
 } from "@/lib/reportExcelExport";
-import { sortByMaterialCode } from "@/lib/materialSort";
+import { normalizeMaterialCode, sortByMaterialCode } from "@/lib/materialSort";
 
 /** Legacy BatchMaterials_Shadow reports + MaterialInfo-view (SSRS-style) reports */
 const LEGACY_TABS = [
@@ -510,6 +510,45 @@ function flattenDetailedTree(tree: DetailedClient[]) {
   return rows;
 }
 
+function collapseValidMaterials(
+  rows: Array<{
+    materialName: string;
+    materialCode: string;
+    setPoint: number;
+    actual: number;
+    difference: number;
+  }>
+) {
+  // Actual 0 = invalid duplicate / unused line; keep only Actual > 0, one row per code
+  const byKey = new Map<
+    string,
+    { materialName: string; materialCode: string; setPoint: number; actual: number; difference: number }
+  >();
+  for (const row of rows) {
+    const actual = Number(row.actual) || 0;
+    if (actual <= 0) continue;
+    const code = normalizeMaterialCode(row.materialCode);
+    const key = code || String(row.materialName || "").trim().toLowerCase();
+    if (!key) continue;
+    const prev = byKey.get(key);
+    if (!prev || actual > prev.actual) {
+      const setPoint = Number(row.setPoint) || 0;
+      byKey.set(key, {
+        materialName: row.materialName,
+        materialCode: row.materialCode,
+        setPoint,
+        actual,
+        difference: actual - setPoint,
+      });
+    }
+  }
+  return sortByMaterialCode(
+    [...byKey.values()],
+    (m) => m.materialCode,
+    (m) => m.materialName
+  );
+}
+
 function buildBatchReportTree(rows: Record<string, unknown>[]): DetailedClient[] {
   const clientMap = new Map<string, Map<string, Record<string, unknown>[]>>();
   for (const item of rows) {
@@ -528,7 +567,7 @@ function buildBatchReportTree(rows: Record<string, unknown>[]): DetailedClient[]
   return [...clientMap.entries()].map(([client, batchMap]) => {
     const batches = [...batchMap.entries()].map(([key, items]) => {
       const first = items[0];
-      const materials = sortByMaterialCode(
+      const materials = collapseValidMaterials(
         items.map((r) => {
           const setPoint = Number(r.SetPoint ?? 0);
           const actual = Number(r.Actual ?? 0);
@@ -539,9 +578,7 @@ function buildBatchReportTree(rows: Record<string, unknown>[]): DetailedClient[]
             actual,
             difference: Number(r.Diffrence ?? actual - setPoint),
           };
-        }),
-        (m) => m.materialCode,
-        (m) => m.materialName
+        })
       );
       const totalSetPoint = materials.reduce((s, m) => s + m.setPoint, 0);
       const totalActual = materials.reduce((s, m) => s + m.actual, 0);
@@ -658,6 +695,8 @@ function buildCumulativeTree(rows: Record<string, unknown>[]): CumulativeDateGro
   type MatAcc = { code: string; name: string; setPoint: number; actual: number };
   const dates = new Map<string, Map<string, Map<string, Map<string, MatAcc>>>>();
   for (const item of rows) {
+    const actual = Number(item.Actual) || 0;
+    if (actual <= 0) continue; // Actual 0 = invalid / unused line
     const date = formatReportDate(item.Date ?? item.Batch_ActEnd);
     const recipe = String(item.Batch_FormulaName ?? item.Batch_RecpName ?? "—").trim() || "—";
     const orderCat = String(item.OrderCat_Name ?? "—").trim() || "—";
@@ -672,7 +711,7 @@ function buildCumulativeTree(rows: Record<string, unknown>[]): CumulativeDateGro
     if (!mats.has(name)) mats.set(name, { code, name, setPoint: 0, actual: 0 });
     const acc = mats.get(name)!;
     acc.setPoint += Number(item.SetPoint) || 0;
-    acc.actual += Number(item.Actual) || 0;
+    acc.actual += actual;
     if (code && !acc.code) acc.code = code;
   }
   return [...dates.entries()].map(([date, recipes]) => ({
@@ -807,6 +846,8 @@ function flattenCumulativeTree(tree: CumulativeDateGroup[]): Record<string, unkn
 function aggregateCumulativeMaterials(rows: Record<string, unknown>[]) {
   const groups: Record<string, { Material_Name: string; Material_Code: string; SetPoint: number; Actual: number }> = {};
   for (const item of rows) {
+    const actual = Number(item.Actual) || 0;
+    if (actual <= 0) continue; // Actual 0 = invalid
     const key = String(item.Material_Name || "Unknown");
     if (!groups[key]) {
       groups[key] = {
@@ -817,7 +858,7 @@ function aggregateCumulativeMaterials(rows: Record<string, unknown>[]) {
       };
     }
     groups[key].SetPoint += Number(item.SetPoint) || 0;
-    groups[key].Actual += Number(item.Actual) || 0;
+    groups[key].Actual += actual;
     if (!groups[key].Material_Code && item.Material_Code) {
       groups[key].Material_Code = String(item.Material_Code);
     }
@@ -1546,8 +1587,10 @@ export function Reports() {
     let planned = 0;
     let actual = 0;
     for (const row of ssrsRows) {
+      const rowActual = Number(row.Actual) || 0;
+      if (rowActual <= 0) continue;
       planned += Number(row.SetPoint) || 0;
-      actual += Number(row.Actual) || 0;
+      actual += rowActual;
     }
     return { planned, actual, difference: Math.abs(actual - planned) };
   }, [activeTab, ssrsRows]);
