@@ -367,7 +367,7 @@ export function buildConsumptionHierarchyExcelRows(
   fmtNum: (v: unknown, digits?: number) => string,
   grandTotal?: { planned: number; actual: number; difference: number } | null
 ): { headers: string[]; rows: ExcelDataRow[]; merges: ExcelMerge[] } {
-  const headers = ["Date", "Recipes", "Order Cat Name", "Material", "Set Point", "Actual", "Difference"];
+  const headers = ["Date", "Recipes", "Client Name", "Material", "Set Point", "Actual", "Difference"];
   const rows: ExcelDataRow[] = [];
   const merges: ExcelMerge[] = [];
 

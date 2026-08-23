@@ -332,7 +332,7 @@ function getTableHeaders(tab: TabName): string[] {
     case "Feed Production":
       return ["Order Category", "Batch End", "Recipe", "Formula", "Batch Qty"];
     case "Raw Material Consumption":
-      return ["Date", "Recipes", "Order Cat Name", "Material", "Set Point", "Actual", "Difference"];
+      return ["Date", "Recipes", "Client Name", "Material", "Set Point", "Actual", "Difference"];
     case "Raw Material Cumulative":
       return ["Material Name", "Code", "SetPoint", "Actual (kg)", "Difference (kg)"];
     case "Batch Report":
@@ -895,7 +895,7 @@ function buildConsumptionHierarchyHtml(
     );
   }
   return `<table>
-    <thead><tr><th>Date</th><th>Recipes</th><th>Order Cat Name</th><th>Material</th><th>Set Point</th><th>Actual</th><th>Difference</th></tr></thead>
+    <thead><tr><th>Date</th><th>Recipes</th><th>Client Name</th><th>Material</th><th>Set Point</th><th>Actual</th><th>Difference</th></tr></thead>
     <tbody>${bodyParts.join("")}</tbody>
   </table>`;
 }
