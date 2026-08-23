@@ -788,7 +788,8 @@ function buildCumulativeTree(rows: Record<string, unknown>[]): CumulativeDateGro
     if (actual <= 0) continue; // Actual 0 = invalid / unused line
     const date = formatReportDate(item.Date ?? item.Batch_ActEnd);
     const recipe = String(item.Batch_FormulaName ?? item.Batch_RecpName ?? "—").trim() || "—";
-    const orderCat = String(item.OrderCat_Name ?? "—").trim() || "—";
+    // Same client rule as Batch Report (Farm#11… → Farm11, not Mesh/Flush)
+    const orderCat = resolveSsrsClientName(item);
     const name = String(item.Material_Name ?? "Unknown").trim() || "Unknown";
     const code = String(item.Material_Code ?? "").trim();
     if (!dates.has(date)) dates.set(date, new Map());

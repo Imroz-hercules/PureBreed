@@ -57,6 +57,55 @@ def _farm_client_from_batch_name(batch_name: str) -> Optional[str]:
     return f"Farm{m.group(1)}"
 
 
+def _resolve_report_client(order_cat: Any, batch_name: Any = None) -> str:
+    """Same rule as Batch Report UI: Farm#11… in batch name wins over Mesh/Flush category."""
+    farm = _farm_client_from_batch_name(str(batch_name or ""))
+    if farm:
+        return farm
+    farm2 = _farm_client_from_batch_name(str(order_cat or ""))
+    if farm2:
+        return farm2
+    s = str(order_cat or "").strip()
+    return s if s else "—"
+
+
+def _merge_rows_by_resolved_client(rows: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Re-sum consumption rows after resolving client from Batch Name."""
+    merged: Dict[Tuple[str, str, str, str], Dict[str, Any]] = {}
+    for r in rows:
+        client = _resolve_report_client(r.get("OrderCat_Name"), r.get("Batch_Name"))
+        date_s = str(r.get("Date") or "")
+        recipe = str(r.get("Batch_FormulaName") or "")
+        mat = str(r.get("Material_Name") or "")
+        key = (date_s, recipe, client, mat)
+        sp = float(r.get("SetPoint") or 0)
+        act = float(r.get("Actual") or 0)
+        if key not in merged:
+            merged[key] = {
+                "Date": r.get("Date"),
+                "Batch_FormulaName": recipe,
+                "OrderCat_Name": client,
+                "Material_Name": mat,
+                "Material_Code": str(r.get("Material_Code") or ""),
+                "SetPoint": sp,
+                "Actual": act,
+            }
+        else:
+            merged[key]["SetPoint"] = round(merged[key]["SetPoint"] + sp, 2)
+            merged[key]["Actual"] = round(merged[key]["Actual"] + act, 2)
+            if not merged[key]["Material_Code"] and r.get("Material_Code"):
+                merged[key]["Material_Code"] = str(r.get("Material_Code"))
+    return sorted(
+        merged.values(),
+        key=lambda x: (
+            str(x.get("Date") or ""),
+            str(x.get("Batch_FormulaName") or ""),
+            str(x.get("OrderCat_Name") or ""),
+            str(x.get("Material_Name") or ""),
+        ),
+    )
+
+
 def _ssrs_engine():
     binds = db.engines
     if "ssrs" not in binds:
@@ -247,6 +296,7 @@ def raw_material_consumption():
           CONVERT(date, [Batch Act End]) AS Date,
           ISNULL([Product Name], N'') AS Batch_FormulaName,
           ISNULL(FormulaCategoryName, N'') AS OrderCat_Name,
+          ISNULL([Batch Name], N'') AS Batch_Name,
           [Material Name] AS Material_Name,
           MAX(CAST([Material Code] AS nvarchar(255))) AS Material_Code,
           ROUND(SUM([SetPoint Float]), 2) AS SetPoint,
@@ -261,16 +311,18 @@ def raw_material_consumption():
           CONVERT(date, [Batch Act End]),
           ISNULL([Product Name], N''),
           ISNULL(FormulaCategoryName, N''),
+          ISNULL([Batch Name], N''),
           [Material Name]
         ORDER BY
           CONVERT(date, [Batch Act End]),
           ISNULL([Product Name], N''),
-          ISNULL(FormulaCategoryName, N''),
+          ISNULL([Batch Name], N''),
           [Material Name]
     """
     params = {"begin_time": begin_time, "end_time": end_time, **in_params}
     try:
         rows = _fetch_all(sql, params)
+        rows = _merge_rows_by_resolved_client(rows)
         return jsonify({"data": rows, "beginTime": begin_time.isoformat(), "endTime": end_time.isoformat()}), 200
     except Exception as e:
         logger.exception("raw-material-consumption failed")
