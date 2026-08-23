@@ -340,7 +340,8 @@ def batch_clients():
     sql = """
         SELECT DISTINCT ISNULL(FormulaCategoryName, N'') AS OrderCat_Name
         FROM dbo.BatchMaterials
-        WHERE [Batch Act End] BETWEEN :begin_time AND :end_time
+        WHERE [Batch Act Start] BETWEEN :begin_time AND :end_time
+          AND lower([Product Name]) != 'not selected'
         ORDER BY OrderCat_Name
     """
     try:
@@ -374,7 +375,8 @@ def batch_recipes():
           [Product Name] AS Batch_RecpName
         FROM dbo.BatchMaterials
         WHERE ISNULL(FormulaCategoryName, N'') IN ({in_clause})
-          AND [Batch Act End] BETWEEN :begin_time AND :end_time
+          AND [Batch Act Start] BETWEEN :begin_time AND :end_time
+          AND lower([Product Name]) != 'not selected'
         ORDER BY [Product Name]
     """
     params = {"begin_time": begin_time, "end_time": end_time, **in_params}
@@ -400,14 +402,17 @@ def batch_batches():
         return eng_err
     cli_clause, cli_params = expand_in("cli", clients)
     rec_clause, rec_params = expand_in("rec", recipes)
+    # One row per [Batch GUID] (sub-batches /01-/06 are separate), same as calendar
     sql = f"""
         SELECT DISTINCT
-          ROOTGUID AS Batch_OGUID,
+          [Batch GUID] AS Batch_OGUID,
+          ROOTGUID AS Batch_RootGUID,
           [Batch Name] AS Batch_Name
         FROM dbo.BatchMaterials
         WHERE ISNULL(FormulaCategoryName, N'') IN ({cli_clause})
           AND [Product Name] IN ({rec_clause})
-          AND [Batch Act End] BETWEEN :begin_time AND :end_time
+          AND [Batch Act Start] BETWEEN :begin_time AND :end_time
+          AND lower([Product Name]) != 'not selected'
         ORDER BY [Batch Name]
     """
     params = {"begin_time": begin_time, "end_time": end_time, **cli_params, **rec_params}
@@ -427,7 +432,7 @@ def batch_report():
     clients = _multi("clients") or _multi("client")
     batches = _multi("batch")
     if not clients or not batches:
-        return jsonify({"error": "clients and batch (ROOTGUID) filters are required"}), 400
+        return jsonify({"error": "clients and batch ([Batch GUID]) filters are required"}), 400
     engine, eng_err = _require_engine()
     if eng_err:
         return eng_err
@@ -437,18 +442,21 @@ def batch_report():
         SELECT
           ISNULL(FormulaCategoryName, N'') AS OrderCat_Name,
           [Batch Name] AS Batch_Name,
-          ROOTGUID AS Batch_OGUID,
+          [Batch GUID] AS Batch_OGUID,
+          ROOTGUID AS Batch_RootGUID,
           [Batch Act End] AS Batch_ActEnd,
+          [Batch Act Start] AS Batch_ActStart,
           [Material Name] AS Material_Name,
           [Material Code] AS Material_Code,
           ROUND([SetPoint Float], 2) AS SetPoint,
           ROUND([Actual Value Float], 2) AS Actual,
           ROUND(([Actual Value Float] - [SetPoint Float]), 2) AS Diffrence,
-          DATEADD(HOUR, 3, [Batch Act End]) AS BatchTime
+          DATEADD(HOUR, 3, [Batch Act Start]) AS BatchTime
         FROM dbo.BatchMaterials
         WHERE ISNULL(FormulaCategoryName, N'') IN ({cli_clause})
-          AND ROOTGUID IN ({bat_clause})
-          AND [Batch Act End] BETWEEN :begin_time AND :end_time
+          AND [Batch GUID] IN ({bat_clause})
+          AND [Batch Act Start] BETWEEN :begin_time AND :end_time
+          AND lower([Product Name]) != 'not selected'
           AND [SetPoint Float] > 0
     """
     params = {"begin_time": begin_time, "end_time": end_time, **cli_params, **bat_params}
@@ -462,7 +470,7 @@ def batch_report():
 
 @ssrs_bp.route("/ssrs/batch-report/assign-client", methods=["POST"])
 def assign_batch_client():
-    """Move material rows for one or more batches (ROOTGUID) to a FormulaCategoryName client."""
+    """Move material rows for one or more batches ([Batch GUID]) to a FormulaCategoryName client."""
     data = request.get_json(silent=True) or {}
     new_client = str(data.get("newClient") or data.get("new_client") or "").strip()
     raw_guids = data.get("batchGuids") or data.get("batch_guids")
@@ -499,7 +507,7 @@ def assign_batch_client():
                           ISNULL(FormulaCategoryName, N'') AS OrderCat_Name,
                           ISNULL([Batch Name], N'') AS Batch_Name
                         FROM dbo.BatchMaterials
-                        WHERE ROOTGUID = CAST(:batch_guid AS uniqueidentifier)
+                        WHERE [Batch GUID] = CAST(:batch_guid AS uniqueidentifier)
                         """
                     ),
                     {"batch_guid": batch_guid},
@@ -532,7 +540,7 @@ def assign_batch_client():
                         """
                         UPDATE dbo.BatchMaterials
                         SET FormulaCategoryName = :new_client
-                        WHERE ROOTGUID = CAST(:batch_guid AS uniqueidentifier)
+                        WHERE [Batch GUID] = CAST(:batch_guid AS uniqueidentifier)
                         """
                     ),
                     {"new_client": new_client, "batch_guid": batch_guid},

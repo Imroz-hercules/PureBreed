@@ -6,8 +6,8 @@ from utils.timezone_utils import parse_filter_date, parse_filter_end_date
 
 kpi_calendar_bp = Blueprint("kpi_calendar", __name__)
 
-# Match Batch Report: day from Batch Act End (Saudi +3), count by ROOTGUID
-SAUDI_DATE_EXPR = "CAST(DATEADD(HOUR, 3, dbo.[BatchMaterials].[Batch Act End]) AS DATE)"
+# Calendar day from Batch Act Start (Saudi +3); count each [Batch GUID]
+SAUDI_DATE_EXPR = "CAST(DATEADD(HOUR, 3, dbo.[BatchMaterials].[Batch Act Start]) AS DATE)"
 
 
 @kpi_calendar_bp.route("/kpi_calendar", methods=["GET"])
@@ -24,12 +24,11 @@ def get_kpi_calendar():
         sql_query = f"""
         SELECT {SAUDI_DATE_EXPR} AS date,
                sum(dbo.[BatchMaterials].[Actual Value Float]) AS total_actual,
-               count(distinct(dbo.[BatchMaterials].ROOTGUID)) AS batch_count,
+               count(distinct(dbo.[BatchMaterials].[Batch GUID])) AS batch_count,
                count(distinct(dbo.[BatchMaterials].[Product Name])) AS product_count
         FROM dbo.[BatchMaterials]
-        WHERE dbo.[BatchMaterials].[Batch Act End] >= :start_date
-          AND dbo.[BatchMaterials].[Batch Act End] <= :end_date
-          AND dbo.[BatchMaterials].[SetPoint Float] > 0
+        WHERE dbo.[BatchMaterials].[Batch Act Start] >= :start_date
+          AND dbo.[BatchMaterials].[Batch Act Start] <= :end_date
           AND lower(dbo.[BatchMaterials].[Product Name]) != 'not selected'
         GROUP BY {SAUDI_DATE_EXPR}
         ORDER BY {SAUDI_DATE_EXPR}
@@ -75,7 +74,6 @@ def get_kpi_calendar_details():
                SUM(dbo.[BatchMaterials].[Actual Value Float]) as quantity_kg
         FROM dbo.[BatchMaterials]
         WHERE {SAUDI_DATE_EXPR} = :target_date
-          AND dbo.[BatchMaterials].[SetPoint Float] > 0
           AND lower(dbo.[BatchMaterials].[Product Name]) != 'not selected'
         GROUP BY dbo.[BatchMaterials].[Product Name]
         ORDER BY quantity_kg DESC

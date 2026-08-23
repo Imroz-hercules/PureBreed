@@ -508,8 +508,11 @@ function buildBatchReportTree(rows: Record<string, unknown>[]): DetailedClient[]
   const clientMap = new Map<string, Map<string, Record<string, unknown>[]>>();
   for (const item of rows) {
     const client = String(item.OrderCat_Name ?? "Unknown").trim() || "Unknown";
+    // Prefer [Batch GUID] so Farm#11 /01-/06 count as separate batches (calendar-aligned)
     const batchKey = String(
-      item.Batch_OGUID || `${item.Batch_Name ?? ""}__${item.BatchTime ?? item.Batch_ActEnd ?? ""}`
+      item.Batch_OGUID ||
+        item.Batch_GUID ||
+        `${item.Batch_Name ?? ""}__${item.BatchTime ?? item.Batch_ActStart ?? item.Batch_ActEnd ?? ""}`
     );
     if (!clientMap.has(client)) clientMap.set(client, new Map());
     const batches = clientMap.get(client)!;
@@ -535,7 +538,7 @@ function buildBatchReportTree(rows: Record<string, unknown>[]): DetailedClient[]
       return {
         key,
         batchName: String(first.Batch_Name ?? ""),
-        batchTime: formatDisplayDate(first.BatchTime ?? first.Batch_ActEnd),
+        batchTime: formatDisplayDate(first.BatchTime ?? first.Batch_ActStart ?? first.Batch_ActEnd),
         batchGuid: String(first.Batch_OGUID ?? key),
         materials,
         totalSetPoint,
@@ -915,7 +918,7 @@ export function Reports() {
         const list: string[] = (res.data.clients || []).filter(Boolean);
         setSsrsFilter1Options(list);
         setSsrsFilter1(list);
-        setSsrsFilter2Options([...MASTER_RECIPES]);
+        setSsrsFilter2Options([]);
         setSsrsFilter3Options([]);
         setSsrsFilter2([]);
         setSsrsFilter3([]);
@@ -952,12 +955,12 @@ export function Reports() {
     return () => window.clearTimeout(t);
   }, [activeTab, pendingStartDate, pendingEndDate, datesReady, loadLegacyFilters, loadSsrsFilters]);
 
-  // Batch report cascade: hardcoded master recipes, then mill product names that belong to them
+  // Batch report cascade: all products in range (same scope as calendar batch count)
   useEffect(() => {
     if (activeTab !== "Batch Report" || ssrsFilter1.length === 0 || !datesReady) {
       if (activeTab === "Batch Report") {
         setApiRecipeNames([]);
-        setSsrsFilter2Options([...MASTER_RECIPES]);
+        setSsrsFilter2Options([]);
       }
       return;
     }
@@ -983,19 +986,15 @@ export function Reports() {
           ),
         ] as string[];
         setApiRecipeNames(list);
-        const visible = MASTER_RECIPES.filter((m) =>
-          list.some((n) => matchesMasterRecipe(n, m))
-        );
-        const options = visible.length ? visible : [...MASTER_RECIPES];
-        setSsrsFilter2Options(options);
+        setSsrsFilter2Options(list);
         setSsrsFilter2((prev) => {
-          const kept = prev.filter((m) => options.includes(m));
-          return kept.length ? kept : options;
+          const kept = prev.filter((m) => list.includes(m));
+          return kept.length ? kept : list;
         });
       })
       .catch(() => {
         setApiRecipeNames([]);
-        setSsrsFilter2Options([...MASTER_RECIPES]);
+        setSsrsFilter2Options([]);
         setSsrsFilter2([]);
       });
   }, [activeTab, ssrsFilter1, pendingStartDate, pendingEndDate, datesReady]);
@@ -1014,7 +1013,7 @@ export function Reports() {
       }
       return;
     }
-    const recipeParams = apiRecipesForMasters(apiRecipeNames, ssrsFilter2);
+    const recipeParams = ssrsFilter2.length ? ssrsFilter2 : apiRecipeNames;
     if (!recipeParams.length) {
       setSsrsFilter3Options([]);
       setSsrsFilter3([]);
