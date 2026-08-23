@@ -95,7 +95,6 @@ const getFallbackDates = () => {
   const end = new Date();
   end.setHours(23, 0, 0, 0);
   const start = new Date(end);
-  start.setDate(start.getDate() - 14);
   start.setHours(7, 0, 0, 0);
   return { startDate: formatDateForInput(start), endDate: formatDateForInput(end) };
 };
@@ -813,10 +812,10 @@ export function Reports() {
         if (maxRaw) {
           const maxD = new Date(maxRaw);
           const minD = minRaw ? new Date(minRaw) : null;
+          // Default to last 1 day of available data (07:00 → 23:00)
           const end = new Date(maxD);
           end.setHours(23, 0, 0, 0);
           const start = new Date(maxD);
-          start.setDate(start.getDate() - 30);
           start.setHours(7, 0, 0, 0);
           if (minD && start < minD) {
             start.setTime(minD.getTime());
