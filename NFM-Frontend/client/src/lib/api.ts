@@ -30,6 +30,7 @@ export const API_ENDPOINTS = {
   BATCH_FEED_PRODUCTION: `${API_BASE_URL}/api/ssrs/feed-production`,
   BATCH_RAW_MATERIAL: `${API_BASE_URL}/api/ssrs/raw-material-consumption`,
   BATCH_RAW_MATERIAL_PRODUCTS: `${API_BASE_URL}/api/ssrs/raw-material-consumption/products`,
+  BATCH_RAW_MATERIAL_CLIENTS: `${API_BASE_URL}/api/ssrs/raw-material-consumption/clients`,
   BATCH_RAW_MATERIAL_QUANTITY: `${API_BASE_URL}/api/ssrs/raw-material-consumption/quantity`,
   BATCH_RAW_CUMULATIVE: `${API_BASE_URL}/api/ssrs/raw-material-cumulative`,
   BATCH_RAW_CUMULATIVE_MATERIALS: `${API_BASE_URL}/api/ssrs/raw-material-cumulative/materials`,

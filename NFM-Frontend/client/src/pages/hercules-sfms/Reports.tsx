@@ -1101,16 +1101,21 @@ export function Reports() {
     setFiltersLoading(true);
     try {
       if (activeTab === "Raw Material Consumption") {
-        const res = await axios.get(
-          buildApiUrl(API_ENDPOINTS.BATCH_RAW_MATERIAL_PRODUCTS, range),
-          { timeout: LARGE_REPORT_TIMEOUT_MS }
-        );
-        const list: string[] = (res.data.products || []).filter(Boolean);
-        setSsrsFilter1Options(list);
-        setSsrsFilter1(list);
-        setSsrsFilter2Options([]);
+        const [prodRes, clientRes] = await Promise.all([
+          axios.get(buildApiUrl(API_ENDPOINTS.BATCH_RAW_MATERIAL_PRODUCTS, range), {
+            timeout: LARGE_REPORT_TIMEOUT_MS,
+          }),
+          axios.get(buildApiUrl(API_ENDPOINTS.BATCH_RAW_MATERIAL_CLIENTS, range), {
+            timeout: LARGE_REPORT_TIMEOUT_MS,
+          }),
+        ]);
+        const products: string[] = (prodRes.data.products || []).filter(Boolean);
+        const clients: string[] = (clientRes.data.clients || []).filter(Boolean);
+        setSsrsFilter1Options(clients);
+        setSsrsFilter1(clients);
+        setSsrsFilter2Options(products);
+        setSsrsFilter2(products);
         setSsrsFilter3Options([]);
-        setSsrsFilter2([]);
         setSsrsFilter3([]);
       } else if (activeTab === "Raw Material Cumulative") {
         const res = await axios.get(API_ENDPOINTS.BATCH_RAW_CUMULATIVE_MATERIALS, {
@@ -1329,8 +1334,8 @@ export function Reports() {
   };
 
   const fetchSsrsReport = async (silent = false) => {
-    if (activeTab === "Raw Material Consumption" && !ssrsFilter1.length) {
-      if (!silent) showToast("Select at least one product", "error");
+    if (activeTab === "Raw Material Consumption" && (!ssrsFilter1.length || !ssrsFilter2.length)) {
+      if (!silent) showToast("Select at least one client and one product", "error");
       return;
     }
     if (activeTab === "Raw Material Cumulative" && !ssrsFilter3.length) {
@@ -1369,7 +1374,8 @@ export function Reports() {
           axios.get(
             buildApiUrl(API_ENDPOINTS.BATCH_RAW_MATERIAL, {
               ...range,
-              product: ssrsFilter1.join(","),
+              clients: ssrsFilter1.join(","),
+              product: ssrsFilter2.join(","),
             }),
             { timeout: LARGE_REPORT_TIMEOUT_MS }
           ),
@@ -1438,7 +1444,7 @@ export function Reports() {
     !filtersLoading &&
     filtersEpoch > 0 &&
     (activeTab === "Feed Production" ||
-      (activeTab === "Raw Material Consumption" && ssrsFilter1.length > 0) ||
+      (activeTab === "Raw Material Consumption" && ssrsFilter1.length > 0 && ssrsFilter2.length > 0) ||
       (activeTab === "Raw Material Cumulative" && ssrsFilter3.length > 0) ||
       (activeTab === "Batch Report" &&
         ssrsFilter1.length > 0 &&
@@ -1979,7 +1985,10 @@ export function Reports() {
 
   const ssrsFilterSlots =
     activeTab === "Raw Material Consumption"
-      ? [{ key: "f1" as const, label: "Select Product", options: ssrsFilter1Options, selected: ssrsFilter1, onChange: setSsrsFilter1 }]
+      ? [
+          { key: "f1" as const, label: "Select Client", options: ssrsFilter1Options, selected: ssrsFilter1, onChange: setSsrsFilter1 },
+          { key: "f2" as const, label: "Select Product", options: ssrsFilter2Options, selected: ssrsFilter2, onChange: setSsrsFilter2 },
+        ]
       : activeTab === "Raw Material Cumulative"
         ? [{ key: "f3" as const, label: "Select Material", options: ssrsFilter3Options, selected: ssrsFilter3, onChange: setSsrsFilter3 }]
         : activeTab === "Batch Report"

@@ -279,18 +279,64 @@ def raw_material_products():
         return jsonify({"error": str(e)}), 500
 
 
+@ssrs_bp.route("/ssrs/raw-material-consumption/clients", methods=["GET"])
+def raw_material_consumption_clients():
+    """Clients for consumption filter — FormulaCategoryName + Farm#N from batch names."""
+    _, _, begin_time, end_time, err = _parse_range()
+    if err:
+        return err
+    engine, eng_err = _require_engine()
+    if eng_err:
+        return eng_err
+    sql_cat = """
+        SELECT DISTINCT ISNULL(FormulaCategoryName, N'') AS OrderCat_Name
+        FROM dbo.BatchMaterials
+        WHERE [Batch Act End] BETWEEN :begin_time AND :end_time
+          AND [SetPoint Float] > 0
+          AND [Actual Value Float] > 0
+          AND CAST([Material Code] AS nvarchar(255)) <> N'0'
+    """
+    sql_batches = """
+        SELECT DISTINCT [Batch Name] AS Batch_Name
+        FROM dbo.BatchMaterials
+        WHERE [Batch Act End] BETWEEN :begin_time AND :end_time
+          AND [SetPoint Float] > 0
+          AND [Actual Value Float] > 0
+          AND [Batch Name] LIKE N'Farm%'
+    """
+    try:
+        params = {"begin_time": begin_time, "end_time": end_time}
+        clients = {
+            str(r["OrderCat_Name"]).strip()
+            for r in _fetch_all(sql_cat, params)
+            if r.get("OrderCat_Name") is not None and str(r.get("OrderCat_Name")).strip() != ""
+        }
+        for r in _fetch_all(sql_batches, params):
+            farm = _farm_client_from_batch_name(str(r.get("Batch_Name") or ""))
+            if farm:
+                clients.add(farm)
+        return jsonify({"clients": sorted(clients, key=lambda s: s.lower())}), 200
+    except Exception as e:
+        logger.exception("raw-material-consumption clients failed")
+        return jsonify({"error": str(e)}), 500
+
+
 @ssrs_bp.route("/ssrs/raw-material-consumption", methods=["GET"])
 def raw_material_consumption():
     _, _, begin_time, end_time, err = _parse_range()
     if err:
         return err
     products = _multi("product")
+    clients = _multi("clients") or _multi("client")
     if not products:
         return jsonify({"error": "product filter is required (one or more)"}), 400
+    if not clients:
+        return jsonify({"error": "clients filter is required (one or more)"}), 400
     engine, eng_err = _require_engine()
     if eng_err:
         return eng_err
     in_clause, in_params = expand_in("prod", products)
+    scope_sql, scope_params = _client_scope_sql(clients, "cli")
     sql = f"""
         SELECT
           CONVERT(date, [Batch Act End]) AS Date,
@@ -307,6 +353,7 @@ def raw_material_consumption():
           AND [Actual Value Float] > 0
           AND CAST([Material Code] AS nvarchar(255)) <> N'0'
           AND [Product Name] IN ({in_clause})
+          AND {scope_sql}
         GROUP BY
           CONVERT(date, [Batch Act End]),
           ISNULL([Product Name], N''),
@@ -319,10 +366,22 @@ def raw_material_consumption():
           ISNULL([Batch Name], N''),
           [Material Name]
     """
-    params = {"begin_time": begin_time, "end_time": end_time, **in_params}
+    params = {"begin_time": begin_time, "end_time": end_time, **in_params, **scope_params}
     try:
         rows = _fetch_all(sql, params)
         rows = _merge_rows_by_resolved_client(rows)
+        # Keep only selected clients after Farm#N → FarmN resolution (normalize Farm 11 == Farm11)
+        client_set = {
+            re.sub(r"[\s#_]+", "", str(c).strip().lower())
+            for c in clients
+            if str(c).strip()
+        }
+        rows = [
+            r
+            for r in rows
+            if re.sub(r"[\s#_]+", "", str(r.get("OrderCat_Name") or "").strip().lower())
+            in client_set
+        ]
         return jsonify({"data": rows, "beginTime": begin_time.isoformat(), "endTime": end_time.isoformat()}), 200
     except Exception as e:
         logger.exception("raw-material-consumption failed")
