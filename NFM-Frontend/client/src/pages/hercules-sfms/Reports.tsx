@@ -137,6 +137,38 @@ const fmtNum = (v: unknown, digits = 2) => {
   return Number.isFinite(n) ? n.toFixed(digits) : "—";
 };
 
+/** Difference tolerance: |diff| ≤ 5 green, |diff| > 5 red. Negatives keep a leading "-". */
+const DIFF_THRESHOLD = 5;
+
+const fmtDiff = (v: unknown, digits = 2) => {
+  const n = Number(v);
+  if (!Number.isFinite(n)) return "—";
+  // toFixed keeps the "-" for negative values (e.g. -2.21)
+  return n.toFixed(digits);
+};
+
+const diffToneClass = (v: unknown) => {
+  const n = Number(v);
+  if (!Number.isFinite(n)) return "";
+  return Math.abs(n) > DIFF_THRESHOLD
+    ? "text-red-600 dark:text-red-400 font-semibold"
+    : "text-green-600 dark:text-green-400 font-semibold";
+};
+
+const DiffValue: React.FC<{ value: unknown; className?: string }> = ({ value, className = "" }) => (
+  <span className={`${diffToneClass(value)} ${className}`.trim()}>{fmtDiff(value)}</span>
+);
+
+const isDifferenceHeader = (header: string) =>
+  /difference|err\s*(kg|%)?/i.test(String(header || ""));
+
+const diffTdHtml = (value: unknown, fmt: (v: unknown, digits?: number) => string = fmtDiff) => {
+  const n = Number(value);
+  const cls =
+    Number.isFinite(n) && Math.abs(n) > DIFF_THRESHOLD ? "diff-over" : "diff-ok";
+  return `<td class="num ${cls}">${fmt(value)}</td>`;
+};
+
 interface MultiSelectProps {
   options: string[];
   selectedValues: string[];
@@ -464,10 +496,10 @@ function buildBatchHierarchyHtml(tree: DetailedClient[]): string {
           const materialRows = batch.materials
             .map(
               (m) =>
-                `<tr><td></td><td></td><td></td><td>${escapeHtml(m.materialName)}</td><td>${escapeHtml(m.materialCode)}</td><td>${fmtNum(m.setPoint)}</td><td>${fmtNum(m.actual)}</td><td>${fmtNum(m.difference)}</td></tr>`
+                `<tr><td></td><td></td><td></td><td>${escapeHtml(m.materialName)}</td><td>${escapeHtml(m.materialCode)}</td><td>${fmtNum(m.setPoint)}</td><td>${fmtNum(m.actual)}</td>${diffTdHtml(m.difference)}</tr>`
             )
             .join("");
-          const totalRow = `<tr class="total-row"><td></td><td></td><td></td><td>Total</td><td></td><td>${fmtNum(batch.totalSetPoint)}</td><td>${fmtNum(batch.totalActual)}</td><td>${fmtNum(batch.totalDifference)}</td></tr>`;
+          const totalRow = `<tr class="total-row"><td></td><td></td><td></td><td>Total</td><td></td><td>${fmtNum(batch.totalSetPoint)}</td><td>${fmtNum(batch.totalActual)}</td>${diffTdHtml(batch.totalDifference)}</tr>`;
           return `${batchRow}${materialRows}${totalRow}`;
         })
         .join("");
@@ -726,7 +758,7 @@ function buildCumulativeTree(rows: Record<string, unknown>[]): CumulativeDateGro
             materialName: m.name,
             setPoint: m.setPoint,
             actual: m.actual,
-            difference: Math.abs(m.actual - m.setPoint),
+            difference: m.actual - m.setPoint,
           })),
           (m) => m.materialCode,
           (m) => m.materialName
@@ -743,7 +775,7 @@ function buildCumulativeTree(rows: Record<string, unknown>[]): CumulativeDateGro
           materials,
           totalSetPoint,
           totalActual,
-          totalDifference: Math.abs(totalActual - totalSetPoint),
+          totalDifference: totalActual - totalSetPoint,
         };
       }),
     })),
@@ -788,21 +820,21 @@ function buildConsumptionHierarchyHtml(
             `<td>${escapeHtml(m.materialLabel)}</td>`,
             `<td class="num">${fmt(m.setPoint)}</td>`,
             `<td class="num">${fmt(m.actual)}</td>`,
-            `<td class="num">${fmt(m.difference)}</td>`
+            diffTdHtml(m.difference, fmt)
           );
           bodyParts.push(`<tr>${cells.join("")}</tr>`);
           datePrinted = true;
           recipePrinted = true;
         });
         bodyParts.push(
-          `<tr class="total-row"><td>Total</td><td></td><td class="num">${fmt(cat.totalSetPoint)}</td><td class="num">${fmt(cat.totalActual)}</td><td class="num">${fmt(cat.totalDifference)}</td></tr>`
+          `<tr class="total-row"><td>Total</td><td></td><td class="num">${fmt(cat.totalSetPoint)}</td><td class="num">${fmt(cat.totalActual)}</td>${diffTdHtml(cat.totalDifference, fmt)}</tr>`
         );
       }
     }
   }
   if (grandTotal) {
     bodyParts.push(
-      `<tr class="total-row"><td>Total</td><td></td><td></td><td></td><td class="num">${fmt(grandTotal.planned)}</td><td class="num">${fmt(grandTotal.actual)}</td><td class="num">${fmt(grandTotal.difference)}</td></tr>`
+      `<tr class="total-row"><td>Total</td><td></td><td></td><td></td><td class="num">${fmt(grandTotal.planned)}</td><td class="num">${fmt(grandTotal.actual)}</td>${diffTdHtml(grandTotal.difference, fmt)}</tr>`
     );
   }
   return `<table>
@@ -1579,7 +1611,7 @@ export function Reports() {
         }
       }
     }
-    return { planned, actual, difference: Math.abs(actual - planned) };
+    return { planned, actual, difference: actual - planned };
   }, [activeTab, consumptionTree]);
 
   const cumulativeTotals = useMemo(() => {
@@ -1592,7 +1624,7 @@ export function Reports() {
       planned += Number(row.SetPoint) || 0;
       actual += rowActual;
     }
-    return { planned, actual, difference: Math.abs(actual - planned) };
+    return { planned, actual, difference: actual - planned };
   }, [activeTab, ssrsRows]);
 
   const headers = getTableHeaders(activeTab);
@@ -1646,7 +1678,7 @@ export function Reports() {
         case "Raw Material Consumption": {
           const planned = Number(item.SetPoint) || 0;
           const actual = Number(item.Actual) || 0;
-          const diff = Number(item.Diffrence ?? Math.abs(actual - planned));
+          const diff = Number(item.Diffrence ?? actual - planned);
           return [
             String(item.Date ?? "—"),
             String(item.Batch_FormulaName ?? "—"),
@@ -1654,7 +1686,7 @@ export function Reports() {
             String(item.Material_Name ?? ""),
             fmtNum(planned),
             fmtNum(actual),
-            fmtNum(diff),
+            fmtDiff(diff),
           ];
         }
         case "Raw Material Cumulative": {
@@ -1665,7 +1697,7 @@ export function Reports() {
             String(item.Material_Code ?? "—"),
             fmtNum(planned),
             fmtNum(actual),
-            fmtNum(Math.abs(actual - planned)),
+            fmtDiff(actual - planned),
           ];
         }
         case "Batch Report":
@@ -1677,7 +1709,7 @@ export function Reports() {
             String(item.Material_Code ?? "—"),
             fmtNum(item.SetPoint),
             fmtNum(item.Actual),
-            fmtNum(item.Diffrence),
+            fmtDiff(item.Diffrence),
           ];
       }
     }
@@ -1691,8 +1723,8 @@ export function Reports() {
         item.noOfBatches,
         fmtNum(item.sumSP),
         fmtNum(item.sumAct),
-        fmtNum(item.errKg),
-        fmtNum(item.errPercent),
+        fmtDiff(item.errKg),
+        fmtDiff(item.errPercent),
       ];
     }
     if (
@@ -1704,7 +1736,7 @@ export function Reports() {
         item.materialCode,
         fmtNum(item.plannedKG),
         fmtNum(item.actualKG),
-        fmtNum(item.diffPercent),
+        fmtDiff(item.diffPercent),
       ];
     }
     if (activeTab === "Detailed Report") {
@@ -1715,7 +1747,7 @@ export function Reports() {
         item.materialCode ?? "",
         fmtNum(item.setPoint ?? item.setPointFloat),
         fmtNum(item.actual ?? item.actualValueFloat),
-        fmtNum(
+        fmtDiff(
           item.difference ??
             (item.actualValueFloat || 0) - (item.setPointFloat || 0)
         ),
@@ -1750,12 +1782,19 @@ export function Reports() {
       return buildConsumptionHierarchyHtml(consumptionTree, fmtNum, consumptionTotals);
     }
     const totalRow = cumulativeTotals
-      ? `<tr class="total-row"><td>Total</td><td></td><td>${fmtNum(cumulativeTotals.planned)}</td><td>${fmtNum(cumulativeTotals.actual)}</td><td>${fmtNum(cumulativeTotals.difference)}</td></tr>`
+      ? `<tr class="total-row"><td>Total</td><td></td><td>${fmtNum(cumulativeTotals.planned)}</td><td>${fmtNum(cumulativeTotals.actual)}</td>${diffTdHtml(cumulativeTotals.difference)}</tr>`
       : "";
     return `<table>
       <thead><tr>${headers.map((h) => `<th>${h}</th>`).join("")}</tr></thead>
       <tbody>${displayRows
-        .map((r) => `<tr>${renderCells(r).map((c) => `<td>${c}</td>`).join("")}</tr>`)
+        .map(
+          (r) =>
+            `<tr>${renderCells(r)
+              .map((c, i) =>
+                isDifferenceHeader(headers[i] || "") ? diffTdHtml(c) : `<td>${c}</td>`
+              )
+              .join("")}</tr>`
+        )
         .join("")}${totalRow}</tbody>
     </table>`;
   };
@@ -2371,7 +2410,9 @@ export function Reports() {
                                 <td className="px-3 py-2 font-mono text-xs">{m.materialCode}</td>
                                 <td className="px-3 py-2">{fmtNum(m.setPoint)}</td>
                                 <td className="px-3 py-2">{fmtNum(m.actual)}</td>
-                                <td className="px-3 py-2">{fmtNum(m.difference)}</td>
+                                <td className="px-3 py-2">
+                                  <DiffValue value={m.difference} />
+                                </td>
                               </tr>
                             );
                           });
@@ -2387,7 +2428,9 @@ export function Reports() {
                               <td className="px-3 py-2" />
                               <td className="px-3 py-2">{fmtNum(batch.totalSetPoint)}</td>
                               <td className="px-3 py-2">{fmtNum(batch.totalActual)}</td>
-                              <td className="px-3 py-2">{fmtNum(batch.totalDifference)}</td>
+                              <td className="px-3 py-2">
+                                <DiffValue value={batch.totalDifference} />
+                              </td>
                             </tr>
                           );
                         });
@@ -2443,7 +2486,7 @@ export function Reports() {
                                       {fmtNum(m.actual)}
                                     </td>
                                     <td className="border border-slate-300 dark:border-slate-600 px-3 py-2 whitespace-nowrap text-right">
-                                      {fmtNum(m.difference)}
+                                      <DiffValue value={m.difference} />
                                     </td>
                                   </tr>
                                 );
@@ -2464,7 +2507,7 @@ export function Reports() {
                                     {fmtNum(cat.totalActual)}
                                   </td>
                                   <td className="border border-slate-300 dark:border-slate-600 px-3 py-2 whitespace-nowrap text-right">
-                                    {fmtNum(cat.totalDifference)}
+                                    <DiffValue value={cat.totalDifference} />
                                   </td>
                                 </tr>
                               );
@@ -2485,7 +2528,7 @@ export function Reports() {
                               {fmtNum(consumptionTotals.actual)}
                             </td>
                             <td className="border border-slate-400 dark:border-slate-600 px-3 py-2 whitespace-nowrap text-right">
-                              {fmtNum(consumptionTotals.difference)}
+                              <DiffValue value={consumptionTotals.difference} />
                             </td>
                           </tr>
                         )}
@@ -2498,11 +2541,17 @@ export function Reports() {
                             i % 2 === 0 ? "bg-slate-50 dark:bg-slate-900/80" : "bg-white dark:bg-slate-900"
                           } hover:bg-slate-100 dark:hover:bg-slate-800`}
                         >
-                          {renderCells(item).map((cell, ci) => (
-                            <td key={ci} className="px-4 py-2 whitespace-nowrap">
-                              {cell}
-                            </td>
-                          ))}
+                          {renderCells(item).map((cell, ci) => {
+                            const isDiff = isDifferenceHeader(headers[ci] || "");
+                            return (
+                              <td
+                                key={ci}
+                                className={`px-4 py-2 whitespace-nowrap ${isDiff ? diffToneClass(cell) : ""}`}
+                              >
+                                {isDiff ? fmtDiff(cell) : cell}
+                              </td>
+                            );
+                          })}
                         </tr>
                       ))
                     )}
@@ -2514,7 +2563,9 @@ export function Reports() {
                           <td className="px-4 py-2" />
                           <td className="px-4 py-2 whitespace-nowrap">{fmtNum(cumulativeTotals.planned)}</td>
                           <td className="px-4 py-2 whitespace-nowrap">{fmtNum(cumulativeTotals.actual)}</td>
-                          <td className="px-4 py-2 whitespace-nowrap">{fmtNum(cumulativeTotals.difference)}</td>
+                          <td className="px-4 py-2 whitespace-nowrap">
+                            <DiffValue value={cumulativeTotals.difference} />
+                          </td>
                         </tr>
                       )}
                   </tbody>

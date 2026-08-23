@@ -183,6 +183,21 @@ export async function downloadReportExcel(opts: {
       if (i >= colCount - 3 && kind !== "client" && kind !== "batch") {
         cell.alignment = { vertical: "middle", horizontal: "right", wrapText: true };
       }
+      const header = String(opts.headers[i] || "");
+      if (
+        /difference|err\s*(kg|%)?/i.test(header) &&
+        kind !== "client" &&
+        kind !== "batch"
+      ) {
+        const n = Number(v);
+        if (Number.isFinite(n)) {
+          cell.font = {
+            ...(typeof cell.font === "object" && cell.font ? cell.font : {}),
+            color: { argb: Math.abs(n) > 5 ? "FFDC2626" : "FF16A34A" },
+            bold: true,
+          };
+        }
+      }
     });
     excelRow.height = kind === "client" || kind === "batch" ? 18 : 16;
     rowIdx += 1;

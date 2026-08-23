@@ -219,6 +219,7 @@ def raw_material_consumption():
         FROM dbo.BatchMaterials
         WHERE [Batch Act End] BETWEEN :begin_time AND :end_time
           AND [SetPoint Float] > 0
+          AND [Actual Value Float] > 0
           AND CAST([Material Code] AS nvarchar(255)) <> N'0'
           AND [Product Name] IN ({in_clause})
         GROUP BY
@@ -313,6 +314,7 @@ def raw_material_cumulative():
         FROM dbo.BatchMaterials
         WHERE [Batch Act End] BETWEEN :begin_time AND :end_time
           AND [SetPoint Float] > 0
+          AND [Actual Value Float] > 0
           AND CAST([Material Code] AS nvarchar(255)) <> N'0'
           AND [Material Name] IN ({in_clause})
         GROUP BY [Material Name]
@@ -459,6 +461,7 @@ def batch_report():
           AND [Batch Act Start] BETWEEN :begin_time AND :end_time
           AND lower([Product Name]) != 'not selected'
           AND [SetPoint Float] > 0
+          AND [Actual Value Float] > 0
     """
     params = {"begin_time": begin_time, "end_time": end_time, **cli_params, **bat_params}
     try:

@@ -92,13 +92,15 @@ export const REPORT_HEADER_CSS = `
   tr:nth-child(even) td { background: #f8fafc; }
   td.num { text-align: right; white-space: nowrap; }
   td.group-cell { vertical-align: top; font-weight: 600; }
+  td.diff-ok { color: #16a34a !important; font-weight: 600; }
+  td.diff-over { color: #dc2626 !important; font-weight: 600; }
   .total-row td { font-weight: 700; background: #e2e8f0 !important; }
   .client-row td { background: #0e7490 !important; color: #fff; font-weight: 700; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
   .batch-row td { background: #ecfeff !important; font-weight: 600; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
   @media print {
     body { margin: 12px; }
     .report-header { break-after: avoid; }
-    .client-row td, .batch-row td, .total-row td { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    .client-row td, .batch-row td, .total-row td, td.diff-ok, td.diff-over { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
   }
 `;
 
