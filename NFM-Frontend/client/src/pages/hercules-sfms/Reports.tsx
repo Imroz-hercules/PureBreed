@@ -351,11 +351,32 @@ function getTableHeaders(tab: TabName): string[] {
   }
 }
 
+function normalizeClientKey(text: string): string {
+  return String(text || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[#\s_\-./]+/g, "");
+}
+
+/** Leading farm from batch names like "Farm#11 23Ton23/01" or "Farm 11 …" → "farm11". */
+function extractLeadingFarmKey(text: string): string | null {
+  const m = String(text || "")
+    .trim()
+    .match(/^farm\s*#?\s*(\d+)/i);
+  return m ? `farm${m[1]}` : null;
+}
+
 function clientTokenMatch(text: string, client: string): boolean {
   const n = client.trim();
   const t = String(text || "").trim();
   if (!n || !t) return false;
   if (t.toLowerCase() === n.toLowerCase()) return true;
+
+  const clientKey = normalizeClientKey(n);
+  const farmFromText = extractLeadingFarmKey(t);
+  if (farmFromText && farmFromText === clientKey) return true;
+  if (normalizeClientKey(t) === clientKey && clientKey.length > 0) return true;
+
   const escaped = n.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   // Farm1 must not match Farm11. Flush may match flush7 / Flush-1.
   const endsWithDigit = /\d$/.test(n);
@@ -385,6 +406,38 @@ function resolveClientName(row: LegacyRow): string {
   );
   if (hits[0]) return hits[0];
   return (row.formulaCategoryName || row.productName || "Unknown").trim() || "Unknown";
+}
+
+/** Batch Report: prefer Farm#N in batch name over Mesh/Flush FormulaCategoryName. */
+function resolveSsrsClientName(item: Record<string, unknown>): string {
+  const batchName = String(item.Batch_Name ?? "").trim();
+  const orderCat = String(item.OrderCat_Name ?? "").trim();
+
+  const fromBatch = CLIENT_OPTIONS.filter((c) => clientTokenMatch(batchName, c)).sort(
+    (a, b) => b.length - a.length
+  );
+  if (fromBatch[0]) return fromBatch[0];
+
+  const farmKey = extractLeadingFarmKey(batchName);
+  if (farmKey) {
+    const opt = CLIENT_OPTIONS.find((c) => normalizeClientKey(c) === farmKey);
+    if (opt) return opt;
+    const digits = farmKey.replace(/^farm/i, "");
+    return `Farm${digits}`;
+  }
+
+  const fromCat = CLIENT_OPTIONS.filter((c) => clientTokenMatch(orderCat, c)).sort(
+    (a, b) => b.length - a.length
+  );
+  if (fromCat[0]) return fromCat[0];
+
+  const catFarm = extractLeadingFarmKey(orderCat);
+  if (catFarm) {
+    const opt = CLIENT_OPTIONS.find((c) => normalizeClientKey(c) === catFarm);
+    if (opt) return opt;
+  }
+
+  return orderCat || "Unknown";
 }
 
 function masterRecipeToken(recipe: string): string {
@@ -584,7 +637,8 @@ function collapseValidMaterials(
 function buildBatchReportTree(rows: Record<string, unknown>[]): DetailedClient[] {
   const clientMap = new Map<string, Map<string, Record<string, unknown>[]>>();
   for (const item of rows) {
-    const client = String(item.OrderCat_Name ?? "Unknown").trim() || "Unknown";
+    // Farm#11… batches belong under Farm11 even if FormulaCategoryName is Mesh/Flush
+    const client = resolveSsrsClientName(item);
     // Prefer [Batch GUID] so Farm#11 /01-/06 count as separate batches (calendar-aligned)
     const batchKey = String(
       item.Batch_OGUID ||
@@ -596,7 +650,10 @@ function buildBatchReportTree(rows: Record<string, unknown>[]): DetailedClient[]
     if (!batches.has(batchKey)) batches.set(batchKey, []);
     batches.get(batchKey)!.push(item);
   }
-  return [...clientMap.entries()].map(([client, batchMap]) => {
+  const known = CLIENT_OPTIONS.filter((c) => clientMap.has(c));
+  const extra = [...clientMap.keys()].filter((k) => !CLIENT_OPTIONS.includes(k)).sort((a, b) => a.localeCompare(b));
+  return [...known, ...extra].map((client) => {
+    const batchMap = clientMap.get(client)!;
     const batches = [...batchMap.entries()].map(([key, items]) => {
       const first = items[0];
       const materials = collapseValidMaterials(

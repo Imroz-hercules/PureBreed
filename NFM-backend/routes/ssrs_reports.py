@@ -3,8 +3,9 @@ from __future__ import annotations
 
 import logging
 import os
+import re
 from datetime import datetime
-from typing import Any, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from flask import Blueprint, jsonify, request
 from sqlalchemy import text
@@ -20,6 +21,40 @@ from utils.ssrs_time import (
 logger = logging.getLogger(__name__)
 
 ssrs_bp = Blueprint("ssrs_reports", __name__)
+
+
+def _client_scope_sql(clients: List[str], prefix: str = "cli") -> Tuple[str, Dict[str, Any]]:
+    """Match FormulaCategoryName OR batch names like Farm#11… / Farm 11… / Farm11….
+
+    Mesh/Flush in FormulaCategoryName often wrap farm-destined batches whose
+    [Batch Name] starts with Farm#N — those must still match client FarmN.
+    """
+    in_clause, params = expand_in(prefix, clients)
+    ors: List[str] = [f"ISNULL(FormulaCategoryName, N'') IN ({in_clause})"]
+    for i, c in enumerate(clients):
+        compact = re.sub(r"[\s#_]+", "", str(c).strip(), flags=re.I)
+        m = re.match(r"^farm(\d+)$", compact, re.I)
+        if not m:
+            continue
+        num = m.group(1)
+        bits: List[str] = []
+        for j, label in enumerate((f"Farm#{num}", f"Farm {num}", f"Farm{num}")):
+            eq_k = f"{prefix}_feq_{i}_{j}"
+            like_k = f"{prefix}_flike_{i}_{j}"
+            params[eq_k] = label
+            # [^0-9] so Farm1 does not match Farm11 / Farm#11
+            params[like_k] = f"{label}[^0-9]%"
+            bits.append(f"([Batch Name] = :{eq_k} OR [Batch Name] LIKE :{like_k})")
+        if bits:
+            ors.append("(" + " OR ".join(bits) + ")")
+    return "(" + " OR ".join(ors) + ")", params
+
+
+def _farm_client_from_batch_name(batch_name: str) -> Optional[str]:
+    m = re.match(r"^farm\s*#?\s*(\d+)", str(batch_name or "").strip(), re.I)
+    if not m:
+        return None
+    return f"Farm{m.group(1)}"
 
 
 def _ssrs_engine():
@@ -340,21 +375,33 @@ def batch_clients():
     engine, eng_err = _require_engine()
     if eng_err:
         return eng_err
-    sql = """
+    sql_cat = """
         SELECT DISTINCT ISNULL(FormulaCategoryName, N'') AS OrderCat_Name
         FROM dbo.BatchMaterials
         WHERE [Batch Act Start] BETWEEN :begin_time AND :end_time
           AND lower([Product Name]) != 'not selected'
         ORDER BY OrderCat_Name
     """
+    sql_batches = """
+        SELECT DISTINCT [Batch Name] AS Batch_Name
+        FROM dbo.BatchMaterials
+        WHERE [Batch Act Start] BETWEEN :begin_time AND :end_time
+          AND lower([Product Name]) != 'not selected'
+          AND [Batch Name] LIKE N'Farm%'
+    """
     try:
-        rows = _fetch_all(sql, {"begin_time": begin_time, "end_time": end_time})
-        clients = [
-            r["OrderCat_Name"]
+        params = {"begin_time": begin_time, "end_time": end_time}
+        rows = _fetch_all(sql_cat, params)
+        clients = {
+            str(r["OrderCat_Name"]).strip()
             for r in rows
             if r.get("OrderCat_Name") is not None and str(r.get("OrderCat_Name")).strip() != ""
-        ]
-        return jsonify({"clients": clients}), 200
+        }
+        for r in _fetch_all(sql_batches, params):
+            farm = _farm_client_from_batch_name(str(r.get("Batch_Name") or ""))
+            if farm:
+                clients.add(farm)
+        return jsonify({"clients": sorted(clients, key=lambda s: s.lower())}), 200
     except Exception as e:
         logger.exception("batch clients failed")
         return jsonify({"error": str(e)}), 500
@@ -371,18 +418,18 @@ def batch_recipes():
     engine, eng_err = _require_engine()
     if eng_err:
         return eng_err
-    in_clause, in_params = expand_in("cli", clients)
+    scope_sql, scope_params = _client_scope_sql(clients, "cli")
     sql = f"""
         SELECT DISTINCT
           [Batch GUID] AS Batch_RecpGUID,
           [Product Name] AS Batch_RecpName
         FROM dbo.BatchMaterials
-        WHERE ISNULL(FormulaCategoryName, N'') IN ({in_clause})
+        WHERE {scope_sql}
           AND [Batch Act Start] BETWEEN :begin_time AND :end_time
           AND lower([Product Name]) != 'not selected'
         ORDER BY [Product Name]
     """
-    params = {"begin_time": begin_time, "end_time": end_time, **in_params}
+    params = {"begin_time": begin_time, "end_time": end_time, **scope_params}
     try:
         rows = _fetch_all(sql, params)
         return jsonify({"recipes": rows}), 200
@@ -403,7 +450,7 @@ def batch_batches():
     engine, eng_err = _require_engine()
     if eng_err:
         return eng_err
-    cli_clause, cli_params = expand_in("cli", clients)
+    scope_sql, scope_params = _client_scope_sql(clients, "cli")
     rec_clause, rec_params = expand_in("rec", recipes)
     # One row per [Batch GUID] (sub-batches /01-/06 are separate), same as calendar
     sql = f"""
@@ -412,13 +459,13 @@ def batch_batches():
           ROOTGUID AS Batch_RootGUID,
           [Batch Name] AS Batch_Name
         FROM dbo.BatchMaterials
-        WHERE ISNULL(FormulaCategoryName, N'') IN ({cli_clause})
+        WHERE {scope_sql}
           AND [Product Name] IN ({rec_clause})
           AND [Batch Act Start] BETWEEN :begin_time AND :end_time
           AND lower([Product Name]) != 'not selected'
         ORDER BY [Batch Name]
     """
-    params = {"begin_time": begin_time, "end_time": end_time, **cli_params, **rec_params}
+    params = {"begin_time": begin_time, "end_time": end_time, **scope_params, **rec_params}
     try:
         rows = _fetch_all(sql, params)
         return jsonify({"batches": rows}), 200
@@ -439,7 +486,7 @@ def batch_report():
     engine, eng_err = _require_engine()
     if eng_err:
         return eng_err
-    cli_clause, cli_params = expand_in("cli", clients)
+    scope_sql, scope_params = _client_scope_sql(clients, "cli")
     bat_clause, bat_params = expand_in("bat", batches)
     sql = f"""
         SELECT
@@ -456,14 +503,14 @@ def batch_report():
           ROUND(([Actual Value Float] - [SetPoint Float]), 2) AS Diffrence,
           DATEADD(HOUR, 3, [Batch Act Start]) AS BatchTime
         FROM dbo.BatchMaterials
-        WHERE ISNULL(FormulaCategoryName, N'') IN ({cli_clause})
+        WHERE {scope_sql}
           AND [Batch GUID] IN ({bat_clause})
           AND [Batch Act Start] BETWEEN :begin_time AND :end_time
           AND lower([Product Name]) != 'not selected'
           AND [SetPoint Float] > 0
           AND [Actual Value Float] > 0
     """
-    params = {"begin_time": begin_time, "end_time": end_time, **cli_params, **bat_params}
+    params = {"begin_time": begin_time, "end_time": end_time, **scope_params, **bat_params}
     try:
         rows = _fetch_all(sql, params)
         return jsonify({"data": rows, "beginTime": begin_time.isoformat(), "endTime": end_time.isoformat()}), 200
