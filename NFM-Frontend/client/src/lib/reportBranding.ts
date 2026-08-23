@@ -90,6 +90,8 @@ export const REPORT_HEADER_CSS = `
   th { background: #e2e8f0; color: #1e293b; text-align: left; padding: 6px 8px; border: 1px solid #94a3b8; }
   td { padding: 5px 8px; border: 1px solid #cbd5e1; }
   tr:nth-child(even) td { background: #f8fafc; }
+  td.num { text-align: right; white-space: nowrap; }
+  td.group-cell { vertical-align: top; font-weight: 600; }
   .total-row td { font-weight: 700; background: #e2e8f0 !important; }
   .client-row td { background: #0e7490 !important; color: #fff; font-weight: 700; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
   .batch-row td { background: #ecfeff !important; font-weight: 600; print-color-adjust: exact; -webkit-print-color-adjust: exact; }

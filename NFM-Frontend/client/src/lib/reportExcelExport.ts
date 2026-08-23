@@ -8,6 +8,9 @@ export type ExcelDataRow = {
   kind?: ExcelRowKind;
 };
 
+/** 0-based row/col offsets relative to the first data row */
+export type ExcelMerge = { r1: number; c1: number; r2: number; c2: number };
+
 function dataUrlToBase64(dataUrl: string): { base64: string; extension: "png" | "jpeg" } | null {
   const m = /^data:image\/(png|jpeg|jpg);base64,(.+)$/i.exec(dataUrl);
   if (!m) return null;
@@ -57,6 +60,7 @@ export async function downloadReportExcel(opts: {
   dateRange: string;
   headers: string[];
   rows: ExcelDataRow[];
+  merges?: ExcelMerge[];
   fileName?: string;
 }) {
   const colCount = Math.max(opts.headers.length, 1);
@@ -163,6 +167,7 @@ export async function downloadReportExcel(opts: {
   });
   headerRow.height = 20;
   rowIdx += 1;
+  const dataStartRow = rowIdx;
 
   // Data rows
   let dataIndex = 0;
@@ -175,13 +180,29 @@ export async function downloadReportExcel(opts: {
       const cell = excelRow.getCell(i + 1);
       cell.value = v;
       styleDataCell(cell, kind, dataIndex % 2 === 1);
+      if (i >= colCount - 3 && kind !== "client" && kind !== "batch") {
+        cell.alignment = { vertical: "middle", horizontal: "right", wrapText: true };
+      }
     });
-    if (kind === "client") {
-      // Span look: first cell already has text; keep other cells styled same
-    }
     excelRow.height = kind === "client" || kind === "batch" ? 18 : 16;
     rowIdx += 1;
     dataIndex += 1;
+  }
+
+  for (const m of opts.merges || []) {
+    const sr = dataStartRow + m.r1;
+    const er = dataStartRow + m.r2;
+    const sc = m.c1 + 1;
+    const ec = m.c2 + 1;
+    if (er > sr || ec > sc) {
+      try {
+        sheet.mergeCells(sr, sc, er, ec);
+        const cell = sheet.getCell(sr, sc);
+        cell.alignment = { vertical: "top", horizontal: "left", wrapText: true };
+      } catch {
+        /* skip invalid merge */
+      }
+    }
   }
 
   // Column widths
@@ -195,15 +216,37 @@ export async function downloadReportExcel(opts: {
   }
 
   const buffer = await workbook.xlsx.writeBuffer();
+  const fileName = opts.fileName || `${opts.title.replace(/\s+/g, "_")}.xlsx`;
   const blob = new Blob([buffer as ArrayBuffer], {
     type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
   });
+
+  let savedPath: string | null = null;
+  try {
+    const { API_ENDPOINTS } = await import("@/lib/api");
+    const form = new FormData();
+    form.append("file", blob, fileName);
+    form.append("reportType", opts.title);
+    form.append("fileName", fileName);
+    const res = await fetch(API_ENDPOINTS.REPORT_EXPORT_SAVE, {
+      method: "POST",
+      body: form,
+    });
+    if (res.ok) {
+      const data = await res.json();
+      savedPath = String(data?.path || "") || null;
+    }
+  } catch {
+    /* network / save optional — still download locally */
+  }
+
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = opts.fileName || `${opts.title.replace(/\s+/g, "_")}.xlsx`;
+  a.download = fileName;
   a.click();
   URL.revokeObjectURL(url);
+  return { savedPath, fileName };
 }
 
 export function buildBatchHierarchyExcelRows(
@@ -288,3 +331,97 @@ export function buildBatchHierarchyExcelRows(
   }
   return { headers, rows };
 }
+
+export function buildConsumptionHierarchyExcelRows(
+  tree: Array<{
+    date: string;
+    recipes: Array<{
+      recipe: string;
+      orderCats: Array<{
+        orderCat: string;
+        materials: Array<{
+          materialLabel: string;
+          setPoint: number;
+          actual: number;
+          difference: number;
+        }>;
+        totalSetPoint: number;
+        totalActual: number;
+        totalDifference: number;
+      }>;
+    }>;
+  }>,
+  fmtNum: (v: unknown, digits?: number) => string,
+  grandTotal?: { planned: number; actual: number; difference: number } | null
+): { headers: string[]; rows: ExcelDataRow[]; merges: ExcelMerge[] } {
+  const headers = ["Date", "Recipes", "Order Cat Name", "Material", "Set Point", "Actual", "Difference"];
+  const rows: ExcelDataRow[] = [];
+  const merges: ExcelMerge[] = [];
+
+  for (const dateNode of tree) {
+    const dateStart = rows.length;
+    for (const recipe of dateNode.recipes) {
+      const recipeStart = rows.length;
+      for (const cat of recipe.orderCats) {
+        const catStart = rows.length;
+        for (let mi = 0; mi < cat.materials.length; mi++) {
+          const m = cat.materials[mi];
+          rows.push({
+            kind: "normal",
+            values: [
+              rows.length === dateStart ? dateNode.date : "",
+              rows.length === recipeStart ? recipe.recipe : "",
+              mi === 0 ? cat.orderCat : "",
+              m.materialLabel,
+              fmtNum(m.setPoint),
+              fmtNum(m.actual),
+              fmtNum(m.difference),
+            ],
+          });
+        }
+        const catEnd = rows.length - 1;
+        if (catEnd > catStart) {
+          merges.push({ r1: catStart, c1: 2, r2: catEnd, c2: 2 });
+        }
+        rows.push({
+          kind: "total",
+          values: [
+            "",
+            "",
+            "Total",
+            "",
+            fmtNum(cat.totalSetPoint),
+            fmtNum(cat.totalActual),
+            fmtNum(cat.totalDifference),
+          ],
+        });
+      }
+      const recipeEnd = rows.length - 1;
+      if (recipeEnd > recipeStart) {
+        merges.push({ r1: recipeStart, c1: 1, r2: recipeEnd, c2: 1 });
+      }
+    }
+    const dateEnd = rows.length - 1;
+    if (dateEnd > dateStart) {
+      merges.push({ r1: dateStart, c1: 0, r2: dateEnd, c2: 0 });
+    }
+  }
+
+  if (grandTotal) {
+    rows.push({
+      kind: "total",
+      values: [
+        "Total",
+        "",
+        "",
+        "",
+        fmtNum(grandTotal.planned),
+        fmtNum(grandTotal.actual),
+        fmtNum(grandTotal.difference),
+      ],
+    });
+  }
+
+  return { headers, rows, merges };
+}
+

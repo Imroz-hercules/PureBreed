@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+import os
 from datetime import datetime
 from typing import Any, List, Optional
 
@@ -603,6 +604,73 @@ def assign_batch_client():
     except Exception as e:
         logger.exception("assign batch client failed")
         return jsonify({"error": str(e)}), 500
+
+
+# ---------------------------------------------------------------------------
+# Save exported Excel into F:\Purebreed_reports\{report_folder}\
+# ---------------------------------------------------------------------------
+REPORT_EXPORT_ROOT = os.environ.get("REPORT_EXPORT_ROOT", r"F:\Purebreed_reports")
+
+REPORT_FOLDER_MAP = {
+    "Feed Production": "feed_report",
+    "Raw Material Consumption": "raw_materail_consumtion",
+    "Raw Material Cumulative": "raw_materail_cumative",
+    "Batch Report": "batch_report",
+}
+
+
+@ssrs_bp.route("/ssrs/export/save", methods=["POST"])
+def save_report_export():
+    """Save an uploaded Excel export into the matching Purebreed_reports subfolder."""
+    report_type = (
+        str(request.form.get("reportType") or request.form.get("report_type") or "").strip()
+        or str((request.get_json(silent=True) or {}).get("reportType") or "").strip()
+    )
+    folder = REPORT_FOLDER_MAP.get(report_type)
+    if not folder:
+        return jsonify(
+            {
+                "error": f"Unknown report type: {report_type or '(empty)'}",
+                "allowed": list(REPORT_FOLDER_MAP.keys()),
+            }
+        ), 400
+
+    upload = request.files.get("file")
+    if upload is None or not upload.filename:
+        return jsonify({"error": "file is required"}), 400
+
+    raw_name = str(request.form.get("fileName") or upload.filename or "report.xlsx")
+    safe_name = os.path.basename(raw_name).replace("..", "_")
+    if not safe_name.lower().endswith(".xlsx"):
+        safe_name = f"{safe_name}.xlsx"
+
+    stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    base, ext = os.path.splitext(safe_name)
+    final_name = f"{base}_{stamp}{ext or '.xlsx'}"
+
+    dest_dir = os.path.join(REPORT_EXPORT_ROOT, folder)
+    try:
+        os.makedirs(dest_dir, exist_ok=True)
+        dest_path = os.path.join(dest_dir, final_name)
+        upload.save(dest_path)
+        logger.info("Saved report export to %s", dest_path)
+        return jsonify(
+            {
+                "ok": True,
+                "path": dest_path,
+                "folder": folder,
+                "fileName": final_name,
+                "reportType": report_type,
+            }
+        ), 200
+    except Exception as e:
+        logger.exception("save report export failed")
+        return jsonify(
+            {
+                "error": str(e),
+                "hint": f"Ensure folder exists and is writable: {dest_dir}",
+            }
+        ), 500
 
 
 # ---------------------------------------------------------------------------

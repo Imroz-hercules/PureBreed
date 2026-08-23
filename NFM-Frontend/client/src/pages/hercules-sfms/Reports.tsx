@@ -27,6 +27,7 @@ import {
 } from "@/lib/reportBranding";
 import {
   buildBatchHierarchyExcelRows,
+  buildConsumptionHierarchyExcelRows,
   downloadReportExcel,
   type ExcelDataRow,
 } from "@/lib/reportExcelExport";
@@ -49,8 +50,8 @@ const SSRS_TABS = [
   "Batch Report",
 ] as const;
 
-/** Visible tabs: SSRS reports plus Detailed Report (other legacy tabs stay in code but hidden) */
-const tabs = [...SSRS_TABS, "Detailed Report"] as const;
+/** Visible tabs: SSRS reports only (Detailed Report and other legacy tabs stay in code but hidden) */
+const tabs = [...SSRS_TABS] as const;
 type TabName = (typeof LEGACY_TABS)[number] | (typeof SSRS_TABS)[number];
 
 const CLIENT_OPTIONS = [
@@ -696,6 +697,59 @@ function cumulativeRecipeSpan(recipe: CumulativeRecipe): number {
 
 function cumulativeDateSpan(group: CumulativeDateGroup): number {
   return group.recipes.reduce((s, r) => s + cumulativeRecipeSpan(r), 0);
+}
+
+function buildConsumptionHierarchyHtml(
+  tree: CumulativeDateGroup[],
+  fmt: (v: unknown, digits?: number) => string,
+  grandTotal?: { planned: number; actual: number; difference: number } | null
+): string {
+  const bodyParts: string[] = [];
+  for (const dateNode of tree) {
+    const dSpan = cumulativeDateSpan(dateNode);
+    let datePrinted = false;
+    for (const recipe of dateNode.recipes) {
+      const rSpan = cumulativeRecipeSpan(recipe);
+      let recipePrinted = false;
+      for (const cat of recipe.orderCats) {
+        cat.materials.forEach((m, mi) => {
+          const cells: string[] = [];
+          if (!datePrinted) {
+            cells.push(`<td rowspan="${dSpan}" class="group-cell">${escapeHtml(dateNode.date)}</td>`);
+          }
+          if (!recipePrinted) {
+            cells.push(`<td rowspan="${rSpan}" class="group-cell">${escapeHtml(recipe.recipe)}</td>`);
+          }
+          if (mi === 0) {
+            cells.push(
+              `<td rowspan="${cat.materials.length}" class="group-cell">${escapeHtml(cat.orderCat)}</td>`
+            );
+          }
+          cells.push(
+            `<td>${escapeHtml(m.materialLabel)}</td>`,
+            `<td class="num">${fmt(m.setPoint)}</td>`,
+            `<td class="num">${fmt(m.actual)}</td>`,
+            `<td class="num">${fmt(m.difference)}</td>`
+          );
+          bodyParts.push(`<tr>${cells.join("")}</tr>`);
+          datePrinted = true;
+          recipePrinted = true;
+        });
+        bodyParts.push(
+          `<tr class="total-row"><td>Total</td><td></td><td class="num">${fmt(cat.totalSetPoint)}</td><td class="num">${fmt(cat.totalActual)}</td><td class="num">${fmt(cat.totalDifference)}</td></tr>`
+        );
+      }
+    }
+  }
+  if (grandTotal) {
+    bodyParts.push(
+      `<tr class="total-row"><td>Total</td><td></td><td></td><td></td><td class="num">${fmt(grandTotal.planned)}</td><td class="num">${fmt(grandTotal.actual)}</td><td class="num">${fmt(grandTotal.difference)}</td></tr>`
+    );
+  }
+  return `<table>
+    <thead><tr><th>Date</th><th>Recipes</th><th>Order Cat Name</th><th>Material</th><th>Set Point</th><th>Actual</th><th>Difference</th></tr></thead>
+    <tbody>${bodyParts.join("")}</tbody>
+  </table>`;
 }
 
 function flattenCumulativeTree(tree: CumulativeDateGroup[]): Record<string, unknown>[] {
@@ -1622,11 +1676,12 @@ export function Reports() {
     if (activeTab === "Batch Report") {
       return buildBatchHierarchyHtml(batchReportTree);
     }
-    const totalRow = consumptionTotals
-      ? `<tr class="total-row"><td>Total</td><td></td><td></td><td></td><td>${fmtNum(consumptionTotals.planned)}</td><td>${fmtNum(consumptionTotals.actual)}</td><td>${fmtNum(consumptionTotals.difference)}</td></tr>`
-      : cumulativeTotals
-        ? `<tr class="total-row"><td>Total</td><td></td><td>${fmtNum(cumulativeTotals.planned)}</td><td>${fmtNum(cumulativeTotals.actual)}</td><td>${fmtNum(cumulativeTotals.difference)}</td></tr>`
-        : "";
+    if (activeTab === "Raw Material Consumption") {
+      return buildConsumptionHierarchyHtml(consumptionTree, fmtNum, consumptionTotals);
+    }
+    const totalRow = cumulativeTotals
+      ? `<tr class="total-row"><td>Total</td><td></td><td>${fmtNum(cumulativeTotals.planned)}</td><td>${fmtNum(cumulativeTotals.actual)}</td><td>${fmtNum(cumulativeTotals.difference)}</td></tr>`
+      : "";
     return `<table>
       <thead><tr>${headers.map((h) => `<th>${h}</th>`).join("")}</tr></thead>
       <tbody>${displayRows
@@ -1637,6 +1692,13 @@ export function Reports() {
 
   const exportToExcel = async () => {
     const { generatedOn, dateRange } = reportMeta();
+    const finish = async (result: Awaited<ReturnType<typeof downloadReportExcel>>) => {
+      if (result?.savedPath) {
+        showToast(`Saved to ${result.savedPath}`, "success");
+      } else {
+        showToast("Excel downloaded (could not save to F:\\Purebreed_reports — check backend)", "error");
+      }
+    };
     try {
       if (activeTab === "Batch Report") {
         if (!batchReportTree.length) {
@@ -1644,13 +1706,37 @@ export function Reports() {
           return;
         }
         const { headers: batchHeaders, rows } = buildBatchHierarchyExcelRows(batchReportTree, fmtNum);
-        await downloadReportExcel({
-          title: activeTab,
-          generatedOn,
-          dateRange,
-          headers: batchHeaders,
-          rows,
-        });
+        await finish(
+          await downloadReportExcel({
+            title: activeTab,
+            generatedOn,
+            dateRange,
+            headers: batchHeaders,
+            rows,
+          })
+        );
+        return;
+      }
+      if (activeTab === "Raw Material Consumption") {
+        if (!consumptionTree.length) {
+          showToast("No data to export", "error");
+          return;
+        }
+        const { headers: consHeaders, rows, merges } = buildConsumptionHierarchyExcelRows(
+          consumptionTree,
+          fmtNum,
+          consumptionTotals
+        );
+        await finish(
+          await downloadReportExcel({
+            title: activeTab,
+            generatedOn,
+            dateRange,
+            headers: consHeaders,
+            rows,
+            merges,
+          })
+        );
         return;
       }
       if (!displayRows.length) {
@@ -1661,20 +1747,6 @@ export function Reports() {
         values: renderCells(row),
         kind: "normal",
       }));
-      if (consumptionTotals) {
-        rows.push({
-          kind: "total",
-          values: [
-            "Total",
-            "",
-            "",
-            "",
-            fmtNum(consumptionTotals.planned),
-            fmtNum(consumptionTotals.actual),
-            fmtNum(consumptionTotals.difference),
-          ],
-        });
-      }
       if (cumulativeTotals) {
         rows.push({
           kind: "total",
@@ -1687,20 +1759,27 @@ export function Reports() {
           ],
         });
       }
-      await downloadReportExcel({
-        title: activeTab,
-        generatedOn,
-        dateRange,
-        headers,
-        rows,
-      });
+      await finish(
+        await downloadReportExcel({
+          title: activeTab,
+          generatedOn,
+          dateRange,
+          headers,
+          rows,
+        })
+      );
     } catch (e: any) {
       showToast(e?.message || "Failed to export Excel", "error");
     }
   };
 
   const handlePrint = async () => {
-    const hasPrintData = activeTab === "Batch Report" ? batchReportTree.length > 0 : displayRows.length > 0;
+    const hasPrintData =
+      activeTab === "Batch Report"
+        ? batchReportTree.length > 0
+        : activeTab === "Raw Material Consumption"
+          ? consumptionTree.length > 0
+          : displayRows.length > 0;
     if (!hasPrintData) {
       showToast("No data to print", "error");
       return;
@@ -2085,7 +2164,13 @@ export function Reports() {
           )}
           <Button
             onClick={handlePrint}
-            disabled={activeTab === "Batch Report" ? !batchReportTree.length : !displayRows.length}
+            disabled={
+              activeTab === "Batch Report"
+                ? !batchReportTree.length
+                : activeTab === "Raw Material Consumption"
+                  ? !consumptionTree.length
+                  : !displayRows.length
+            }
             className="bg-[#0088a9] hover:bg-[#007b98] !text-white text-sm h-9"
           >
             <Printer className="h-4 w-4 mr-2" />
@@ -2093,7 +2178,13 @@ export function Reports() {
           </Button>
           <Button
             onClick={exportToExcel}
-            disabled={activeTab === "Batch Report" ? !batchReportTree.length : !displayRows.length}
+            disabled={
+              activeTab === "Batch Report"
+                ? !batchReportTree.length
+                : activeTab === "Raw Material Consumption"
+                  ? !consumptionTree.length
+                  : !displayRows.length
+            }
             className="bg-[#0088a9] hover:bg-[#007b98] !text-white text-sm h-9"
           >
             <Download className="h-4 w-4 mr-2" />

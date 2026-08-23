@@ -39,6 +39,7 @@ export const API_ENDPOINTS = {
   BATCH_REPORT_BATCHES: `${API_BASE_URL}/api/ssrs/batch-report/batches`,
   BATCH_REPORT: `${API_BASE_URL}/api/ssrs/batch-report`,
   BATCH_REPORT_ASSIGN_CLIENT: `${API_BASE_URL}/api/ssrs/batch-report/assign-client`,
+  REPORT_EXPORT_SAVE: `${API_BASE_URL}/api/ssrs/export/save`,
   BATCH_PM1_DATA: `${API_BASE_URL}/api/ssrs/pm1-data`,
   
   // Live Data
