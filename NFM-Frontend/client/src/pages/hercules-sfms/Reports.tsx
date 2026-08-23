@@ -31,6 +31,7 @@ import {
   downloadReportExcel,
   type ExcelDataRow,
 } from "@/lib/reportExcelExport";
+import { sortByMaterialCode } from "@/lib/materialSort";
 
 /** Legacy BatchMaterials_Shadow reports + MaterialInfo-view (SSRS-style) reports */
 const LEGACY_TABS = [
@@ -418,13 +419,17 @@ function buildDetailedTree(data: LegacyRow[]): DetailedClient[] {
     .map((client) => {
       const batches = [...clientMap.get(client)!.entries()].map(([key, rows]) => {
         const first = rows[0];
-        const materials = rows.map((r) => ({
-          materialName: r.materialName,
-          materialCode: r.materialCode,
-          setPoint: r.setPointFloat || 0,
-          actual: r.actualValueFloat || 0,
-          difference: (r.actualValueFloat || 0) - (r.setPointFloat || 0),
-        }));
+        const materials = sortByMaterialCode(
+          rows.map((r) => ({
+            materialName: r.materialName,
+            materialCode: r.materialCode,
+            setPoint: r.setPointFloat || 0,
+            actual: r.actualValueFloat || 0,
+            difference: (r.actualValueFloat || 0) - (r.setPointFloat || 0),
+          })),
+          (m) => m.materialCode,
+          (m) => m.materialName
+        );
         const totalSetPoint = materials.reduce((s, m) => s + m.setPoint, 0);
         const totalActual = materials.reduce((s, m) => s + m.actual, 0);
         return {
@@ -523,17 +528,21 @@ function buildBatchReportTree(rows: Record<string, unknown>[]): DetailedClient[]
   return [...clientMap.entries()].map(([client, batchMap]) => {
     const batches = [...batchMap.entries()].map(([key, items]) => {
       const first = items[0];
-      const materials = items.map((r) => {
-        const setPoint = Number(r.SetPoint ?? 0);
-        const actual = Number(r.Actual ?? 0);
-        return {
-          materialName: String(r.Material_Name ?? ""),
-          materialCode: String(r.Material_Code ?? ""),
-          setPoint,
-          actual,
-          difference: Number(r.Diffrence ?? actual - setPoint),
-        };
-      });
+      const materials = sortByMaterialCode(
+        items.map((r) => {
+          const setPoint = Number(r.SetPoint ?? 0);
+          const actual = Number(r.Actual ?? 0);
+          return {
+            materialName: String(r.Material_Name ?? ""),
+            materialCode: String(r.Material_Code ?? ""),
+            setPoint,
+            actual,
+            difference: Number(r.Diffrence ?? actual - setPoint),
+          };
+        }),
+        (m) => m.materialCode,
+        (m) => m.materialName
+      );
       const totalSetPoint = materials.reduce((s, m) => s + m.setPoint, 0);
       const totalActual = materials.reduce((s, m) => s + m.actual, 0);
       return {
@@ -671,11 +680,22 @@ function buildCumulativeTree(rows: Record<string, unknown>[]): CumulativeDateGro
     recipes: [...recipes.entries()].map(([recipe, cats]) => ({
       recipe,
       orderCats: [...cats.entries()].map(([orderCat, mats]) => {
-        const materials = [...mats.values()].map((m) => ({
-          materialLabel: [m.code, m.name].filter(Boolean).join(" "),
-          setPoint: m.setPoint,
-          actual: m.actual,
-          difference: Math.abs(m.actual - m.setPoint),
+        const materials = sortByMaterialCode(
+          [...mats.values()].map((m) => ({
+            materialLabel: [m.code, m.name].filter(Boolean).join(" "),
+            materialCode: m.code,
+            materialName: m.name,
+            setPoint: m.setPoint,
+            actual: m.actual,
+            difference: Math.abs(m.actual - m.setPoint),
+          })),
+          (m) => m.materialCode,
+          (m) => m.materialName
+        ).map(({ materialLabel, setPoint, actual, difference }) => ({
+          materialLabel,
+          setPoint,
+          actual,
+          difference,
         }));
         const totalSetPoint = materials.reduce((s, m) => s + m.setPoint, 0);
         const totalActual = materials.reduce((s, m) => s + m.actual, 0);
@@ -798,8 +818,15 @@ function aggregateCumulativeMaterials(rows: Record<string, unknown>[]) {
     }
     groups[key].SetPoint += Number(item.SetPoint) || 0;
     groups[key].Actual += Number(item.Actual) || 0;
+    if (!groups[key].Material_Code && item.Material_Code) {
+      groups[key].Material_Code = String(item.Material_Code);
+    }
   }
-  return Object.values(groups);
+  return sortByMaterialCode(
+    Object.values(groups),
+    (m) => m.Material_Code,
+    (m) => m.Material_Name
+  );
 }
 
 export function Reports() {
