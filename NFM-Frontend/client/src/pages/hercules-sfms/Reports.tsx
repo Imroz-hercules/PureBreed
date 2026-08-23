@@ -1696,7 +1696,7 @@ export function Reports() {
       if (result?.savedPath) {
         showToast(`Saved to ${result.savedPath}`, "success");
       } else {
-        showToast("Excel downloaded (could not save to F:\\Purebreed_reports — check backend)", "error");
+        showToast(result?.saveError || "Failed to save to F:\\Purebreed_reports", "error");
       }
     };
     try {

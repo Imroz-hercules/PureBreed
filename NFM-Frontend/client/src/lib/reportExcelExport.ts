@@ -222,6 +222,7 @@ export async function downloadReportExcel(opts: {
   });
 
   let savedPath: string | null = null;
+  let saveError: string | null = null;
   try {
     const { API_ENDPOINTS } = await import("@/lib/api");
     const form = new FormData();
@@ -232,21 +233,18 @@ export async function downloadReportExcel(opts: {
       method: "POST",
       body: form,
     });
+    const data = await res.json().catch(() => ({}));
     if (res.ok) {
-      const data = await res.json();
       savedPath = String(data?.path || "") || null;
+    } else {
+      saveError = String(data?.error || `Save failed (${res.status})`);
     }
-  } catch {
-    /* network / save optional — still download locally */
+  } catch (e: any) {
+    saveError = e?.message || "Could not reach save API";
   }
 
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = fileName;
-  a.click();
-  URL.revokeObjectURL(url);
-  return { savedPath, fileName };
+  // Do not trigger browser download — files go only to F:\Purebreed_reports\...
+  return { savedPath, fileName, saveError };
 }
 
 export function buildBatchHierarchyExcelRows(
