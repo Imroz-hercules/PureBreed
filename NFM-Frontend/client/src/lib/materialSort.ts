@@ -178,6 +178,34 @@ export const RECIPE_MATERIAL_ORDERS: Record<string, string[]> = {
     "1770796",
   ],
 
+  // 1401702 — Pre-Breeder
+  "pre breeder": [
+    "1000243", // Gluten / CORN GLUTEN
+    "1016627", // NaHCO3/Sodium
+    "1016685", // Integral
+    "1085247", // Termin- 8 Powder (25 Kg)
+    "1163266", // Dinamic
+    "1259945", // Bran
+    "1377607", // SOYA BEAN MEAL- PB
+    "1377609", // Salt
+    "1377611", // Corn
+    "1377612", // Oil
+    "1377613", // Lime Flour
+    "1378164", // Methonine
+    "1378166", // Mineral Premix
+    "1378168", // L-Threonine
+    "1378311", // Pxav3c (sheet: Pxa23c)
+    "1408205", // Lime Solid
+    "1414104", // Vitamin Maxi Chicks
+    "1416263", // Ecodiar
+    "1417861", // Choline Chloride
+    "1417862", // Termin_Liq
+    "1417864", // MCP
+    "1625260", // OPTICELL
+    "1585517", // ANIMAL BRAN BAG - 40 KG
+    "1770796", // Panbonis 20 Premix
+  ],
+
   // 1782590 — Breeder-3
   "breeder 3": [
     "1016627",
@@ -208,28 +236,56 @@ export const RECIPE_MATERIAL_ORDERS: Record<string, string[]> = {
     "1331012", // Tryptophan
   ],
 
-  // Starter 1 (partial sheet — common chick starter without Corn Gluten first)
+  // 1401698 — Starter 1
   "starter 1": [
-    "1016627",
-    "1016685",
-    "1163266",
-    "1259945",
-    "1377607",
-    "1377609",
-    "1377611",
-    "1377612",
-    "1377613",
-    "1378164",
-    "1378166",
-    "1378168",
-    "1378311",
-    "1414104",
-    "1417861",
-    "1417862",
-    "1417864",
-    "1585517",
+    "1016627", // NaHCO3/Sodium
+    "1016685", // Integral
+    "1085239", // Lysine
+    "1163266", // Dinamic
+    "1259945", // Bran
+    "1377607", // SOYA BEAN MEAL- PB
+    "1377609", // Salt
+    "1377611", // Corn
+    "1377612", // Oil
+    "1377613", // Lime Flour
+    "1378164", // Methonine
+    "1378166", // Mineral Premix
+    "1378168", // L-Threonine
+    "1378311", // Pxav3c
+    "1414104", // Vitamin Maxi Chicks
+    "1417861", // Choline Chloride
+    "1417862", // Termin_Liq
+    "1417864", // MCP
+    "1585517", // ANIMAL BRAN BAG - 40 KG
     "SOY_CONCENTRATE",
-    "1770796",
+  ],
+
+  // 1401704 — Breeder-2
+  "breeder 2": [
+    "1016627", // NaHCO3/Sodium
+    "1016685", // Integral
+    "1085239", // Lysine
+    "1085247", // Termin- 8 Powder (25 Kg)
+    "1163266", // Dinamic
+    "1259945", // Bran
+    "1377607", // SOYA BEAN MEAL- PB
+    "1377609", // Salt
+    "1377611", // Corn
+    "1377612", // Oil
+    "1377613", // Lime Flour
+    "1378164", // Methonine
+    "1378166", // Mineral Premix
+    "1378168", // L-Threonine
+    "1378169", // Potassium Bi KHCO3
+    "1378311", // Pxav3c (sheet: Pxa23c)
+    "1408205", // Lime Solid
+    "1414104", // Vitamin Maxi Chicks
+    "1416263", // Ecodiar
+    "1417861", // Choline Chloride
+    "1417862", // Termin_Liq
+    "1417864", // MCP
+    "1585517", // ANIMAL BRAN BAG - 40 KG
+    "1770796", // Panbonis 20 Premix
   ],
 
   // Grower Mesh — same family as Breeder without Potassium; Gluten/Arbocel late
@@ -265,6 +321,8 @@ const RECIPE_MATCHERS: Array<{ key: string; test: RegExp }> = [
   { key: "starter 2", test: /\bstarter\s*[-_]?\s*2\b|1401699/i },
   { key: "starter 1", test: /\bstarter\s*[-_]?\s*1\b|1401698/i },
   { key: "pre starter", test: /\bpre[-\s_]*starter\b|1401697/i },
+  { key: "pre breeder", test: /\bpre[-\s_]*breeder\b|1401702/i },
+  { key: "breeder 2", test: /\bbreeder\s*[-_]?\s*2\b|1401704/i },
   { key: "breeder 1", test: /\bbreeder\s*[-_]?\s*1\b|1401703/i },
   { key: "breeder 3", test: /\bbreeder\s*[-_]?\s*3\b|1782590/i },
   { key: "grower mesh", test: /\bgrower(\s*mesh)?\b|1401701/i },
