@@ -14,8 +14,10 @@ export const MATERIAL_SAP_SORT_ORDER: string[] = [
   "1377613", // Lime Flour
   "1378164", // Methonine
   "1378166", // Mineral Premix
+  "1378167", // Mineral Premix-New
   "1378168", // L-Threonine
-  "1734495", // Potassium Bi KHCO3
+  "1378169", // Potassium Bi KHCO3 (BatchMaterials code)
+  "1734495", // Potassium Bi KHCO3 (SAP sheet alternate)
   "1378311", // Pxav3c
   "1408205", // Lime Solid
   "1414104", // Vitamin Maxi Chicks / Vitamin Premix MC
@@ -27,13 +29,12 @@ export const MATERIAL_SAP_SORT_ORDER: string[] = [
   "1417863", // Mixstrong
   "1625260", // OPTICELL® C5
   "1085239", // Lysine
-  "1378169", // SOY CONCENRATE / SOY CONCENTRATE
   "1246828", // L-VALINE FEED GRADE 98%
   "1280395", // L-ARGININE
   "1331012", // TRYPTOPHAN
   "1516959", // L-Isoleucine
   "1152136", // PANBONIS 20
-  "1000243", // CORN GLUTEN-2750003
+  "1000243", // CORN GLUTEN-2750003 / Gluten
   "1546114", // Arbocel
   "1163266", // Dinamic
   "1162416", // EXTRACTAZYME
@@ -44,6 +45,7 @@ export const MATERIAL_SAP_SORT_ORDER: string[] = [
 const MATERIAL_CODE_ALIASES: Record<string, string> = {
   "31": "1546114", // Arbocel
   "1778796": "1770796", // PANBONIS 20 PREMIX alternate
+  "1734495": "1378169", // Potassium Bi KHCO3 — sheet vs live code
 };
 
 /**
@@ -64,7 +66,7 @@ const MATERIAL_NAME_TO_CODE: Array<{ test: RegExp; code: string }> = [
   { test: /^methonine|^methionine/i, code: "1378164" },
   { test: /^mineral\s*premix/i, code: "1378166" },
   { test: /^l[- ]?threonine/i, code: "1378168" },
-  { test: /^potassium|^khco3/i, code: "1734495" },
+  { test: /^potassium|^khco3/i, code: "1378169" },
   { test: /^pxav3c/i, code: "1378311" },
   { test: /^lime\s*solid/i, code: "1408205" },
   { test: /^vitamin\s*(maxi|premix)/i, code: "1414104" },
@@ -76,7 +78,7 @@ const MATERIAL_NAME_TO_CODE: Array<{ test: RegExp; code: string }> = [
   { test: /^mixstrong/i, code: "1417863" },
   { test: /^opticell/i, code: "1625260" },
   { test: /^lysine/i, code: "1085239" },
-  { test: /^soy\s*conc/i, code: "1378169" },
+  { test: /^soy\s*conc/i, code: "1085239" }, // after Lysine if name-only (live 1378169 = Potassium)
   { test: /^l[- ]?valine/i, code: "1246828" },
   { test: /^l[- ]?arginine/i, code: "1280395" },
   { test: /^tryptophan/i, code: "1331012" },
