@@ -28,6 +28,8 @@ import {
 import {
   buildBatchHierarchyExcelRows,
   buildConsumptionHierarchyExcelRows,
+  canUseSavePicker,
+  downloadLanOpenerBat,
   downloadReportExcel,
   type ExcelDataRow,
 } from "@/lib/reportExcelExport";
@@ -1864,6 +1866,18 @@ export function Reports() {
   };
 
   const exportToExcel = async () => {
+    if (!canUseSavePicker()) {
+      const wantOpener = window.confirm(
+        "Save As is blocked in this browser window (LAN IP).\n\n" +
+          "OK = Download open-purebreed-lan.bat — run it, then Export again in that window.\n\n" +
+          "Cancel = Save to Downloads folder now."
+      );
+      if (wantOpener) {
+        downloadLanOpenerBat();
+        showToast("Downloaded open-purebreed-lan.bat — run it, then Export in the new window", "success");
+        return;
+      }
+    }
     const { generatedOn, dateRange } = reportMeta();
     const finish = async (result: Awaited<ReturnType<typeof downloadReportExcel>>) => {
       if (result?.cancelled) return;
@@ -1872,7 +1886,7 @@ export function Reports() {
           showToast(`Saved: ${result.savedPath}`, "success");
         } else {
           showToast(
-            `Downloaded to Downloads (${result.fileName || result.savedPath}). For Save As on LAN open http://purebreed.localhost:5180 (run setup-purebreed-lan.bat once).`,
+            `Saved to Downloads (${result.fileName || result.savedPath}). Run open-purebreed-lan.bat for Save As.`,
             "success"
           );
         }
@@ -2308,6 +2322,29 @@ export function Reports() {
             )}
           </CardContent>
         </Card>
+
+        {!canUseSavePicker() && (
+          <div className="rounded-lg border border-amber-300 bg-amber-50 dark:bg-amber-950/40 dark:border-amber-700 px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
+            <div className="text-sm text-amber-900 dark:text-amber-100 space-y-1">
+              <p>
+                Export <strong>Save As</strong> is blocked in this window (opened as a normal LAN link).
+              </p>
+              <p className="text-xs opacity-90">
+                Do not use purebreed.localhost on other PCs. Download the opener → run it → Export only in the new Edge/Chrome window (yellow banner must disappear).
+              </p>
+            </div>
+            <Button
+              type="button"
+              onClick={() => {
+                downloadLanOpenerBat();
+                showToast("Downloaded open-purebreed-lan.bat — run it now", "success");
+              }}
+              className="!bg-amber-600 hover:!bg-amber-700 !text-white shrink-0"
+            >
+              Download LAN opener (.bat)
+            </Button>
+          </div>
+        )}
 
         <Card className="bg-white/95 dark:bg-slate-900/95 border-slate-300 dark:border-slate-700">
           <CardContent className="pt-3 pb-3">

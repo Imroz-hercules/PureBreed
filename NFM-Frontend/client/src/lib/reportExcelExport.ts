@@ -19,10 +19,9 @@ function dataUrlToBase64(dataUrl: string): { base64: string; extension: "png" | 
 }
 
 /** True when browser allows File System Access (Save As). */
-function canUseSavePicker(): boolean {
+export function canUseSavePicker(): boolean {
   if (typeof window === "undefined") return false;
   const host = window.location.hostname.toLowerCase();
-  // localhost + *.localhost are secure contexts even on HTTP (LAN-friendly)
   const isLocalhostFamily =
     host === "localhost" ||
     host === "127.0.0.1" ||
@@ -33,6 +32,58 @@ function canUseSavePicker(): boolean {
     window.location.protocol === "https:" ||
     isLocalhostFamily
   );
+}
+
+/** Build a .bat that opens Edge/Chrome with Save As enabled for this server IP. */
+export function buildLanOpenerBatContent(serverIp?: string): string {
+  const host = (serverIp || (typeof window !== "undefined" ? window.location.hostname : "192.168.1.3")).trim();
+  const ip = /^[\d.]+$/.test(host) ? host : "192.168.1.3";
+  const origin = `http://${ip}:5180`;
+  return [
+    "@echo off",
+    "title PureBreed LAN — Save As enabled",
+    "setlocal",
+    `set "ORIGIN=${origin}"`,
+    'set "URL=%ORIGIN%/"',
+    'set "DATA=%LOCALAPPDATA%\\PureBreedBrowser"',
+    "echo.",
+    "echo Opening PureBreed with Export Save As enabled...",
+    "echo   %URL%",
+    "echo.",
+    "echo Close PureBreed in normal Edge/Chrome. Use ONLY this new window.",
+    "echo.",
+    'set "EDGE="',
+    'if exist "%ProgramFiles%\\Microsoft\\Edge\\Application\\msedge.exe" set "EDGE=%ProgramFiles%\\Microsoft\\Edge\\Application\\msedge.exe"',
+    'if not defined EDGE if exist "%ProgramFiles(x86)%\\Microsoft\\Edge\\Application\\msedge.exe" set "EDGE=%ProgramFiles(x86)%\\Microsoft\\Edge\\Application\\msedge.exe"',
+    'set "CHROME="',
+    'if exist "%ProgramFiles%\\Google\\Chrome\\Application\\chrome.exe" set "CHROME=%ProgramFiles%\\Google\\Chrome\\Application\\chrome.exe"',
+    'if not defined CHROME if exist "%ProgramFiles(x86)%\\Google\\Chrome\\Application\\chrome.exe" set "CHROME=%ProgramFiles(x86)%\\Google\\Chrome\\Application\\chrome.exe"',
+    "if defined EDGE (",
+    '  "%EDGE%" --user-data-dir="%DATA%\\edge" --no-first-run --no-default-browser-check --unsafely-treat-insecure-origin-as-secure=%ORIGIN% "%URL%"',
+    "  exit /b 0",
+    ")",
+    "if defined CHROME (",
+    '  "%CHROME%" --user-data-dir="%DATA%\\chrome" --no-first-run --no-default-browser-check --unsafely-treat-insecure-origin-as-secure=%ORIGIN% "%URL%"',
+    "  exit /b 0",
+    ")",
+    "echo ERROR: Install Google Chrome or Microsoft Edge, then run this file again.",
+    "pause",
+    "exit /b 1",
+    "",
+  ].join("\r\n");
+}
+
+export function downloadLanOpenerBat(serverIp?: string) {
+  const content = buildLanOpenerBatContent(serverIp);
+  const blob = new Blob([content], { type: "application/x-bat" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "open-purebreed-lan.bat";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
 }
 
 /** Save As dialog when allowed; otherwise Downloads folder. */
@@ -53,7 +104,8 @@ async function saveExcelBlob(
     }>;
   };
 
-  if (canUseSavePicker() && typeof w.showSaveFilePicker === "function") {
+  // Prefer picker whenever the API exists (Chrome flag / secure context)
+  if (typeof w.showSaveFilePicker === "function" && canUseSavePicker()) {
     try {
       const handle = await w.showSaveFilePicker({
         suggestedName: fileName,
@@ -76,6 +128,29 @@ async function saveExcelBlob(
         return { savedPath: null, cancelled: true, usedPicker: true };
       }
       throw e;
+    }
+  }
+
+  // Last resort: try picker even if isSecureContext is false (flagged Chromium builds)
+  if (typeof w.showSaveFilePicker === "function") {
+    try {
+      const handle = await w.showSaveFilePicker({
+        suggestedName: fileName,
+        types: [
+          {
+            description: "Excel workbook",
+            accept: {
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"],
+            },
+          },
+        ],
+      });
+      const writable = await handle.createWritable();
+      await writable.write(blob);
+      await writable.close();
+      return { savedPath: handle.name || fileName, cancelled: false, usedPicker: true };
+    } catch {
+      /* fall through to Downloads */
     }
   }
 
