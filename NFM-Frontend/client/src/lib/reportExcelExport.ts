@@ -18,6 +18,62 @@ function dataUrlToBase64(dataUrl: string): { base64: string; extension: "png" | 
   return { base64: m[2], extension: ext };
 }
 
+/** Save As dialog (Chrome/Edge) or anchor download fallback (Firefox, etc.). */
+async function saveExcelBlob(
+  blob: Blob,
+  fileName: string
+): Promise<{ savedPath: string | null; cancelled: boolean }> {
+  const w = window as Window & {
+    showSaveFilePicker?: (options?: {
+      suggestedName?: string;
+      types?: Array<{ description?: string; accept: Record<string, string[]> }>;
+    }) => Promise<{
+      name: string;
+      createWritable: () => Promise<{
+        write: (data: Blob) => Promise<void>;
+        close: () => Promise<void>;
+      }>;
+    }>;
+  };
+
+  if (typeof w.showSaveFilePicker === "function") {
+    try {
+      const handle = await w.showSaveFilePicker({
+        suggestedName: fileName,
+        types: [
+          {
+            description: "Excel workbook",
+            accept: {
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"],
+            },
+          },
+        ],
+      });
+      const writable = await handle.createWritable();
+      await writable.write(blob);
+      await writable.close();
+      return { savedPath: handle.name || fileName, cancelled: false };
+    } catch (e: unknown) {
+      const err = e as { name?: string };
+      if (err?.name === "AbortError" || err?.name === "NotAllowedError") {
+        return { savedPath: null, cancelled: true };
+      }
+      throw e;
+    }
+  }
+
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = fileName;
+  a.rel = "noopener";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  return { savedPath: fileName, cancelled: false };
+}
+
 const thinBorder: Partial<ExcelJS.Borders> = {
   top: { style: "thin", color: { argb: "FF94A3B8" } },
   left: { style: "thin", color: { argb: "FF94A3B8" } },
@@ -236,8 +292,23 @@ export async function downloadReportExcel(opts: {
     type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
   });
 
+  // 1) Save As dialog (Chrome/Edge) or browser download fallback
   let savedPath: string | null = null;
   let saveError: string | null = null;
+  let cancelled = false;
+  try {
+    const local = await saveExcelBlob(blob, fileName);
+    if (local.cancelled) {
+      cancelled = true;
+      return { savedPath: null, fileName, saveError: null, cancelled: true };
+    }
+    savedPath = local.savedPath;
+  } catch (e: any) {
+    saveError = e?.message || "Could not save file";
+    return { savedPath: null, fileName, saveError, cancelled: false };
+  }
+
+  // 2) Also copy to F:\Purebreed_reports\… when the API is available (best-effort)
   try {
     const { API_ENDPOINTS } = await import("@/lib/api");
     const form = new FormData();
@@ -249,17 +320,15 @@ export async function downloadReportExcel(opts: {
       body: form,
     });
     const data = await res.json().catch(() => ({}));
-    if (res.ok) {
-      savedPath = String(data?.path || "") || null;
-    } else {
-      saveError = String(data?.error || `Save failed (${res.status})`);
+    if (res.ok && data?.path) {
+      // Prefer showing the server archive path when both succeed
+      savedPath = String(data.path);
     }
-  } catch (e: any) {
-    saveError = e?.message || "Could not reach save API";
+  } catch {
+    /* F: archive is optional when Save As already succeeded */
   }
 
-  // Do not trigger browser download — files go only to F:\Purebreed_reports\...
-  return { savedPath, fileName, saveError };
+  return { savedPath, fileName, saveError, cancelled };
 }
 
 export function buildBatchHierarchyExcelRows(

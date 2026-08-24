@@ -1866,10 +1866,11 @@ export function Reports() {
   const exportToExcel = async () => {
     const { generatedOn, dateRange } = reportMeta();
     const finish = async (result: Awaited<ReturnType<typeof downloadReportExcel>>) => {
+      if (result?.cancelled) return;
       if (result?.savedPath) {
-        showToast(`Saved to ${result.savedPath}`, "success");
+        showToast(`Saved: ${result.savedPath}`, "success");
       } else {
-        showToast(result?.saveError || "Failed to save to F:\\Purebreed_reports", "error");
+        showToast(result?.saveError || "Failed to save Excel file", "error");
       }
     };
     try {
