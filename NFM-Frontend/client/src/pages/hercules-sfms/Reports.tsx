@@ -1872,7 +1872,7 @@ export function Reports() {
           showToast(`Saved: ${result.savedPath}`, "success");
         } else {
           showToast(
-            `Downloaded to Downloads folder (${result.fileName || result.savedPath}). Use https://PC-IP:5180 for Save As.`,
+            `Downloaded to Downloads (${result.fileName || result.savedPath}). On LAN, use this PC via localhost for Save As picker.`,
             "success"
           );
         }

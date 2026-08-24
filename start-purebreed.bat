@@ -22,7 +22,9 @@ start "PureBreed Frontend" cmd /k "cd /d "%ROOT%\NFM-Frontend" && npm run dev"
 
 echo.
 echo Backend:  http://localhost:5002
-echo Frontend: https://localhost:5180
-echo Network:  https://YOUR-PC-IP:5180  (accept certificate warning once)
-echo           Save As export works on HTTPS / localhost only
+echo Frontend: http://localhost:5180
+echo Network:  http://YOUR-PC-IP:5180
+echo.
+echo Note: Save As folder picker works on localhost.
+echo       On LAN IP, Excel goes to Downloads folder (browser security).
 exit
