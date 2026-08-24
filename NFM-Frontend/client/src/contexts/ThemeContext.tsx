@@ -10,23 +10,35 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
 
+function readStoredTheme(): Theme {
+  try {
+    const saved = localStorage.getItem('fakieh-theme')
+    return saved === 'light' ? 'light' : 'dark'
+  } catch {
+    return 'dark'
+  }
+}
+
+function applyThemeClass(theme: Theme) {
+  const root = document.documentElement
+  root.classList.remove('light', 'dark')
+  root.classList.add(theme)
+}
+
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>(() => {
-    const saved = localStorage.getItem('fakieh-theme')
-    return (saved as Theme) || 'dark'
+    const initial = readStoredTheme()
+    applyThemeClass(initial)
+    return initial
   })
 
   useEffect(() => {
-    const root = document.documentElement
-    
-    // Remove existing theme classes
-    root.classList.remove('light', 'dark')
-    
-    // Add current theme class
-    root.classList.add(theme)
-    
-    // Save to localStorage
-    localStorage.setItem('fakieh-theme', theme)
+    applyThemeClass(theme)
+    try {
+      localStorage.setItem('fakieh-theme', theme)
+    } catch {
+      /* ignore */
+    }
   }, [theme])
 
   const toggleTheme = () => {

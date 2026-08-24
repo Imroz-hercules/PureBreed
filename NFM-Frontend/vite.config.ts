@@ -1,11 +1,14 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import basicSsl from "@vitejs/plugin-basic-ssl";
 import path from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 
 export default defineConfig({
   plugins: [
     react(),
+    // HTTPS → secure context on LAN IP → Export Save As works (no .bat / SmartScreen)
+    basicSsl(),
     runtimeErrorOverlay(),
     ...(process.env.NODE_ENV !== "production" &&
     process.env.REPL_ID !== undefined
@@ -33,7 +36,7 @@ export default defineConfig({
     port: 5180,
     strictPort: true,
     host: true,
-    // Proxy API through Vite so LAN clients hit one port (5180)
+    // Proxy API through Vite so LAN clients hit one port (5180) over HTTPS
     proxy: {
       "/api": {
         target: "http://127.0.0.1:5002",

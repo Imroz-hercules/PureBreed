@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
@@ -35,6 +35,18 @@
     <!-- Prevent Replit Development Banner -->
     <meta name="robots" content="index, follow" />
     <meta name="theme-color" content="#0098cc" />
+    <script>
+      // Apply saved theme before paint (default dark — matches always-dark shell)
+      (function () {
+        try {
+          var t = localStorage.getItem("fakieh-theme") || "dark";
+          document.documentElement.classList.remove("light", "dark");
+          document.documentElement.classList.add(t === "light" ? "light" : "dark");
+        } catch (e) {
+          document.documentElement.classList.add("dark");
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

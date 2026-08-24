@@ -29,7 +29,6 @@ import {
   buildBatchHierarchyExcelRows,
   buildConsumptionHierarchyExcelRows,
   canUseSavePicker,
-  downloadLanOpenerBat,
   downloadReportExcel,
   type ExcelDataRow,
 } from "@/lib/reportExcelExport";
@@ -212,7 +211,7 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
   return (
     <div className="relative" ref={dropdownRef}>
       <div
-        className={`w-full min-h-[1.75rem] px-2 py-1 rounded-md bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white cursor-pointer hover:border-cyan-400 text-xs h-7 ${
+        className={`w-full min-h-[1.75rem] px-2 py-1 rounded-md bg-surface border border-border text-foreground cursor-pointer hover:border-cyan-400 text-xs h-7 ${
           options.length === 0 ? "opacity-50 cursor-not-allowed" : ""
         }`}
         onClick={() => options.length > 0 && setIsOpen(!isOpen)}
@@ -223,9 +222,9 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
         </div>
       </div>
       {isOpen && (
-        <div className="absolute z-50 w-full mt-1 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-md shadow-xl max-h-48 overflow-y-auto">
+        <div className="absolute z-50 w-full mt-1 bg-surface border border-border rounded-md shadow-xl max-h-48 overflow-y-auto">
           <div
-            className="px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer border-b text-cyan-600 dark:text-cyan-400 font-medium text-xs"
+            className="px-2 py-1 hover:bg-surface-sunken cursor-pointer border-b border-border text-cyan-600 dark:text-cyan-400 font-medium text-xs"
             onClick={() => onChange(allSelected ? [] : [...options])}
           >
             <div className="flex items-center justify-between">
@@ -238,8 +237,8 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
             return (
               <div
                 key={option}
-                className={`px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer text-xs flex items-center justify-between ${
-                  checked ? "bg-slate-100 dark:bg-slate-700 text-cyan-600" : "text-slate-900 dark:text-white"
+                className={`px-2 py-1 hover:bg-surface-sunken cursor-pointer text-xs flex items-center justify-between ${
+                  checked ? "bg-surface-sunken text-cyan-600 dark:text-cyan-400" : "text-foreground"
                 }`}
                 onClick={() =>
                   onChange(
@@ -1865,16 +1864,18 @@ export function Reports() {
     </table>`;
   };
 
+  const httpsReportsUrl = () =>
+    `https://${window.location.hostname}:5180${window.location.pathname}${window.location.search}${window.location.hash}`;
+
   const exportToExcel = async () => {
-    if (!canUseSavePicker()) {
-      const wantOpener = window.confirm(
-        "Save As is blocked in this browser window (LAN IP).\n\n" +
-          "OK = Download open-purebreed-lan.bat — run it, then Export again in that window.\n\n" +
+    if (!canUseSavePicker() && window.location.protocol === "http:") {
+      const wantHttps = window.confirm(
+        "Save As needs HTTPS on the network.\n\n" +
+          "OK = Open the secure link (accept the certificate warning once).\n\n" +
           "Cancel = Save to Downloads folder now."
       );
-      if (wantOpener) {
-        downloadLanOpenerBat();
-        showToast("Downloaded open-purebreed-lan.bat — run it, then Export in the new window", "success");
+      if (wantHttps) {
+        window.location.href = httpsReportsUrl();
         return;
       }
     }
@@ -1886,7 +1887,7 @@ export function Reports() {
           showToast(`Saved: ${result.savedPath}`, "success");
         } else {
           showToast(
-            `Saved to Downloads (${result.fileName || result.savedPath}). Run open-purebreed-lan.bat for Save As.`,
+            `Saved to Downloads (${result.fileName || result.savedPath}). Open https://${window.location.hostname}:5180 for Save As.`,
             "success"
           );
         }
@@ -2071,7 +2072,7 @@ export function Reports() {
           onClick={() => !assigning && setAssignPopupOpen(false)}
         >
           <div
-            className="w-full max-w-lg rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 shadow-xl p-4 space-y-4"
+            className="w-full max-w-lg rounded-lg border border-border bg-surface shadow-xl p-4 space-y-4"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-start justify-between gap-3">
@@ -2098,7 +2099,7 @@ export function Reports() {
                   value={assignTargetClient}
                   onChange={(e) => setAssignTargetClient(e.target.value)}
                   disabled={assigning}
-                  className="w-full h-9 rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-2 text-sm text-slate-900 dark:text-white"
+                  className="w-full h-9 rounded-md border border-border bg-surface-sunken px-2 text-sm text-foreground"
                 >
                   <option value="">Select client…</option>
                   {assignClientOptions.map((c) => (
@@ -2129,7 +2130,7 @@ export function Reports() {
                   )}
                 </div>
                 <div
-                  className={`max-h-44 overflow-y-auto rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-2 py-1.5 ${
+                  className={`max-h-44 overflow-y-auto rounded-md border border-border bg-surface-sunken px-2 py-1.5 ${
                     assigning || assignBatchOptions.length === 0 ? "opacity-60 pointer-events-none" : ""
                   }`}
                 >
@@ -2141,7 +2142,7 @@ export function Reports() {
                       return (
                         <label
                           key={b.guid}
-                          className="flex items-start gap-2 py-1.5 text-sm text-slate-900 dark:text-white cursor-pointer"
+                          className="flex items-start gap-2 py-1.5 text-sm text-foreground cursor-pointer"
                         >
                           <input
                             type="checkbox"
@@ -2168,7 +2169,7 @@ export function Reports() {
                 type="button"
                 onClick={() => setAssignPopupOpen(false)}
                 disabled={assigning}
-                className="h-9 px-3 text-sm bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-100"
+                className="h-9 px-3 text-sm bg-surface-sunken text-foreground"
               >
                 Cancel
               </Button>
@@ -2195,14 +2196,14 @@ export function Reports() {
       <div className="space-y-6">
         <div className="flex items-center gap-3">
           <FileText className="text-cyan-400 text-2xl" />
-          <h1 className="text-2xl font-bold text-slate-800 dark:text-cyan-300 tracking-wide">
+          <h1 className="text-2xl font-bold text-foreground dark:text-cyan-300 tracking-wide">
             Historical Reports
           </h1>
         </div>
 
-        <Card className="bg-white/95 dark:bg-slate-900/95 border-slate-300 dark:border-slate-700">
+        <Card className="bg-surface border-border">
           <CardHeader className="pb-2">
-            <CardTitle className="text-slate-700 dark:text-cyan-300 flex items-center gap-2 text-base">
+            <CardTitle className="text-foreground dark:text-cyan-300 flex items-center gap-2 text-base">
               <Calendar className="h-4 w-4" />
               Report Filters
             </CardTitle>
@@ -2327,26 +2328,26 @@ export function Reports() {
           <div className="rounded-lg border border-amber-300 bg-amber-50 dark:bg-amber-950/40 dark:border-amber-700 px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
             <div className="text-sm text-amber-900 dark:text-amber-100 space-y-1">
               <p>
-                Export <strong>Save As</strong> is blocked in this window (opened as a normal LAN link).
+                Export <strong>Save As</strong> needs{" "}
+                <code className="text-xs">https://</code> on the network IP (no .bat on client PCs).
               </p>
               <p className="text-xs opacity-90">
-                Do not use purebreed.localhost on other PCs. Download the opener → run it → Export only in the new Edge/Chrome window (yellow banner must disappear).
+                Click the button → Advanced → Continue (once). Then Export again. Do not use http:// or download any .bat.
               </p>
             </div>
             <Button
               type="button"
               onClick={() => {
-                downloadLanOpenerBat();
-                showToast("Downloaded open-purebreed-lan.bat — run it now", "success");
+                window.location.href = httpsReportsUrl();
               }}
               className="!bg-amber-600 hover:!bg-amber-700 !text-white shrink-0"
             >
-              Download LAN opener (.bat)
+              Open https://{typeof window !== "undefined" ? window.location.hostname : "…"}:5180
             </Button>
           </div>
         )}
 
-        <Card className="bg-white/95 dark:bg-slate-900/95 border-slate-300 dark:border-slate-700">
+        <Card className="bg-surface border-border">
           <CardContent className="pt-3 pb-3">
             <div className="flex gap-2 justify-start overflow-x-auto pb-1">
               {tabs.map((tab) => (
@@ -2358,7 +2359,7 @@ export function Reports() {
                     ${
                       activeTab === tab
                         ? "bg-gradient-to-r from-cyan-500 to-cyan-600 text-white border-cyan-500 shadow-lg"
-                        : "bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-slate-800 dark:text-slate-100 hover:border-cyan-400 dark:hover:border-cyan-400"
+                        : "bg-surface-sunken border-border text-foreground hover:border-cyan-400"
                     }`}
                   style={{
                     color: activeTab === tab ? "white" : undefined,
@@ -2419,7 +2420,7 @@ export function Reports() {
           </p>
         )}
 
-        <Card className="bg-white/95 dark:bg-slate-900/95 border-slate-300 dark:border-slate-700">
+        <Card className="bg-surface border-border">
           <CardContent className="p-0">
             {loading ? (
               <div className="flex items-center justify-center py-10 gap-2 text-slate-500 dark:text-slate-400">
@@ -2434,10 +2435,10 @@ export function Reports() {
             ) : (
               <div className="overflow-x-auto w-full">
                 <table className="w-full text-sm border-collapse">
-                  <thead className="bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-200 uppercase text-xs tracking-wider">
+                  <thead className="bg-surface-sunken text-foreground uppercase text-xs tracking-wider">
                     <tr>
                       {headers.map((h) => (
-                        <th key={h} className="border border-slate-300 dark:border-slate-600 px-4 py-3 text-left font-semibold">
+                        <th key={h} className="border border-border px-4 py-3 text-left font-semibold">
                           {h}
                         </th>
                       ))}
@@ -2483,14 +2484,14 @@ export function Reports() {
                           rows.push(
                             <tr
                               key={`batch-${batch.key}`}
-                              className="bg-cyan-50 dark:bg-slate-700 text-slate-800 dark:text-slate-100 border-b border-slate-200 dark:border-slate-600"
+                              className="bg-surface-sunken text-foreground border-b border-border"
                             >
                               <td className="px-3 py-2" />
                               <td className="px-3 py-2 whitespace-nowrap">
                                 <button
                                   type="button"
                                   onClick={() => toggleBatch(batch.key)}
-                                  className="inline-flex items-center justify-center w-5 h-5 mr-2 rounded-sm border border-slate-400 bg-white dark:bg-slate-800"
+                                  className="inline-flex items-center justify-center w-5 h-5 mr-2 rounded-sm border border-border bg-surface"
                                   aria-label={batchOpen ? "Collapse batch" : "Expand batch"}
                                 >
                                   {batchOpen ? <Minus className="w-3 h-3" /> : <Plus className="w-3 h-3" />}
@@ -2511,8 +2512,8 @@ export function Reports() {
                             rows.push(
                               <tr
                                 key={`${batch.key}-m-${mi}`}
-                                className={`border-b border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 ${
-                                  mi % 2 === 0 ? "bg-white dark:bg-slate-900" : "bg-slate-50 dark:bg-slate-900/80"
+                                className={`border-b border-border text-foreground ${
+                                  mi % 2 === 0 ? "bg-surface" : "bg-surface-sunken"
                                 }`}
                               >
                                 <td className="px-3 py-2" />
@@ -2531,7 +2532,7 @@ export function Reports() {
                           rows.push(
                             <tr
                               key={`${batch.key}-total`}
-                              className="bg-slate-200 dark:bg-slate-600 font-semibold text-slate-800 dark:text-slate-100 border-b border-slate-300 dark:border-slate-500"
+                              className="bg-surface-sunken font-semibold text-foreground border-b border-border"
                             >
                               <td className="px-3 py-2" />
                               <td className="px-3 py-2" />
@@ -2562,12 +2563,12 @@ export function Reports() {
                                 out.push(
                                   <tr
                                     key={`${dateNode.date}|${recipe.recipe}|${cat.orderCat}|${mi}`}
-                                    className="text-slate-800 dark:text-slate-100 bg-emerald-50/70 dark:bg-emerald-950/20"
+                                    className="text-foreground bg-surface"
                                   >
                                     {!datePrinted ? (
                                       <td
                                         rowSpan={dSpan}
-                                        className="border border-slate-300 dark:border-slate-600 px-3 py-2 align-top whitespace-nowrap font-medium"
+                                        className="border border-border px-3 py-2 align-top whitespace-nowrap font-medium"
                                       >
                                         {dateNode.date}
                                       </td>
@@ -2575,7 +2576,7 @@ export function Reports() {
                                     {!recipePrinted ? (
                                       <td
                                         rowSpan={rSpan}
-                                        className="border border-slate-300 dark:border-slate-600 px-3 py-2 align-top"
+                                        className="border border-border px-3 py-2 align-top"
                                       >
                                         {recipe.recipe}
                                       </td>
@@ -2583,21 +2584,21 @@ export function Reports() {
                                     {mi === 0 ? (
                                       <td
                                         rowSpan={cat.materials.length}
-                                        className="border border-slate-300 dark:border-slate-600 px-3 py-2 align-top whitespace-nowrap"
+                                        className="border border-border px-3 py-2 align-top whitespace-nowrap"
                                       >
                                         {cat.orderCat}
                                       </td>
                                     ) : null}
-                                    <td className="border border-slate-300 dark:border-slate-600 px-3 py-2 whitespace-nowrap">
+                                    <td className="border border-border px-3 py-2 whitespace-nowrap">
                                       {m.materialLabel}
                                     </td>
-                                    <td className="border border-slate-300 dark:border-slate-600 px-3 py-2 whitespace-nowrap text-right">
+                                    <td className="border border-border px-3 py-2 whitespace-nowrap text-right">
                                       {fmtNum(m.setPoint)}
                                     </td>
-                                    <td className="border border-slate-300 dark:border-slate-600 px-3 py-2 whitespace-nowrap text-right">
+                                    <td className="border border-border px-3 py-2 whitespace-nowrap text-right">
                                       {fmtNum(m.actual)}
                                     </td>
-                                    <td className="border border-slate-300 dark:border-slate-600 px-3 py-2 whitespace-nowrap text-right">
+                                    <td className="border border-border px-3 py-2 whitespace-nowrap text-right">
                                       <DiffValue value={m.difference} />
                                     </td>
                                   </tr>
@@ -2608,17 +2609,17 @@ export function Reports() {
                               out.push(
                                 <tr
                                   key={`${dateNode.date}|${recipe.recipe}|${cat.orderCat}|total`}
-                                  className="bg-slate-200 dark:bg-slate-600 font-semibold text-slate-800 dark:text-slate-100"
+                                  className="bg-surface-sunken font-semibold text-foreground"
                                 >
-                                  <td className="border border-slate-300 dark:border-slate-600 px-3 py-2">Total</td>
-                                  <td className="border border-slate-300 dark:border-slate-600 px-3 py-2" />
-                                  <td className="border border-slate-300 dark:border-slate-600 px-3 py-2 whitespace-nowrap text-right">
+                                  <td className="border border-border px-3 py-2">Total</td>
+                                  <td className="border border-border px-3 py-2" />
+                                  <td className="border border-border px-3 py-2 whitespace-nowrap text-right">
                                     {fmtNum(cat.totalSetPoint)}
                                   </td>
-                                  <td className="border border-slate-300 dark:border-slate-600 px-3 py-2 whitespace-nowrap text-right">
+                                  <td className="border border-border px-3 py-2 whitespace-nowrap text-right">
                                     {fmtNum(cat.totalActual)}
                                   </td>
-                                  <td className="border border-slate-300 dark:border-slate-600 px-3 py-2 whitespace-nowrap text-right">
+                                  <td className="border border-border px-3 py-2 whitespace-nowrap text-right">
                                     <DiffValue value={cat.totalDifference} />
                                   </td>
                                 </tr>
@@ -2628,18 +2629,18 @@ export function Reports() {
                           return out;
                         })}
                         {consumptionTotals && paginatedConsumptionDates.length > 0 && (
-                          <tr className="bg-slate-300 dark:bg-slate-500 font-bold text-slate-900 dark:text-white">
-                            <td className="border border-slate-400 dark:border-slate-600 px-3 py-2">Total</td>
-                            <td className="border border-slate-400 dark:border-slate-600 px-3 py-2" />
-                            <td className="border border-slate-400 dark:border-slate-600 px-3 py-2" />
-                            <td className="border border-slate-400 dark:border-slate-600 px-3 py-2" />
-                            <td className="border border-slate-400 dark:border-slate-600 px-3 py-2 whitespace-nowrap text-right">
+                          <tr className="bg-muted font-bold text-foreground">
+                            <td className="border border-border px-3 py-2">Total</td>
+                            <td className="border border-border px-3 py-2" />
+                            <td className="border border-border px-3 py-2" />
+                            <td className="border border-border px-3 py-2" />
+                            <td className="border border-border px-3 py-2 whitespace-nowrap text-right">
                               {fmtNum(consumptionTotals.planned)}
                             </td>
-                            <td className="border border-slate-400 dark:border-slate-600 px-3 py-2 whitespace-nowrap text-right">
+                            <td className="border border-border px-3 py-2 whitespace-nowrap text-right">
                               {fmtNum(consumptionTotals.actual)}
                             </td>
-                            <td className="border border-slate-400 dark:border-slate-600 px-3 py-2 whitespace-nowrap text-right">
+                            <td className="border border-border px-3 py-2 whitespace-nowrap text-right">
                               <DiffValue value={consumptionTotals.difference} />
                             </td>
                           </tr>
@@ -2649,9 +2650,9 @@ export function Reports() {
                       paginatedRows.map((item, i) => (
                         <tr
                           key={i}
-                          className={`border-b border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 ${
-                            i % 2 === 0 ? "bg-slate-50 dark:bg-slate-900/80" : "bg-white dark:bg-slate-900"
-                          } hover:bg-slate-100 dark:hover:bg-slate-800`}
+                          className={`border-b border-border text-foreground ${
+                            i % 2 === 0 ? "bg-surface-sunken" : "bg-surface"
+                          } hover:bg-surface-sunken`}
                         >
                           {renderCells(item).map((cell, ci) => {
                             const isDiff = isDifferenceHeader(headers[ci] || "");
@@ -2670,7 +2671,7 @@ export function Reports() {
                     {activeTab === "Raw Material Cumulative" &&
                       paginatedRows.length > 0 &&
                       cumulativeTotals && (
-                        <tr className="bg-slate-200 dark:bg-slate-600 font-semibold text-slate-800 dark:text-slate-100 border-t-2 border-slate-400 dark:border-slate-500">
+                        <tr className="bg-surface-sunken font-semibold text-foreground border-t-2 border-border">
                           <td className="px-4 py-2">Total</td>
                           <td className="px-4 py-2" />
                           <td className="px-4 py-2 whitespace-nowrap">{fmtNum(cumulativeTotals.planned)}</td>
@@ -2682,7 +2683,7 @@ export function Reports() {
                       )}
                   </tbody>
                 </table>
-                <div className="flex justify-between items-center p-4 bg-slate-50 dark:bg-slate-800/80 border-t border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200">
+                <div className="flex justify-between items-center p-4 bg-surface-sunken border-t border-border text-foreground">
                   <div className="flex items-center gap-2 text-sm">
                     <span>
                       {isExpandableReport
@@ -2697,7 +2698,7 @@ export function Reports() {
                         setRowsPerPage(Number(e.target.value));
                         setCurrentPage(1);
                       }}
-                      className="border border-slate-300 dark:border-slate-600 rounded px-2 py-1 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100"
+                      className="border border-border rounded px-2 py-1 bg-surface text-foreground"
                     >
                       {[10, 25, 50, 100, 200, 500, 1000, -1].map((n) => (
                         <option key={n} value={n}>
@@ -2710,7 +2711,7 @@ export function Reports() {
                     <Button
                       onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                       disabled={currentPage === 1}
-                      className="px-3 py-1 text-sm bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-100"
+                      className="px-3 py-1 text-sm bg-surface-sunken text-foreground"
                     >
                       Previous
                     </Button>
@@ -2724,7 +2725,7 @@ export function Reports() {
                     <Button
                       onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                       disabled={currentPage >= totalPages}
-                      className="px-3 py-1 text-sm bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-100"
+                      className="px-3 py-1 text-sm bg-surface-sunken text-foreground"
                     >
                       Next
                     </Button>

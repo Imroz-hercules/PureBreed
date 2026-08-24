@@ -17,14 +17,17 @@ start "PureBreed Backend" cmd /k "cd /d "%ROOT%\NFM-backend" && call venv\Script
 
 timeout /t 5 /nobreak >nul
 
-echo Starting PureBreed Frontend (port 5180)...
+echo Starting PureBreed Frontend (port 5180, HTTPS)...
 start "PureBreed Frontend" cmd /k "cd /d "%ROOT%\NFM-Frontend" && npm run dev"
 
 echo.
 echo Backend:  http://localhost:5002
-echo Frontend: http://localhost:5180
 echo.
-echo LAN PCs: double-click open-purebreed-lan.bat
-echo   (opens Chrome/Edge so Export Save As works on the network IP)
+echo === Use HTTPS on every PC (no .bat download) ===
+echo   https://192.168.1.3:5180
+echo   https://localhost:5180   (this PC)
+echo.
+echo First visit: Advanced → Continue past certificate warning.
+echo Then Export Save As works. Do NOT use http://
 echo.
 exit
