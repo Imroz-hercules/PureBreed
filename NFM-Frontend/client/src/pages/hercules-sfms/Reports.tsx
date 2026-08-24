@@ -32,7 +32,7 @@ import {
   downloadReportExcel,
   type ExcelDataRow,
 } from "@/lib/reportExcelExport";
-import { normalizeMaterialCode, sortByMaterialCode } from "@/lib/materialSort";
+import { normalizeMaterialCode, sortByMaterialCode, sortByMaterialCodeForRecipe } from "@/lib/materialSort";
 
 /** Legacy BatchMaterials_Shadow reports + MaterialInfo-view (SSRS-style) reports */
 const LEGACY_TABS = [
@@ -810,7 +810,8 @@ function buildCumulativeTree(rows: Record<string, unknown>[]): CumulativeDateGro
     recipes: [...recipes.entries()].map(([recipe, cats]) => ({
       recipe,
       orderCats: [...cats.entries()].map(([orderCat, mats]) => {
-        const materials = sortByMaterialCode(
+        const materials = sortByMaterialCodeForRecipe(
+          recipe,
           [...mats.values()].map((m) => ({
             materialLabel: [m.code, m.name].filter(Boolean).join(" "),
             materialCode: m.code,
