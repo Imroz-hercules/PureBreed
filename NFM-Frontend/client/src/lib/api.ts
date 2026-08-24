@@ -3,14 +3,14 @@
 
 // Get the current hostname and port from the browser
 const getApiBaseUrl = () => {
-  // Always use the same hostname as the frontend but with port 5002
-  // This works for both localhost and remote access
-  const protocol = window.location.protocol;
+  // Vite frontend (5180): same origin → /api proxied to backend :5002
+  // Required for https://192.168.x.x:5180 so Save As works and APIs are not blocked
+  if (window.location.port === "5180") {
+    return window.location.origin;
+  }
+  const protocol = window.location.protocol === "https:" ? "https:" : "http:";
   const hostname = window.location.hostname;
-  const apiUrl = `${protocol}//${hostname}:5002`;
-  
-  
-  return apiUrl;
+  return `${protocol}//${hostname}:5002`;
 };
 
 export const API_BASE_URL = getApiBaseUrl();

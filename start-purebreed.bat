@@ -22,5 +22,7 @@ start "PureBreed Frontend" cmd /k "cd /d "%ROOT%\NFM-Frontend" && npm run dev"
 
 echo.
 echo Backend:  http://localhost:5002
-echo Frontend: http://localhost:5180
+echo Frontend: https://localhost:5180
+echo Network:  https://YOUR-PC-IP:5180  (accept certificate warning once)
+echo           Save As export works on HTTPS / localhost only
 exit

@@ -18,11 +18,18 @@ function dataUrlToBase64(dataUrl: string): { base64: string; extension: "png" | 
   return { base64: m[2], extension: ext };
 }
 
-/** Save As dialog (Chrome/Edge) or anchor download fallback (Firefox, etc.). */
+/** Save As dialog (Chrome/Edge on secure context) or Downloads fallback. */
 async function saveExcelBlob(
   blob: Blob,
   fileName: string
-): Promise<{ savedPath: string | null; cancelled: boolean }> {
+): Promise<{ savedPath: string | null; cancelled: boolean; usedPicker: boolean }> {
+  const isSecure =
+    typeof window !== "undefined" &&
+    (window.isSecureContext ||
+      window.location.protocol === "https:" ||
+      window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1");
+
   const w = window as Window & {
     showSaveFilePicker?: (options?: {
       suggestedName?: string;
@@ -36,7 +43,7 @@ async function saveExcelBlob(
     }>;
   };
 
-  if (typeof w.showSaveFilePicker === "function") {
+  if (isSecure && typeof w.showSaveFilePicker === "function") {
     try {
       const handle = await w.showSaveFilePicker({
         suggestedName: fileName,
@@ -52,11 +59,11 @@ async function saveExcelBlob(
       const writable = await handle.createWritable();
       await writable.write(blob);
       await writable.close();
-      return { savedPath: handle.name || fileName, cancelled: false };
+      return { savedPath: handle.name || fileName, cancelled: false, usedPicker: true };
     } catch (e: unknown) {
       const err = e as { name?: string };
       if (err?.name === "AbortError" || err?.name === "NotAllowedError") {
-        return { savedPath: null, cancelled: true };
+        return { savedPath: null, cancelled: true, usedPicker: true };
       }
       throw e;
     }
@@ -71,7 +78,7 @@ async function saveExcelBlob(
   a.click();
   a.remove();
   URL.revokeObjectURL(url);
-  return { savedPath: fileName, cancelled: false };
+  return { savedPath: fileName, cancelled: false, usedPicker: false };
 }
 
 const thinBorder: Partial<ExcelJS.Borders> = {
@@ -296,16 +303,17 @@ export async function downloadReportExcel(opts: {
   let savedPath: string | null = null;
   let saveError: string | null = null;
   let cancelled = false;
+  let usedPicker = false;
   try {
     const local = await saveExcelBlob(blob, fileName);
+    usedPicker = local.usedPicker;
     if (local.cancelled) {
-      cancelled = true;
-      return { savedPath: null, fileName, saveError: null, cancelled: true };
+      return { savedPath: null, fileName, saveError: null, cancelled: true, usedPicker: true };
     }
     savedPath = local.savedPath;
   } catch (e: any) {
     saveError = e?.message || "Could not save file";
-    return { savedPath: null, fileName, saveError, cancelled: false };
+    return { savedPath: null, fileName, saveError, cancelled: false, usedPicker: false };
   }
 
   // 2) Also copy to F:\Purebreed_reports\… when the API is available (best-effort)
@@ -328,7 +336,7 @@ export async function downloadReportExcel(opts: {
     /* F: archive is optional when Save As already succeeded */
   }
 
-  return { savedPath, fileName, saveError, cancelled };
+  return { savedPath, fileName, saveError, cancelled, usedPicker };
 }
 
 export function buildBatchHierarchyExcelRows(

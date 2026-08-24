@@ -1868,7 +1868,14 @@ export function Reports() {
     const finish = async (result: Awaited<ReturnType<typeof downloadReportExcel>>) => {
       if (result?.cancelled) return;
       if (result?.savedPath) {
-        showToast(`Saved: ${result.savedPath}`, "success");
+        if (result.usedPicker) {
+          showToast(`Saved: ${result.savedPath}`, "success");
+        } else {
+          showToast(
+            `Downloaded to Downloads folder (${result.fileName || result.savedPath}). Use https://PC-IP:5180 for Save As.`,
+            "success"
+          );
+        }
       } else {
         showToast(result?.saveError || "Failed to save Excel file", "error");
       }
