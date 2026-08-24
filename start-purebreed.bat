@@ -23,8 +23,11 @@ start "PureBreed Frontend" cmd /k "cd /d "%ROOT%\NFM-Frontend" && npm run dev"
 echo.
 echo Backend:  http://localhost:5002
 echo Frontend: http://localhost:5180
-echo Network:  http://YOUR-PC-IP:5180
 echo.
-echo Note: Save As folder picker works on localhost.
-echo       On LAN IP, Excel goes to Downloads folder (browser security).
+echo LAN (Save As works like localhost):
+echo   1) On each PC run setup-purebreed-lan.bat as Administrator
+echo   2) Open http://purebreed.localhost:5180
+echo   Or use open-purebreed-lan.bat
+echo.
+echo Do NOT use http://192.168.x.x:5180 for Save As — browser blocks it.
 exit

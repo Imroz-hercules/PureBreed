@@ -1872,7 +1872,7 @@ export function Reports() {
           showToast(`Saved: ${result.savedPath}`, "success");
         } else {
           showToast(
-            `Downloaded to Downloads (${result.fileName || result.savedPath}). On LAN, use this PC via localhost for Save As picker.`,
+            `Downloaded to Downloads (${result.fileName || result.savedPath}). For Save As on LAN open http://purebreed.localhost:5180 (run setup-purebreed-lan.bat once).`,
             "success"
           );
         }

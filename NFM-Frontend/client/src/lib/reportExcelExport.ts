@@ -18,18 +18,28 @@ function dataUrlToBase64(dataUrl: string): { base64: string; extension: "png" | 
   return { base64: m[2], extension: ext };
 }
 
-/** Save As dialog (Chrome/Edge on secure context) or Downloads fallback. */
+/** True when browser allows File System Access (Save As). */
+function canUseSavePicker(): boolean {
+  if (typeof window === "undefined") return false;
+  const host = window.location.hostname.toLowerCase();
+  // localhost + *.localhost are secure contexts even on HTTP (LAN-friendly)
+  const isLocalhostFamily =
+    host === "localhost" ||
+    host === "127.0.0.1" ||
+    host === "[::1]" ||
+    host.endsWith(".localhost");
+  return (
+    window.isSecureContext ||
+    window.location.protocol === "https:" ||
+    isLocalhostFamily
+  );
+}
+
+/** Save As dialog when allowed; otherwise Downloads folder. */
 async function saveExcelBlob(
   blob: Blob,
   fileName: string
 ): Promise<{ savedPath: string | null; cancelled: boolean; usedPicker: boolean }> {
-  const isSecure =
-    typeof window !== "undefined" &&
-    (window.isSecureContext ||
-      window.location.protocol === "https:" ||
-      window.location.hostname === "localhost" ||
-      window.location.hostname === "127.0.0.1");
-
   const w = window as Window & {
     showSaveFilePicker?: (options?: {
       suggestedName?: string;
@@ -43,7 +53,7 @@ async function saveExcelBlob(
     }>;
   };
 
-  if (isSecure && typeof w.showSaveFilePicker === "function") {
+  if (canUseSavePicker() && typeof w.showSaveFilePicker === "function") {
     try {
       const handle = await w.showSaveFilePicker({
         suggestedName: fileName,
